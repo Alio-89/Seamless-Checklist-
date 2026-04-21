@@ -1,0 +1,1816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Really Good Trades</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script
+  src="https://js.sentry-cdn.com/85fdc21c7cdd6458c9de35da09af315a.min.js"
+  crossorigin="anonymous"
+></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f7f5f0; --surface: #ffffff; --border: #e2ddd6; --border-strong: #c8c2b8;
+    --text: #1a1814; --text-muted: #7a7268; --accent: #1D7A4F;
+    --checked-bg: #f0faf5; --header-bg: #1a1814;
+  }
+  body { font-family: 'Georgia', serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* AUTH SCREEN */
+  #auth-screen { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:1rem; }
+  .auth-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 2.5rem 2rem; width: 100%; max-width: 380px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
+  .auth-card h2 { font-size: 1.3rem; font-weight: normal; letter-spacing: 0.1em; text-transform: uppercase; text-align: center; margin-bottom: 0.4rem; }
+  .auth-card p.sub { text-align:center; font-family:'Arial',sans-serif; font-size:0.82rem; color:var(--text-muted); margin-bottom:2rem; }
+  .auth-tabs { display:flex; border-bottom:1px solid var(--border); margin-bottom:1.5rem; }
+  .auth-tab { flex:1; padding:0.6rem; text-align:center; font-family:'Arial',sans-serif; font-size:0.82rem; cursor:pointer; color:var(--text-muted); border-bottom:2px solid transparent; margin-bottom:-1px; transition:all 0.15s; }
+  .auth-tab.active { color:var(--accent); border-bottom-color:var(--accent); font-weight:bold; }
+  .auth-field { margin-bottom:1rem; }
+  .auth-field label { display:block; font-family:'Arial',sans-serif; font-size:0.78rem; color:var(--text-muted); margin-bottom:0.3rem; text-transform:uppercase; letter-spacing:0.06em; }
+  .auth-field input { width:100%; padding:0.6rem 0.8rem; font-size:0.9rem; font-family:'Arial',sans-serif; border:1px solid var(--border-strong); border-radius:6px; background:var(--surface); color:var(--text); outline:none; }
+  .auth-field input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(29,122,79,0.12); }
+  .auth-btn { width:100%; padding:0.7rem; font-family:'Arial',sans-serif; font-size:0.88rem; font-weight:bold; letter-spacing:0.05em; background:var(--accent); color:#fff; border:none; border-radius:6px; cursor:pointer; margin-top:0.5rem; transition:background 0.15s; }
+  .auth-btn:hover { background:#165f3d; }
+  .auth-btn:disabled { background:#aaa; cursor:not-allowed; }
+  .auth-error { font-family:'Arial',sans-serif; font-size:0.8rem; color:#c0392b; background:#fdf0ee; border:1px solid #f5c6c0; border-radius:6px; padding:0.5rem 0.75rem; margin-top:0.75rem; display:none; }
+  .auth-error.show { display:block; }
+  .auth-success { font-family:'Arial',sans-serif; font-size:0.8rem; color:#1D7A4F; background:#e8f9f0; border:1px solid #a8e6c8; border-radius:6px; padding:0.5rem 0.75rem; margin-top:0.75rem; display:none; }
+  .auth-success.show { display:block; }
+
+  /* APP */
+  #app-screen { display:none; }
+  header { background: var(--header-bg); color: #f7f5f0; padding: 1.5rem 1.5rem 1rem; text-align: center; border-bottom: 3px solid var(--accent); position:relative; }
+  header h1 { font-size: clamp(1.4rem, 4vw, 2.3rem); font-weight: normal; letter-spacing: 0.12em; text-transform: uppercase; }
+  header p { margin-top: 0.4rem; font-size: 0.85rem; color: #aaa; font-family: 'Arial', sans-serif; letter-spacing: 0.04em; line-height: 1.7; }
+  .user-bar { background:#111; color:#aaa; font-family:'Arial',sans-serif; font-size:0.78rem; display:flex; align-items:center; justify-content:flex-end; gap:1rem; padding:0.4rem 1.25rem; }
+  .user-bar span { color:#ccc; }
+  .user-bar button { background:none; border:1px solid #444; color:#aaa; border-radius:4px; padding:2px 10px; font-size:0.75rem; cursor:pointer; font-family:'Arial',sans-serif; transition:all 0.15s; }
+  .user-bar button:hover { border-color:#888; color:#fff; }
+  .user-bar .save-btn { background:var(--accent); border-color:var(--accent); color:#fff; padding:3px 14px; font-weight:bold; }
+  .user-bar .save-btn:hover { background:#165f3d; }
+  .user-bar .save-btn:disabled { background:#555; border-color:#555; cursor:not-allowed; }
+  .info-btn { background: none; border: 1px solid #666; color: #ccc; border-radius: 50%; width: 22px; height: 22px; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; font-family: serif; margin-right: auto; transition: all 0.15s; }
+  .info-btn:hover { border-color: #fff; color: #fff; }
+  .sync-status { font-size:0.72rem; opacity:0.7; }
+  .sync-status.saving { color:#f5d88a; }
+  .sync-status.saved  { color:#88f5c4; }
+  .sync-status.error  { color:#f5a888; }
+  .controls-wrap { position: sticky; top: 52px; z-index: 99; background: var(--bg); border-bottom: 1px solid var(--border); }
+  .controls { max-width: 1020px; margin: 0 auto; padding: 0.6rem 1rem; display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; }
+  .controls + .controls { padding-top: 0; padding-bottom: 0.6rem; }
+  .controls input[type="text"] { flex: 1; min-width: 150px; padding: 0.52rem 0.8rem; font-size: 0.88rem; font-family: 'Arial', sans-serif; border: 1px solid var(--border-strong); border-radius: 6px; background: var(--surface); color: var(--text); outline: none; }
+  .controls input[type="text"]:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(29,122,79,0.12); }
+  .controls select { padding: 0.52rem 0.7rem; font-size: 0.88rem; font-family: 'Arial', sans-serif; border: 1px solid var(--border-strong); border-radius: 6px; background: var(--surface); color: var(--text); cursor: pointer; outline: none; }
+  .btn { padding: 0.52rem 0.9rem; font-size: 0.8rem; font-family: 'Arial', sans-serif; letter-spacing: 0.04em; border: 1px solid var(--border-strong); border-radius: 6px; background: var(--surface); color: var(--text); cursor: pointer; transition: background 0.15s; white-space: nowrap; }
+  .btn:hover { background: var(--bg); }
+  .btn.accent { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn.accent:hover { background: #165f3d; }
+  .table-wrap { max-width: 1020px; margin: 1rem auto 0; padding: 0 1rem; }
+  .table-wrap.last { margin-bottom: 3rem; }
+  table { width: 100%; border-collapse: collapse; background: var(--surface); border-radius: 10px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 2px 12px rgba(0,0,0,0.06); table-layout: fixed; }
+  col.c-subset { width: 160px; }
+  col.c-num    { width: 68px; }
+  col.c-team   { width: 130px; }
+  col.c-name   { width: auto; }
+  col.c-own    { width: 80px; }
+  col.c-want   { width: 80px; }
+  thead th { position: sticky; top: 0; background: #f0ece6; padding: 0.65rem 1rem; font-family: 'Arial', sans-serif; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); text-align: left; border-bottom: 1px solid var(--border); }
+  thead th.c-own-h { text-align: center; }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: #faf8f4; }
+  tbody tr.owned { background: var(--checked-bg); }
+  tbody tr.owned:hover { background: #e4f5ec; }
+  tbody td { padding: 0.55rem 1rem; font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  tbody td.c-num { font-family: 'Arial', sans-serif; font-size: 0.8rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+  tbody td.c-team { font-family: 'Arial', sans-serif; font-size: 0.8rem; color: var(--text-muted); }
+  tbody td.c-own { text-align: center; }
+  tbody td.c-want { text-align: center; }
+  .badge { display: inline-block; font-family: 'Arial', sans-serif; font-size: 0.62rem; font-weight: bold; letter-spacing: 0.03em; padding: 2px 6px; border-radius: 10px; text-transform: uppercase; white-space: nowrap; }
+  .b-base  { background: #e8e4dd; color: #5a5650; }
+  .b-black { background: #2a2a2a; color: #f0f0f0; }
+  .b-sdp   { background: #3a2a0a; color: #f5d88a; }
+  .b-dp    { background: #1a2a3a; color: #8ac4f5; }
+  .b-tmp   { background: #2a1a3a; color: #d4a8f5; }
+  .b-jp    { background: #1a3a2a; color: #88f5c4; }
+  .b-rs    { background: #3a1a1a; color: #f5a888; }
+  .b-rsg   { background: #8B6914; color: #fff5cc; }
+  .b-as    { background: #1a1a3a; color: #a8c4f5; }
+  .b-ps    { background: #2a3a1a; color: #c4f5a8; }
+  .b-psb   { background: #3a2a2a; color: #f5c4a8; }
+  .b-mp    { background: #1a3a3a; color: #a8f5f5; }
+  input[type="checkbox"] { width: 17px; height: 17px; accent-color: var(--accent); cursor: pointer; }
+  .empty { text-align: center; padding: 3rem; color: var(--text-muted); font-family: 'Arial', sans-serif; font-size: 0.9rem; }
+  .loading { text-align: center; padding: 4rem 2rem; color: var(--text-muted); font-family: 'Arial', sans-serif; }
+  .loading-spin { display:inline-block; width:24px; height:24px; border:3px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin 0.7s linear infinite; margin-bottom:1rem; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(10px); background: #1a1814; color: #f7f5f0; font-family: 'Arial', sans-serif; font-size: 0.85rem; padding: 0.6rem 1.25rem; border-radius: 20px; opacity: 0; pointer-events: none; transition: opacity 0.2s, transform 0.2s; white-space: nowrap; z-index: 999; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .sticky-top { position: sticky; top: 0; z-index: 100; }
+  .trade-header { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+  .trade-header h2 { font-size: 1rem; font-weight: normal; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text); font-family: 'Arial', sans-serif; }
+  .trade-header select { padding: 0.52rem 0.7rem; font-size: 0.88rem; font-family: 'Arial', sans-serif; border: 1px solid var(--border-strong); border-radius: 6px; background: var(--surface); color: var(--text); cursor: pointer; outline: none; min-width: 200px; }
+  .trade-header select:focus { border-color: var(--accent); }
+  .trade-empty { text-align: center; padding: 2rem; color: var(--text-muted); font-family: 'Arial', sans-serif; font-size: 0.88rem; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; }
+  .trade-count { font-family: 'Arial', sans-serif; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.75rem; }
+  .trade-count strong { color: var(--accent); }
+  .bug-btn { background: none; border: 1px solid #444; color: #aaa; border-radius: 4px; padding: 2px 10px; font-size: 0.75rem; cursor: pointer; font-family: 'Arial', sans-serif; transition: all 0.15s; }
+  .bug-btn:hover { border-color: #c0392b; color: #e74c3c; }
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 500; align-items: center; justify-content: center; padding: 1rem; }
+  .modal-overlay.show { display: flex; }
+  .modal-card { background: var(--surface); border-radius: 12px; padding: 2rem; width: 100%; max-width: 440px; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+  .modal-card h3 { font-size: 1rem; font-weight: normal; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.3rem; font-family: 'Arial', sans-serif; }
+  .modal-card p.sub { font-size: 0.8rem; color: var(--text-muted); font-family: 'Arial', sans-serif; margin-bottom: 1.25rem; }
+  .modal-field { margin-bottom: 1rem; }
+  .modal-field label { display: block; font-family: 'Arial', sans-serif; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.3rem; text-transform: uppercase; letter-spacing: 0.06em; }
+  .modal-field textarea { width: 100%; padding: 0.6rem 0.8rem; font-size: 0.88rem; font-family: 'Arial', sans-serif; border: 1px solid var(--border-strong); border-radius: 6px; background: var(--surface); color: var(--text); outline: none; resize: vertical; min-height: 100px; }
+  .modal-field textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(29,122,79,0.12); }
+  .modal-field select { width: 100%; padding: 0.55rem 0.75rem; font-size: 0.88rem; font-family: 'Arial', sans-serif; border: 1px solid var(--border-strong); border-radius: 6px; background: var(--surface); color: var(--text); outline: none; }
+  .modal-actions { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.25rem; }
+  .modal-cancel { background: none; border: 1px solid var(--border-strong); color: var(--text-muted); border-radius: 6px; padding: 0.5rem 1rem; font-family: 'Arial', sans-serif; font-size: 0.85rem; cursor: pointer; }
+  .modal-cancel:hover { background: var(--bg); }
+  .modal-submit { background: #c0392b; border: none; color: #fff; border-radius: 6px; padding: 0.5rem 1.25rem; font-family: 'Arial', sans-serif; font-size: 0.85rem; cursor: pointer; font-weight: bold; }
+  .modal-submit:hover { background: #a93226; }
+  .modal-submit:disabled { background: #aaa; cursor: not-allowed; }
+  tr.subset-header { cursor: pointer; background: #f0ece6 !important; user-select: none; }
+  tr.subset-header:hover { background: #e8e4dc !important; }
+  tr.subset-header td { font-family: 'Arial', sans-serif; font-weight: bold; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text); padding: 0.6rem 1rem; }
+  tr.subset-header td.sh-count { text-align: center; font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+  tr.subset-header td.sh-count span.owned-count { color: var(--accent); }
+  tr.subset-header td.sh-count span.sep { color: var(--text-muted); }
+  tr.team-header { cursor: pointer; background: #faf8f4 !important; user-select: none; }
+  tr.team-header:hover { background: #f3efe8 !important; }
+  tr.team-header td { font-family: 'Arial', sans-serif; font-size: 0.8rem; color: var(--text-muted); padding: 0.45rem 1rem 0.45rem 2.5rem; border-bottom: 1px solid var(--border); }
+  tr.team-header td.sh-count { text-align: center; font-size: 0.78rem; font-variant-numeric: tabular-nums; color: var(--text-muted); }
+  tr.team-header td.sh-count span.owned-count { color: var(--accent); }
+  tr.team-header td.sh-count span.sep { color: var(--border-strong); }
+  .expand-icon { display: inline-block; width: 14px; text-align: center; margin-right: 6px; font-style: normal; transition: transform 0.15s; color: var(--text-muted); }
+  .expand-icon.open { transform: rotate(90deg); }
+  .show-all-btn { font-family: 'Arial', sans-serif; font-size: 0.7rem; font-weight: normal; color: var(--accent); background: none; border: 1px solid var(--accent); border-radius: 4px; padding: 1px 7px; cursor: pointer; margin-left: 10px; vertical-align: middle; text-transform: none; letter-spacing: 0; }
+  .show-all-btn:hover { background: var(--accent); color: #fff; }
+  th.col-toggle { cursor: pointer; user-select: none; }
+  th.col-toggle:hover { background: #e4e0d8; }
+  th.col-toggle .toggle-hint { font-size: 0.6rem; opacity: 0.6; display: block; font-weight: normal; letter-spacing: 0; text-transform: none; margin-top: 1px; }
+  footer { text-align: center; padding: 1.5rem; font-family: 'Arial', sans-serif; font-size: 0.78rem; color: var(--text-muted); border-top: 1px solid var(--border); }
+  @media (max-width: 640px) {
+    tbody td { padding: 0.45rem 0.6rem; font-size: 0.8rem; }
+    col.c-num { width: 44px; } col.c-subset { width: 80px; } col.c-team { width: 100px; } col.c-name { width: 140px; } col.c-own { width: 70px; } col.c-want { width: 70px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- AUTH SCREEN -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <h2>Really Good Trades</h2>
+    <p class="sub">AFL Trading Cards Checklist</p>
+    <div class="auth-tabs">
+      <div class="auth-tab active" id="tab-login" onclick="switchTab('login')">Log in</div>
+      <div class="auth-tab" id="tab-signup" onclick="switchTab('signup')">Sign up</div>
+    </div>
+    <div id="login-form">
+      <div class="auth-field"><label>Email</label><input type="email" id="login-email" placeholder="you@example.com" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <div class="auth-field"><label>Password</label><input type="password" id="login-password" placeholder="Your password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <button class="auth-btn" id="login-btn" onclick="doLogin()">Log in</button>
+      <div class="auth-error" id="login-error"></div>
+      <div style="text-align:center;margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid var(--border);">
+        <button onclick="enterPreview()" style="background:none;border:none;color:var(--text-muted);font-family:'Arial',sans-serif;font-size:0.78rem;cursor:pointer;text-decoration:underline;">Preview without logging in</button>
+      </div>
+    </div>
+    <div id="signup-form" style="display:none">
+      <div class="auth-field"><label>Email</label><input type="email" id="signup-email" placeholder="you@example.com" onkeydown="if(event.key==='Enter')doSignup()"></div>
+      <div class="auth-field"><label>Password</label><input type="password" id="signup-password" placeholder="Choose a password (min 6 chars)" onkeydown="if(event.key==='Enter')doSignup()"></div>
+      <button class="auth-btn" id="signup-btn" onclick="doSignup()">Create account</button>
+      <div class="auth-error" id="signup-error"></div>
+      <div class="auth-success" id="signup-success"></div>
+    </div>
+  </div>
+</div>
+
+<!-- APP SCREEN -->
+<div id="app-screen">
+  <div class="sticky-top">
+  <div class="user-bar">
+    <button class="info-btn" onclick="openInfo()" title="About Really Good Trades">&#9432;</button>
+    <span id="user-email-display"></span>
+    <span id="preview-badge" style="display:none;background:#8B6914;color:#fff5cc;font-size:0.7rem;font-weight:bold;padding:2px 8px;border-radius:10px;letter-spacing:0.04em;text-transform:uppercase;">Preview mode</span>
+    <span class="sync-status" id="sync-status"></span>
+    <button class="save-btn" id="save-btn" onclick="manualSave()">Save list</button>
+    <button class="bug-btn" onclick="openBugReport()">&#9888; Report a bug</button>
+    <button onclick="doLogout()">Log out</button>
+  </div>
+  <div id="save-error" style="display:none;background:#c0392b;color:#fff;font-family:'Arial',sans-serif;font-size:0.8rem;padding:0.5rem 1.25rem;text-align:center;"></div>
+  <header>
+    <h1>Really Good Trades</h1>
+  </header>
+  <div class="controls-wrap">
+  <div class="controls">
+    <select id="filter-year" onchange="onYearChange()">
+      <option value="2025">2025</option>
+      <option value="2026">2026</option>
+    </select>
+    <select id="filter-series" onchange="onSeriesChange()">
+      <option value="Seamless">Seamless</option>
+      <option value="Eminence">Eminence</option>
+    </select>
+    <select id="filter-subset" onchange="render()">
+      <option value="all">All subsets</option>
+      <option value="Base">Base</option>
+      <option value="Black">Black</option>
+      <option value="Solo Double Patch">Solo Double Patch</option>
+      <option value="Dual Patch">Dual Patch</option>
+      <option value="Team Multi-Patch">Team Multi-Patch</option>
+      <option value="Jumbo Patch">Jumbo Patch</option>
+      <option value="Rookie Badge Signature">Rookie Badge Signature</option>
+      <option value="Rookie Badge Signature Gold">Rookie Badge Sig. Gold</option>
+      <option value="AFL Badge Signature">AFL Badge Signature</option>
+      <option value="Patch Signature">Patch Signature</option>
+      <option value="Dual Patch Signature Booklet">Dual Patch Sig. Booklet</option>
+      <option value="Mega Patch">Mega Patch</option>
+    </select>
+    <select id="filter-team" onchange="render()">
+      <option value="all">All teams</option>
+      <option>Adelaide Crows</option><option>Brisbane Lions</option><option>Carlton</option>
+      <option>Collingwood</option><option>Essendon</option><option>Fremantle</option>
+      <option>Geelong Cats</option><option>Gold Coast SUNS</option><option>GWS GIANTS</option>
+      <option>Hawthorn</option><option>Melbourne</option><option>North Melbourne</option>
+      <option>Port Adelaide</option><option>Richmond</option><option>St Kilda</option>
+      <option>Sydney Swans</option><option>West Coast Eagles</option><option>Western Bulldogs</option>
+    </select>
+    <select id="filter-own" onchange="render()">
+      <option value="all">All cards</option>
+      <option value="owned">Owned</option>
+      <option value="missing">Not owned</option>
+      <option value="wanted">Wishlist</option>
+    </select>
+  </div>
+  <div class="controls" style="border-top:0;padding-top:0;">
+    <input type="text" id="search" placeholder="Search number, name or team&hellip;" oninput="render()">
+    <button class="btn" onclick="checkVisible()">Check visible</button>
+    <button class="btn" onclick="uncheckVisible()">Uncheck visible</button>
+    <button class="btn accent" onclick="resetAll()">Reset all</button>
+  </div>
+  </div>
+  </div>
+  <div id="coming-soon-panel" style="display:none;max-width:980px;margin:2rem auto;padding:0 1rem;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:3rem 2rem;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+      <div style="font-size:2.5rem;margin-bottom:1rem;">🃏</div>
+      <div style="font-family:'Arial',sans-serif;font-size:1.1rem;font-weight:bold;color:var(--text);margin-bottom:0.5rem;" id="coming-soon-title">Coming Soon</div>
+      <div style="font-family:'Arial',sans-serif;font-size:0.88rem;color:var(--text-muted);" id="coming-soon-sub">Card data for this release hasn't been added yet. Check back later.</div>
+    </div>
+  </div>
+  <div class="table-wrap" id="main-table-wrap">
+    <table>
+      <colgroup><col class="c-subset"><col class="c-num"><col class="c-team"><col class="c-name"><col class="c-own"><col class="c-want"></colgroup>
+      <thead><tr>
+        <th>Subset</th>
+        <th>Number</th>
+        <th>Team</th>
+        <th>Name</th>
+        <th class="c-own-h">Own</th>
+        <th class="c-own-h">Wishlist</th>
+      </tr></thead>
+      <tbody id="tbody"><tr><td colspan="6"><div class="loading"><div class="loading-spin"></div><br>Loading your list&hellip;</div></td></tr></tbody>
+    </table>
+  </div>
+  <div class="table-wrap last" style="margin-top:0.5rem;">
+    <div style="padding:0.6rem 1rem;font-family:'Arial',sans-serif;font-size:0.75rem;color:var(--text-muted);text-align:right;">
+      Tick boxes then click Save list to sync to the cloud.
+    </div>
+  </div>
+
+  <!-- TRADE FINDER -->
+  <div class="trade-section">
+    <div class="trade-header">
+      <h2>&#9654; Trade Finder</h2>
+      <button class="btn" onclick="runTradeFinder()" id="trade-run-btn" style="white-space:nowrap;">&#9654; Find best trades</button>
+      <button class="btn" onclick="runTradeFinder()" style="white-space:nowrap;">&#8635; Refresh</button>
+    </div>
+    <div id="trade-results"></div>
+  </div>
+
+  <footer>Really Good Trades &mdash; AFL Trading Cards Checklist &mdash; <span style="opacity:0.6;">v2.0</span></footer>
+</div>
+
+<!-- BUG REPORT MODAL -->
+<div class="modal-overlay" id="bug-modal">
+  <div class="modal-card">
+    <h3>&#9888; Report a bug</h3>
+    <p class="sub">Describe what went wrong and we'll look into it.</p>
+    <div class="modal-field">
+      <label>Type</label>
+      <select id="bug-type">
+        <option value="bug">Something is broken</option>
+        <option value="display">Display / layout issue</option>
+        <option value="data">Wrong card data</option>
+        <option value="save">Save / load not working</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label>Description</label>
+      <textarea id="bug-desc" placeholder="What happened? What were you doing when it occurred?"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeBugReport()">Cancel</button>
+      <button class="modal-submit" id="bug-submit-btn" onclick="submitBugReport()">Submit report</button>
+    </div>
+  </div>
+</div>
+
+<!-- INFO MODAL -->
+<div class="modal-overlay" id="info-modal" onclick="closeInfo()">
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <h3>&#9432; About Really Good Trades</h3>
+    <p class="sub" style="margin-bottom:1rem;">Your Seamless AFL trading card checklist.</p>
+    <div style="font-family:'Arial',sans-serif;font-size:0.85rem;color:var(--text);line-height:1.7;">
+      <p style="margin-bottom:0.75rem;"><strong>Tracking your collection</strong><br>
+      Use the <strong>Own</strong> checkbox to mark cards you have. Use <strong>Wishlist</strong> to mark cards you're looking for.</p>
+      <p style="margin-bottom:0.75rem;"><strong>Browsing</strong><br>
+      Click a subset row to expand it by team. Click a team row to see individual cards. Use <em>Show all</em> to skip team grouping.</p>
+      <p style="margin-bottom:0.75rem;"><strong>Trade Finder</strong><br>
+      Scroll down and click <em>Find best trades</em> to see which other users have cards you want — and want cards you have.</p>
+      <p style="margin-bottom:0.75rem;"><strong>Saving</strong><br>
+      Tick your boxes then click <em>Save list</em> to sync to the cloud. Your list is private and linked to your account.</p>
+      <p><strong>Subsets included</strong><br>
+      Base &middot; Black &middot; Solo Double Patch &middot; Dual Patch &middot; Team Multi-Patch &middot; Jumbo Patch &middot; Rookie Badge Signature &middot; Rookie Badge Sig. Gold &middot; AFL Badge Signature &middot; Patch Signature &middot; Dual Patch Sig. Booklet &middot; Mega Patch</p>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeInfo()">Close</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+const SUPABASE_URL = "https://jisozambxgufhgwwdmjz.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imppc296YW1ieGd1Zmhnd3dkbWp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2ODI4MDQsImV4cCI6MjA5MjI1ODgwNH0.1tK7xFter9rgqAz5-8WzwGoWELT5vrH9EnqjOajlL5M";
+window._sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ---- SENTRY ----
+if(typeof Sentry !== 'undefined'){
+  Sentry.init({
+    dsn: "https://85fdc21c7cdd6458c9de35da09af315a@o4509272642289664.ingest.us.sentry.io/4509272643796992",
+    environment: location.hostname === 'localhost' ? 'development' : 'production',
+    beforeSend(event){
+      // attach current user email if logged in
+      if(currentUser) event.user = { email: currentUser.email, id: currentUser.id };
+      return event;
+    }
+  });
+}
+
+// ---- BUG REPORT ----
+function openInfo(){
+  document.getElementById('info-modal').classList.add('show');
+}
+function closeInfo(){
+  document.getElementById('info-modal').classList.remove('show');
+}
+
+function openBugReport(){
+  document.getElementById('bug-desc').value = '';
+  document.getElementById('bug-type').value = 'bug';
+  document.getElementById('bug-submit-btn').disabled = false;
+  document.getElementById('bug-submit-btn').textContent = 'Submit report';
+  document.getElementById('bug-modal').classList.add('show');
+}
+
+function closeBugReport(){
+  document.getElementById('bug-modal').classList.remove('show');
+}
+
+async function submitBugReport(){
+  const type = document.getElementById('bug-type').value;
+  const desc = document.getElementById('bug-desc').value.trim();
+  if(!desc){ alert('Please describe the issue before submitting.'); return; }
+  const btn = document.getElementById('bug-submit-btn');
+  btn.disabled = true; btn.textContent = 'Submitting\u2026';
+
+  // Capture to Sentry as a user feedback event
+  if(typeof Sentry !== 'undefined'){
+    Sentry.captureMessage(`Bug report [${type}]: ${desc}`, {
+      level: 'info',
+      tags: { report_type: type },
+      user: currentUser ? { email: currentUser.email } : { email: 'anonymous' }
+    });
+  }
+
+  // Also save to Supabase bug_reports table
+  try {
+    await _sb.from('bug_reports').insert({
+      user_email: currentUser ? currentUser.email : 'anonymous',
+      type,
+      description: desc,
+      page_state: JSON.stringify({
+        filter_own:    document.getElementById('filter-own')?.value,
+        filter_subset: document.getElementById('filter-subset')?.value,
+        filter_team:   document.getElementById('filter-team')?.value,
+        owned_count:   owned.size,
+        wanted_count:  wanted.size,
+      }),
+      user_agent: navigator.userAgent,
+      submitted_at: new Date().toISOString()
+    });
+  } catch(e){ console.warn('Bug report save failed (non-critical):', e); }
+
+  closeBugReport();
+  showToast('Bug report submitted \u2014 thank you!');
+}
+
+const BADGE = {
+  "Base":"b-base","Black":"b-black","Solo Double Patch":"b-sdp","Dual Patch":"b-dp",
+  "Team Multi-Patch":"b-tmp","Jumbo Patch":"b-jp","Rookie Badge Signature":"b-rs",
+  "Rookie Badge Signature Gold":"b-rsg","AFL Badge Signature":"b-as",
+  "Patch Signature":"b-ps","Dual Patch Signature Booklet":"b-psb","Mega Patch":"b-mp"
+};
+const LABEL = {
+  "Base":"Base","Black":"Black","Solo Double Patch":"Solo DP","Dual Patch":"Dual Patch",
+  "Team Multi-Patch":"Team MP","Jumbo Patch":"Jumbo","Rookie Badge Signature":"Rookie Sig",
+  "Rookie Badge Signature Gold":"Rookie Sig G","AFL Badge Signature":"Badge Sig",
+  "Patch Signature":"Patch Sig","Dual Patch Signature Booklet":"DP Booklet","Mega Patch":"Mega Patch"
+};
+
+const cards = [
+  ["1","Matt Crouch","Base","Adelaide Crows"],
+  ["2","Sid Draper","Base","Adelaide Crows"],
+  ["3","Darcy Fogarty","Base","Adelaide Crows"],
+  ["4","Mitchell Hinge","Base","Adelaide Crows"],
+  ["5","Ben Keays","Base","Adelaide Crows"],
+  ["6","Rory Laird","Base","Adelaide Crows"],
+  ["7","Alex Neal-Bullen","Base","Adelaide Crows"],
+  ["8","Reilly O\'Brien","Base","Adelaide Crows"],
+  ["9","James Peatling","Base","Adelaide Crows"],
+  ["10","Josh Rachele","Base","Adelaide Crows"],
+  ["11","Izak Rankine","Base","Adelaide Crows"],
+  ["12","Jake Soligo","Base","Adelaide Crows"],
+  ["13","Harris Andrews","Base","Brisbane Lions"],
+  ["14","Zac Bailey","Base","Brisbane Lions"],
+  ["15","Jarrod Berry","Base","Brisbane Lions"],
+  ["16","Josh Dunkley","Base","Brisbane Lions"],
+  ["17","Jaspa Fletcher","Base","Brisbane Lions"],
+  ["18","Eric Hipwood","Base","Brisbane Lions"],
+  ["19","Kai Lohmann","Base","Brisbane Lions"],
+  ["20","Hugh McCluggage","Base","Brisbane Lions"],
+  ["21","Oscar McInerney","Base","Brisbane Lions"],
+  ["22","Cam Rayner","Base","Brisbane Lions"],
+  ["23","Darcy Wilmot","Base","Brisbane Lions"],
+  ["24","Dayne Zorko","Base","Brisbane Lions"],
+  ["25","Blake Acres","Base","Carlton"],
+  ["26","Adam Cerra","Base","Carlton"],
+  ["27","Cooper Lord","Base","Carlton"],
+  ["28","Brodie Kemp","Base","Carlton"],
+  ["29","Nick Haynes","Base","Carlton"],
+  ["30","George Hewett","Base","Carlton"],
+  ["31","Zac Williams","Base","Carlton"],
+  ["32","Harry McKay","Base","Carlton"],
+  ["33","Marc Pittonet","Base","Carlton"],
+  ["34","Adam Saad","Base","Carlton"],
+  ["35","Harry O\'Farrell","Base","Carlton"],
+  ["36","Jacob Weitering","Base","Carlton"],
+  ["37","Darcy Cameron","Base","Collingwood"],
+  ["38","Jack Crisp","Base","Collingwood"],
+  ["39","Josh Daicos","Base","Collingwood"],
+  ["40","Bobby Hill","Base","Collingwood"],
+  ["41","Dan Houston","Base","Collingwood"],
+  ["42","Jeremy Howe","Base","Collingwood"],
+  ["43","Patrick Lipinski","Base","Collingwood"],
+  ["44","Brayden Maynard","Base","Collingwood"],
+  ["45","Isaac Quaynor","Base","Collingwood"],
+  ["46","Harry Perryman","Base","Collingwood"],
+  ["47","Lachie Schultz","Base","Collingwood"],
+  ["48","Steele Sidebottom","Base","Collingwood"],
+  ["49","Sam Durham","Base","Essendon"],
+  ["50","Xavier Duursma","Base","Essendon"],
+  ["51","Ben Hobbs","Base","Essendon"],
+  ["52","Kyle Langford","Base","Essendon"],
+  ["53","Nic Martin","Base","Essendon"],
+  ["54","Ben McKay","Base","Essendon"],
+  ["55","Andrew McGrath","Base","Essendon"],
+  ["56","Archie Perkins","Base","Essendon"],
+  ["57","Mason Redman","Base","Essendon"],
+  ["58","Zach Reid","Base","Essendon"],
+  ["59","Archie Roberts","Base","Essendon"],
+  ["60","Dylan Shiel","Base","Essendon"],
+  ["61","Shai Bolton","Base","Fremantle"],
+  ["62","Heath Chapman","Base","Fremantle"],
+  ["63","Jordan Clark","Base","Fremantle"],
+  ["64","Michael Frederick","Base","Fremantle"],
+  ["65","Luke Jackson","Base","Fremantle"],
+  ["66","Matthew Johnson","Base","Fremantle"],
+  ["67","Jaeger O\'Meara","Base","Fremantle"],
+  ["68","Alex Pearce","Base","Fremantle"],
+  ["69","Luke Ryan","Base","Fremantle"],
+  ["70","Jeremy Sharp","Base","Fremantle"],
+  ["71","Josh Treacy","Base","Fremantle"],
+  ["72","Karl Amon","Base","Fremantle"],
+  ["73","Tom Atkins","Base","Geelong Cats"],
+  ["74","Mark Blicavs","Base","Geelong Cats"],
+  ["75","Jack Bowes","Base","Geelong Cats"],
+  ["76","Brad Close","Base","Geelong Cats"],
+  ["77","Sam De Koning","Base","Geelong Cats"],
+  ["78","Zach Guthrie","Base","Geelong Cats"],
+  ["79","Lawson Humphries","Base","Geelong Cats"],
+  ["80","Gryan Miers","Base","Geelong Cats"],
+  ["81","Connor O\'Sullivan","Base","Geelong Cats"],
+  ["82","Bailey Smith","Base","Geelong Cats"],
+  ["83","Tyson Stengle","Base","Geelong Cats"],
+  ["84","Tom Stewart","Base","Geelong Cats"],
+  ["85","Lachie Ash","Base","GWS GIANTS"],
+  ["86","Stephen Coniglio","Base","GWS GIANTS"],
+  ["87","Tom Green","Base","GWS GIANTS"],
+  ["88","Harry Himmelberg","Base","GWS GIANTS"],
+  ["89","Jesse Hogan","Base","GWS GIANTS"],
+  ["90","Connor Idun","Base","GWS GIANTS"],
+  ["91","Darcy Jones","Base","GWS GIANTS"],
+  ["92","Jake Stringer","Base","GWS GIANTS"],
+  ["93","Sam Taylor","Base","GWS GIANTS"],
+  ["94","Callan Ward","Base","GWS GIANTS"],
+  ["95","Ryan Angwin","Base","GWS GIANTS"],
+  ["96","Lachie Whitfield","Base","GWS GIANTS"],
+  ["97","Noah Anderson","Base","Gold Coast SUNS"],
+  ["98","Sam Collins","Base","Gold Coast SUNS"],
+  ["99","Alex Davies","Base","Gold Coast SUNS"],
+  ["100","Joel Jeffrey","Base","Gold Coast SUNS"],
+  ["101","Ben King","Base","Gold Coast SUNS"],
+  ["102","Ben Long","Base","Gold Coast SUNS"],
+  ["103","John Noble","Base","Gold Coast SUNS"],
+  ["104","Wil Powell","Base","Gold Coast SUNS"],
+  ["105","Daniel Rioli","Base","Gold Coast SUNS"],
+  ["106","Bodhi Uwland","Base","Gold Coast SUNS"],
+  ["107","Jed Walter","Base","Gold Coast SUNS"],
+  ["108","Jarrod Witts","Base","Gold Coast SUNS"],
+  ["109","Karl Amon","Base","Hawthorn"],
+  ["110","Josh Battle","Base","Hawthorn"],
+  ["111","Massimo D\'Ambrosio","Base","Hawthorn"],
+  ["112","Will Day","Base","Hawthorn"],
+  ["113","Jack Ginnivan","Base","Hawthorn"],
+  ["114","Jack Gunston","Base","Hawthorn"],
+  ["115","Blake Hardwick","Base","Hawthorn"],
+  ["116","Jarman Impey","Base","Hawthorn"],
+  ["117","Dylan Moore","Base","Hawthorn"],
+  ["118","Josh Ward","Base","Hawthorn"],
+  ["119","Nick Watson","Base","Hawthorn"],
+  ["120","Mitchell Lewis","Base","Hawthorn"],
+  ["121","Kade Chandler","Base","Melbourne"],
+  ["122","Ed Langdon","Base","Melbourne"],
+  ["123","Jake Lever","Base","Melbourne"],
+  ["124","Xavier Lindsay","Base","Melbourne"],
+  ["125","Steven May","Base","Melbourne"],
+  ["126","Tom McDonald","Base","Melbourne"],
+  ["127","Caleb Windsor","Base","Melbourne"],
+  ["128","Kysaiah Pickett","Base","Melbourne"],
+  ["129","Trent Rivers","Base","Melbourne"],
+  ["130","Christian Salem","Base","Melbourne"],
+  ["131","Tom Sparrow","Base","Melbourne"],
+  ["132","Jack Viney","Base","Melbourne"],
+  ["133","Charlie Comben","Base","North Melbourne"],
+  ["134","Paul Curtis","Base","North Melbourne"],
+  ["135","Caleb Daniel","Base","North Melbourne"],
+  ["136","Jack Darling","Base","North Melbourne"],
+  ["137","Nick Larkey","Base","North Melbourne"],
+  ["138","Luke McDonald","Base","North Melbourne"],
+  ["139","Colby McKercher","Base","North Melbourne"],
+  ["140","Finn O\'Sullivan","Base","North Melbourne"],
+  ["141","Luke Parker","Base","North Melbourne"],
+  ["142","Tom Powell","Base","North Melbourne"],
+  ["143","Tristan Xerri","Base","North Melbourne"],
+  ["144","Cameron Zurhaar","Base","North Melbourne"],
+  ["145","Aliir Aliir","Base","Port Adelaide"],
+  ["146","Miles Bergman","Base","Port Adelaide"],
+  ["147","Travis Boak","Base","Port Adelaide"],
+  ["148","Kane Farrell","Base","Port Adelaide"],
+  ["149","Mitch Georgiades","Base","Port Adelaide"],
+  ["150","Jackson Mead","Base","Port Adelaide"],
+  ["151","Christian Moraes","Base","Port Adelaide"],
+  ["152","Sam Powell-Pepper","Base","Port Adelaide"],
+  ["153","Joe Richards","Base","Port Adelaide"],
+  ["154","Willie Rioli","Base","Port Adelaide"],
+  ["155","Connor Rozee","Base","Port Adelaide"],
+  ["156","Ollie Wines","Base","Port Adelaide"],
+  ["157","Sam Banks","Base","Richmond"],
+  ["158","Nathan Broad","Base","Richmond"],
+  ["159","Tom Brown","Base","Richmond"],
+  ["160","Thomson Dow","Base","Richmond"],
+  ["161","Jacob Hopper","Base","Richmond"],
+  ["162","Tom Lynch","Base","Richmond"],
+  ["163","Rhyan Mansell","Base","Richmond"],
+  ["164","Kamdyn McIntosh","Base","Richmond"],
+  ["165","Jack Ross","Base","Richmond"],
+  ["166","Jayden Short","Base","Richmond"],
+  ["167","Luke Trainor","Base","Richmond"],
+  ["168","Nick Vlastuin","Base","Richmond"],
+  ["169","Ryan Byrnes","Base","St Kilda"],
+  ["170","Anthony Caminiti","Base","St Kilda"],
+  ["171","Tim English","Base","St Kilda"],
+  ["172","Joel Freijah","Base","St Kilda"],
+  ["173","Bradley Hill","Base","St Kilda"],
+  ["174","Jack Macrae","Base","St Kilda"],
+  ["175","Rowan Marshall","Base","St Kilda"],
+  ["176","Tom Liberatore","Base","St Kilda"],
+  ["177","Cooper Sharman","Base","St Kilda"],
+  ["178","Jack Sinclair","Base","St Kilda"],
+  ["179","Callum Wilkie","Base","St Kilda"],
+  ["180","Darcy Wilson","Base","St Kilda"],
+  ["181","Marcus Windhager","Base","Sydney Swans"],
+  ["182","Joel Amarfio","Base","Sydney Swans"],
+  ["183","Riley Bice","Base","Sydney Swans"],
+  ["184","Nick Blakey","Base","Sydney Swans"],
+  ["185","Logan McDonald","Base","Sydney Swans"],
+  ["186","Brodie Grundy","Base","Sydney Swans"],
+  ["187","Callum Mills","Base","Sydney Swans"],
+  ["188","Jake Lloyd","Base","Sydney Swans"],
+  ["189","Justin McInerney","Base","Sydney Swans"],
+  ["190","Hayden McLean","Base","Sydney Swans"],
+  ["191","Dane Rampe","Base","Sydney Swans"],
+  ["192","Matt Roberts","Base","Sydney Swans"],
+  ["193","James Rowbottom","Base","West Coast Eagles"],
+  ["194","Liam Baker","Base","West Coast Eagles"],
+  ["195","Tom Cole","Base","West Coast Eagles"],
+  ["196","Jamie Cripps","Base","West Coast Eagles"],
+  ["197","Liam Duggan","Base","West Coast Eagles"],
+  ["198","Jack Graham","Base","West Coast Eagles"],
+  ["199","Elijah Hewett","Base","West Coast Eagles"],
+  ["200","Brady Hough","Base","West Coast Eagles"],
+  ["201","Ryan Maric","Base","West Coast Eagles"],
+  ["202","Jeremy McGovern","Base","West Coast Eagles"],
+  ["203","Tim Kelly","Base","West Coast Eagles"],
+  ["204","Jake Waterman","Base","West Coast Eagles"],
+  ["205","Lachlan Bramble","Base","Western Bulldogs"],
+  ["206","Bailey Dale","Base","Western Bulldogs"],
+  ["207","Tim English","Base","Western Bulldogs"],
+  ["208","Joel Freijah","Base","Western Bulldogs"],
+  ["209","Matthew Kennedy","Base","Western Bulldogs"],
+  ["210","Tom Liberatore","Base","Western Bulldogs"],
+  ["211","Aaron Naughton","Base","Western Bulldogs"],
+  ["212","Ryley Sanders","Base","Western Bulldogs"],
+  ["213","Adam Treloar","Base","Western Bulldogs"],
+  ["214","Cody Weightman","Base","Western Bulldogs"],
+  ["215","Rhylee West","Base","Western Bulldogs"],
+  ["216","Bailey Williams","Base","Western Bulldogs"],
+  ["1","Jordan Dawson","Black","Adelaide Crows"],
+  ["2","Darcy Fogarty","Black","Adelaide Crows"],
+  ["3","Ben Keays","Black","Adelaide Crows"],
+  ["4","Max Michalanney","Black","Adelaide Crows"],
+  ["5","Izak Rankine","Black","Adelaide Crows"],
+  ["6","Jake Soligo","Black","Adelaide Crows"],
+  ["7","Riley Thilthorpe","Black","Adelaide Crows"],
+  ["8","Taylor Walker","Black","Adelaide Crows"],
+  ["9","Levi Ashcroft","Black","Brisbane Lions"],
+  ["10","Will Ashcroft","Black","Brisbane Lions"],
+  ["11","Charlie Cameron","Black","Brisbane Lions"],
+  ["12","Kai Lohmann","Black","Brisbane Lions"],
+  ["13","Hugh McCluggage","Black","Brisbane Lions"],
+  ["14","Lachie Neale","Black","Brisbane Lions"],
+  ["15","Cam Rayner","Black","Brisbane Lions"],
+  ["16","Dayne Zorko","Black","Brisbane Lions"],
+  ["17","Patrick Cripps","Black","Carlton"],
+  ["18","Hudson O\'Keeffe","Black","Carlton"],
+  ["19","Ollie Hollands","Black","Carlton"],
+  ["20","Harry McKay","Black","Carlton"],
+  ["21","Ashton Moir","Black","Carlton"],
+  ["22","Sam Walsh","Black","Carlton"],
+  ["23","Jacob Weitering","Black","Carlton"],
+  ["24","Jacob Weitering","Black","Carlton"],
+  ["25","Jack Crisp","Black","Collingwood"],
+  ["26","Nick Daicos","Black","Collingwood"],
+  ["27","Josh Daicos","Black","Collingwood"],
+  ["28","Jamie Elliott","Black","Collingwood"],
+  ["29","Bobby Hill","Black","Collingwood"],
+  ["30","Ned Long","Black","Collingwood"],
+  ["31","Jordan De Goey","Black","Collingwood"],
+  ["32","Scott Pendlebury","Black","Collingwood"],
+  ["33","Nate Caddy","Black","Essendon"],
+  ["34","Sam Durham","Black","Essendon"],
+  ["35","Isaac Kako","Black","Essendon"],
+  ["36","Kyle Langford","Black","Essendon"],
+  ["37","Nic Martin","Black","Essendon"],
+  ["38","Andrew McGrath","Black","Essendon"],
+  ["39","Zach Merrett","Black","Essendon"],
+  ["40","Darcy Parish","Black","Essendon"],
+  ["41","Jye Amiss","Black","Fremantle"],
+  ["42","Shai Bolton","Black","Fremantle"],
+  ["43","Andrew Brayshaw","Black","Fremantle"],
+  ["44","Luke Jackson","Black","Fremantle"],
+  ["45","Murphy Reid","Black","Fremantle"],
+  ["46","Caleb Serong","Black","Fremantle"],
+  ["47","Josh Treacy","Black","Fremantle"],
+  ["48","Hayden Young","Black","Geelong Cats"],
+  ["49","Mark Blicavs","Black","Geelong Cats"],
+  ["50","Jeremy Cameron","Black","Geelong Cats"],
+  ["51","Patrick Dangerfield","Black","Geelong Cats"],
+  ["52","Sam De Koning","Black","Geelong Cats"],
+  ["53","Oliver Dempsey","Black","Geelong Cats"],
+  ["54","Max Holmes","Black","Geelong Cats"],
+  ["55","Bailey Smith","Black","Geelong Cats"],
+  ["56","Tom Stewart","Black","Geelong Cats"],
+  ["57","Aaron Cadman","Black","GWS GIANTS"],
+  ["58","Finn Callaghan","Black","GWS GIANTS"],
+  ["59","Tom Green","Black","GWS GIANTS"],
+  ["60","Toby Greene","Black","GWS GIANTS"],
+  ["61","Jesse Hogan","Black","GWS GIANTS"],
+  ["62","Josh Kelly","Black","GWS GIANTS"],
+  ["63","Sam Taylor","Black","GWS GIANTS"],
+  ["64","Lachie Whitfield","Black","GWS GIANTS"],
+  ["65","Noah Anderson","Black","Gold Coast SUNS"],
+  ["66","Mac Andrew","Black","Gold Coast SUNS"],
+  ["67","Bailey Humphrey","Black","Gold Coast SUNS"],
+  ["68","Ben King","Black","Gold Coast SUNS"],
+  ["69","Touk Miller","Black","Gold Coast SUNS"],
+  ["70","Daniel Rioli","Black","Gold Coast SUNS"],
+  ["71","Matt Rowell","Black","Gold Coast SUNS"],
+  ["72","Jed Walter","Black","Gold Coast SUNS"],
+  ["73","Will Day","Black","Hawthorn"],
+  ["74","Jack Gunston","Black","Hawthorn"],
+  ["75","Connor Macdonald","Black","Hawthorn"],
+  ["76","Cam Mackenzie","Black","Hawthorn"],
+  ["77","James Sicily","Black","Hawthorn"],
+  ["78","Nick Watson","Black","Hawthorn"],
+  ["79","Josh Weddle","Black","Hawthorn"],
+  ["80","Connor Macdonald","Black","Hawthorn"],
+  ["81","Max Gawn","Black","Melbourne"],
+  ["82","Harvey Langford","Black","Melbourne"],
+  ["83","Xavier Lindsay","Black","Melbourne"],
+  ["84","Jacob Van Rooyen","Black","Melbourne"],
+  ["85","Jake Lever","Black","Melbourne"],
+  ["86","Kysaiah Pickett","Black","Melbourne"],
+  ["87","Jack Viney","Black","Melbourne"],
+  ["88","Caleb Windsor","Black","Melbourne"],
+  ["89","Luke Davies-Uniacke","Black","North Melbourne"],
+  ["90","Nick Larkey","Black","North Melbourne"],
+  ["91","Colby McKercher","Black","North Melbourne"],
+  ["92","Finn O\'Sullivan","Black","North Melbourne"],
+  ["93","Luke Parker","Black","North Melbourne"],
+  ["94","Harry Sheezel","Black","North Melbourne"],
+  ["95","George Wardlaw","Black","North Melbourne"],
+  ["96","Jy Simpkin","Black","North Melbourne"],
+  ["97","Miles Bergman","Black","Port Adelaide"],
+  ["98","Travis Boak","Black","Port Adelaide"],
+  ["99","Jase Burgoyne","Black","Port Adelaide"],
+  ["100","Zak Butters","Black","Port Adelaide"],
+  ["101","Willem Drew","Black","Port Adelaide"],
+  ["102","Mitch Georgiades","Black","Port Adelaide"],
+  ["103","Jason Horne-Francis","Black","Port Adelaide"],
+  ["104","Nathan Broad","Black","Richmond"],
+  ["105","Tom Brown","Black","Richmond"],
+  ["106","Sam Lalor","Black","Richmond"],
+  ["107","Seth Campbell","Black","Richmond"],
+  ["108","Tom Lynch","Black","Richmond"],
+  ["109","Toby Nankervis","Black","Richmond"],
+  ["110","Tim Taranto","Black","Richmond"],
+  ["111","Nick Vlastuin","Black","Richmond"],
+  ["112","Tim Taranto","Black","Richmond"],
+  ["113","Jack Higgins","Black","St Kilda"],
+  ["114","Max King","Black","St Kilda"],
+  ["115","Jack Macrae","Black","St Kilda"],
+  ["116","Rowan Marshall","Black","St Kilda"],
+  ["117","Mitch Owens","Black","St Kilda"],
+  ["118","Mattaes Phillipou","Black","St Kilda"],
+  ["119","Alix Tauru","Black","St Kilda"],
+  ["120","Nasiah Wanganeen-Milera","Black","St Kilda"],
+  ["121","Nick Blakey","Black","Sydney Swans"],
+  ["122","Errol Gulden","Black","Sydney Swans"],
+  ["123","Tom McCartin","Black","Sydney Swans"],
+  ["124","Isaac Heeney","Black","Sydney Swans"],
+  ["125","Justin McInerney","Black","Sydney Swans"],
+  ["126","Tom Papley","Black","Sydney Swans"],
+  ["127","James Rowbottom","Black","Sydney Swans"],
+  ["128","Chad Warner","Black","Sydney Swans"],
+  ["129","Jack Graham","Black","West Coast Eagles"],
+  ["130","Liam Baker","Black","West Coast Eagles"],
+  ["131","Reuben Ginbey","Black","West Coast Eagles"],
+  ["132","Tim Kelly","Black","West Coast Eagles"],
+  ["133","Jeremy McGovern","Black","West Coast Eagles"],
+  ["134","Harley Reid","Black","West Coast Eagles"],
+  ["135","Bo Allan","Black","West Coast Eagles"],
+  ["136","Jake Waterman","Black","West Coast Eagles"],
+  ["137","Bailey Dale","Black","Western Bulldogs"],
+  ["138","Marcus Bontempelli","Black","Western Bulldogs"],
+  ["139","Sam Darcy","Black","Western Bulldogs"],
+  ["140","Sam Davidson","Black","Western Bulldogs"],
+  ["141","Matthew Kennedy","Black","Western Bulldogs"],
+  ["142","Tom Liberatore","Black","Western Bulldogs"],
+  ["143","Aaron Naughton","Black","Western Bulldogs"],
+  ["144","Ed Richards","Black","Western Bulldogs"],
+  ["1","Sid Draper","Solo Double Patch","Adelaide Crows"],
+  ["2","Rory Laird","Solo Double Patch","Adelaide Crows"],
+  ["3","Reilly O\'Brien","Solo Double Patch","Adelaide Crows"],
+  ["4","Daniel Curtin","Solo Double Patch","Adelaide Crows"],
+  ["5","Riley Thilthorpe","Solo Double Patch","Adelaide Crows"],
+  ["6","Taylor Walker","Solo Double Patch","Adelaide Crows"],
+  ["7","Will Ashcroft","Solo Double Patch","Brisbane Lions"],
+  ["8","Charlie Cameron","Solo Double Patch","Brisbane Lions"],
+  ["9","Jarrod Berry","Solo Double Patch","Brisbane Lions"],
+  ["10","Levi Ashcroft","Solo Double Patch","Brisbane Lions"],
+  ["11","Hugh McCluggage","Solo Double Patch","Brisbane Lions"],
+  ["12","Cam Rayner","Solo Double Patch","Brisbane Lions"],
+  ["13","Adam Cerra","Solo Double Patch","Carlton"],
+  ["14","Sam Walsh","Solo Double Patch","Carlton"],
+  ["15","Marc Murphy","Solo Double Patch","Carlton"],
+  ["16","Harry McKay","Solo Double Patch","Carlton"],
+  ["17","Jacob Weitering","Solo Double Patch","Carlton"],
+  ["18","Jacob Weitering","Solo Double Patch","Carlton"],
+  ["19","Jordan De Goey","Solo Double Patch","Collingwood"],
+  ["20","Jamie Elliott","Solo Double Patch","Collingwood"],
+  ["21","Bobby Hill","Solo Double Patch","Collingwood"],
+  ["22","Dan Houston","Solo Double Patch","Collingwood"],
+  ["23","Jeremy Howe","Solo Double Patch","Collingwood"],
+  ["24","Josh Daicos","Solo Double Patch","Collingwood"],
+  ["25","Nate Caddy","Solo Double Patch","Essendon"],
+  ["26","Kyle Langford","Solo Double Patch","Essendon"],
+  ["27","Dyson Heppell","Solo Double Patch","Essendon"],
+  ["28","Adam Saad","Solo Double Patch","Essendon"],
+  ["29","Harry McKay","Solo Double Patch","Essendon"],
+  ["30","Andrew McGrath","Solo Double Patch","Essendon"],
+  ["31","Jye Amiss","Solo Double Patch","Fremantle"],
+  ["32","Shai Bolton","Solo Double Patch","Fremantle"],
+  ["33","Alex Pearce","Solo Double Patch","Fremantle"],
+  ["34","Josh Treacy","Solo Double Patch","Fremantle"],
+  ["35","Michael Walters","Solo Double Patch","Fremantle"],
+  ["36","Fremantle Dockers Redemption","Solo Double Patch","Fremantle"],
+  ["37","Tom Hawkins","Solo Double Patch","Geelong Cats"],
+  ["38","Mitch Duncan","Solo Double Patch","Geelong Cats"],
+  ["39","Jack Henry","Solo Double Patch","Geelong Cats"],
+  ["40","Shannon Neale","Solo Double Patch","Geelong Cats"],
+  ["41","Tyson Stengle","Solo Double Patch","Geelong Cats"],
+  ["42","Tom Stewart","Solo Double Patch","Geelong Cats"],
+  ["43","Aaron Cadman","Solo Double Patch","GWS GIANTS"],
+  ["44","Luke Jackson","Solo Double Patch","GWS GIANTS"],
+  ["45","Toby Bedford","Solo Double Patch","GWS GIANTS"],
+  ["46","Stephen Coniglio","Solo Double Patch","GWS GIANTS"],
+  ["47","Finn Callaghan","Solo Double Patch","GWS GIANTS"],
+  ["48","Aaron Cadman","Solo Double Patch","GWS GIANTS"],
+  ["49","Giants Redemption","Solo Double Patch","Gold Coast SUNS"],
+  ["50","Ben King","Solo Double Patch","Gold Coast SUNS"],
+  ["51","Gold Coast Suns Redemption","Solo Double Patch","Gold Coast SUNS"],
+  ["52","Touk Miller","Solo Double Patch","Gold Coast SUNS"],
+  ["53","Daniel Rioli","Solo Double Patch","Gold Coast SUNS"],
+  ["54","David Swallow","Solo Double Patch","Gold Coast SUNS"],
+  ["55","Massimo D\'Ambrosio","Solo Double Patch","Hawthorn"],
+  ["56","Nick Watson","Solo Double Patch","Hawthorn"],
+  ["57","Cam Mackenzie","Solo Double Patch","Hawthorn"],
+  ["58","Josh Weddle","Solo Double Patch","Hawthorn"],
+  ["59","Jai Newcombe","Solo Double Patch","Hawthorn"],
+  ["60","Galsher Dear","Solo Double Patch","Hawthorn"],
+  ["61","Max Gawn","Solo Double Patch","Melbourne"],
+  ["62","Harvey Langford","Solo Double Patch","Melbourne"],
+  ["63","Xavier Lindsay","Solo Double Patch","Melbourne"],
+  ["64","Bayley Fritsch","Solo Double Patch","Melbourne"],
+  ["65","Jack Viney","Solo Double Patch","Melbourne"],
+  ["66","Caleb Windsor","Solo Double Patch","Melbourne"],
+  ["67","Finn O\'Sullivan","Solo Double Patch","North Melbourne"],
+  ["68","Will Phillips","Solo Double Patch","North Melbourne"],
+  ["69","Bailey Scott","Solo Double Patch","North Melbourne"],
+  ["70","JJ Simpkin","Solo Double Patch","North Melbourne"],
+  ["71","George Wardlaw","Solo Double Patch","North Melbourne"],
+  ["72","Cameron Zurhaar","Solo Double Patch","North Melbourne"],
+  ["73","Miles Bergman","Solo Double Patch","Port Adelaide"],
+  ["74","Port Adelaide Redemption A","Solo Double Patch","Port Adelaide"],
+  ["75","Port Adelaide Redemption B","Solo Double Patch","Port Adelaide"],
+  ["76","Port Adelaide Redemption C","Solo Double Patch","Port Adelaide"],
+  ["77","Port Adelaide Redemption D","Solo Double Patch","Port Adelaide"],
+  ["78","Port Adelaide Redemption E","Solo Double Patch","Port Adelaide"],
+  ["79","Nathan Broad","Solo Double Patch","Richmond"],
+  ["80","Seth Campbell","Solo Double Patch","Richmond"],
+  ["81","Sam Lalor","Solo Double Patch","Richmond"],
+  ["82","Toby Nankervis","Solo Double Patch","Richmond"],
+  ["83","Dion Prestia","Solo Double Patch","Richmond"],
+  ["84","Nick Vlastuin","Solo Double Patch","Richmond"],
+  ["85","Jack Macrae","Solo Double Patch","St Kilda"],
+  ["86","Mitch Owens","Solo Double Patch","St Kilda"],
+  ["87","Mattaes Phillipou","Solo Double Patch","St Kilda"],
+  ["88","Jack Sinclair","Solo Double Patch","St Kilda"],
+  ["89","Nasiah Wanganeen-Milera","Solo Double Patch","St Kilda"],
+  ["90","Darcy Wilson","Solo Double Patch","St Kilda"],
+  ["91","Joel Amartey","Solo Double Patch","Sydney Swans"],
+  ["92","Sydney Swans Redemption A","Solo Double Patch","Sydney Swans"],
+  ["93","Isaac Heeney","Solo Double Patch","Sydney Swans"],
+  ["94","Sydney Swans Redemption B","Solo Double Patch","Sydney Swans"],
+  ["95","West Coast Eagles Redemption A","Solo Double Patch","Sydney Swans"],
+  ["96","West Coast Eagles Redemption B","Solo Double Patch","Sydney Swans"],
+  ["97","West Coast Eagles Redemption C","Solo Double Patch","West Coast Eagles"],
+  ["98","Liam Baker","Solo Double Patch","West Coast Eagles"],
+  ["99","West Coast Eagles Redemption","Solo Double Patch","West Coast Eagles"],
+  ["100","West Coast Eagles Redemption","Solo Double Patch","West Coast Eagles"],
+  ["101","Brady Hough","Solo Double Patch","West Coast Eagles"],
+  ["102","Harley Reid","Solo Double Patch","West Coast Eagles"],
+  ["103","Marcus Bontempelli","Solo Double Patch","Western Bulldogs"],
+  ["104","Tim English","Solo Double Patch","Western Bulldogs"],
+  ["105","Tom Liberatore","Solo Double Patch","Western Bulldogs"],
+  ["106","Sam Darcy","Solo Double Patch","Western Bulldogs"],
+  ["107","Cody Weightman","Solo Double Patch","Western Bulldogs"],
+  ["108","Rhylee West","Solo Double Patch","Western Bulldogs"],
+  ["1","Jordan Dawson / Daniel Curtin","Dual Patch","Adelaide Crows"],
+  ["2","Sid Draper / Rory Sloane","Dual Patch","Adelaide Crows"],
+  ["3","Reilly O\'Brien / Riley Thilthorpe","Dual Patch","Adelaide Crows"],
+  ["4","Will Ashcroft / Hugh McCluggage","Dual Patch","Brisbane Lions"],
+  ["5","Charlie Cameron / Cam Rayner","Dual Patch","Brisbane Lions"],
+  ["6","Josh Dunkley / Levi Ashcroft","Dual Patch","Brisbane Lions"],
+  ["7","Adam Cerra / Sam Walsh","Dual Patch","Carlton"],
+  ["8","Patrick Cripps / Chris Judd","Dual Patch","Carlton"],
+  ["9","Jacob Weitering / Harry McKay","Dual Patch","Carlton"],
+  ["10","Nick Daicos / Bobby Hill","Dual Patch","Collingwood"],
+  ["11","Jamie Elliott / Josh Daicos","Dual Patch","Collingwood"],
+  ["12","Dan Houston / Brayden Maynard","Dual Patch","Collingwood"],
+  ["13","James Hird / Zach Merrett","Dual Patch","Essendon"],
+  ["14","Nate Caddy / Kyle Langford","Dual Patch","Essendon"],
+  ["15","Dyson Heppell / Andrew McGrath","Dual Patch","Essendon"],
+  ["16","Jye Amiss / Josh Treacy","Dual Patch","Fremantle"],
+  ["17","Shai Bolton / Michael Walters","Dual Patch","Fremantle"],
+  ["18","Andrew Brayshaw / Nat Fyfe","Dual Patch","Fremantle"],
+  ["19","Jeremy Cameron / Patrick Dangerfield","Dual Patch","Geelong Cats"],
+  ["20","Mark Blicavs / Max Holmes","Dual Patch","Geelong Cats"],
+  ["21","Mitch Duncan / Tom Stewart","Dual Patch","Geelong Cats"],
+  ["22","Josh Kelly / Callan Ward","Dual Patch","GWS GIANTS"],
+  ["23","Tom Green / Sam Taylor","Dual Patch","GWS GIANTS"],
+  ["24","Toby Bedford / Aaron Cadman","Dual Patch","GWS GIANTS"],
+  ["25","Gary Ablett Jnr / Daniel Rioli","Dual Patch","Gold Coast SUNS"],
+  ["26","Bailey Humphrey / Ben King","Dual Patch","Gold Coast SUNS"],
+  ["27","Touk Miller / Matt Rowell","Dual Patch","Gold Coast SUNS"],
+  ["28","Dylan Moore / Jack Ginnivan","Dual Patch","Hawthorn"],
+  ["29","Will Day / Josh Weddle","Dual Patch","Hawthorn"],
+  ["30","Cam Mackenzie / Nick Watson","Dual Patch","Hawthorn"],
+  ["31","Max Gawn / Steven May","Dual Patch","Melbourne"],
+  ["32","Caleb Windsor / Jack Viney","Dual Patch","Melbourne"],
+  ["33","Harvey Langford / Xavier Lindsay","Dual Patch","Melbourne"],
+  ["34","Nick Larkey / Cameron Zurhaar","Dual Patch","North Melbourne"],
+  ["35","Luke Davies-Uniacke / Jy Simpkin","Dual Patch","North Melbourne"],
+  ["36","Finn O\'Sullivan / George Wardlaw","Dual Patch","North Melbourne"],
+  ["37","Redemption Set A","Dual Patch","Port Adelaide"],
+  ["38","Redemption Set B","Dual Patch","Port Adelaide"],
+  ["39","Redemption Set C","Dual Patch","Port Adelaide"],
+  ["40","Seth Campbell / Sam Lalor","Dual Patch","Richmond"],
+  ["41","Nathan Broad / Dion Prestia","Dual Patch","Richmond"],
+  ["42","Alex Rance / Nick Vlastuin","Dual Patch","Richmond"],
+  ["43","Jack Macrae / Nathan Burke","Dual Patch","St Kilda"],
+  ["44","Nasiah Wanganeen-Milera / Darcy Wilson","Dual Patch","St Kilda"],
+  ["45","Mitch Owens / Mattaes Phillipou","Dual Patch","St Kilda"],
+  ["46","Joel Amartey / Isaac Heeney","Dual Patch","Sydney Swans"],
+  ["47","Tom McCartin / Tom Papley","Dual Patch","Sydney Swans"],
+  ["48","James Rowbottom / Chad Warner","Dual Patch","Sydney Swans"],
+  ["49","Liam Baker / Elliott Yeo","Dual Patch","West Coast Eagles"],
+  ["50","Redemption Set A","Dual Patch","West Coast Eagles"],
+  ["51","Redemption Set B","Dual Patch","West Coast Eagles"],
+  ["52","Cody Weightman / Rhylee West","Dual Patch","Western Bulldogs"],
+  ["53","Aaron Naughton / Sam Darcy","Dual Patch","Western Bulldogs"],
+  ["54","Marcus Bontempelli / Tim English","Dual Patch","Western Bulldogs"],
+  ["1","Adelaide Crows","Team Multi-Patch","Adelaide Crows"],
+  ["2","Brisbane Lions","Team Multi-Patch","Brisbane Lions"],
+  ["3","Carlton","Team Multi-Patch","Carlton"],
+  ["4","Collingwood","Team Multi-Patch","Collingwood"],
+  ["5","Essendon","Team Multi-Patch","Essendon"],
+  ["6","Fremantle","Team Multi-Patch","Fremantle"],
+  ["7","Geelong Cats","Team Multi-Patch","Geelong Cats"],
+  ["8","Gold Coast SUNS","Team Multi-Patch","Gold Coast SUNS"],
+  ["9","GWS GIANTS","Team Multi-Patch","GWS GIANTS"],
+  ["10","Hawthorn","Team Multi-Patch","Hawthorn"],
+  ["11","Melbourne","Team Multi-Patch","Melbourne"],
+  ["12","North Melbourne","Team Multi-Patch","North Melbourne"],
+  ["13","Port Adelaide","Team Multi-Patch","Port Adelaide"],
+  ["14","Richmond","Team Multi-Patch","Richmond"],
+  ["15","St Kilda","Team Multi-Patch","St Kilda"],
+  ["16","Sydney Swans","Team Multi-Patch","Sydney Swans"],
+  ["17","West Coast Eagles","Team Multi-Patch","West Coast Eagles"],
+  ["18","Western Bulldogs","Team Multi-Patch","Western Bulldogs"],
+  ["1","Taylor Walker","Jumbo Patch","Adelaide Crows"],
+  ["2","Daniel Curtin","Jumbo Patch","Adelaide Crows"],
+  ["3","Charlie Cameron","Jumbo Patch","Brisbane Lions"],
+  ["4","Hugh McCluggage","Jumbo Patch","Brisbane Lions"],
+  ["5","Jacob Weitering","Jumbo Patch","Carlton"],
+  ["6","Harry McKay","Jumbo Patch","Carlton"],
+  ["7","Jordan De Goey","Jumbo Patch","Collingwood"],
+  ["8","Brayden Maynard","Jumbo Patch","Collingwood"],
+  ["9","Darcy Parish","Jumbo Patch","Essendon"],
+  ["10","Archie Perkins","Jumbo Patch","Essendon"],
+  ["11","Alex Pearce","Jumbo Patch","Fremantle"],
+  ["12","Caleb Serong","Jumbo Patch","Fremantle"],
+  ["13","Tyson Stengle","Jumbo Patch","Geelong Cats"],
+  ["14","Tom Stewart","Jumbo Patch","Geelong Cats"],
+  ["15","Finn Callaghan","Jumbo Patch","GWS GIANTS"],
+  ["16","Giants Redemption","Jumbo Patch","GWS GIANTS"],
+  ["17","Noah Anderson","Jumbo Patch","Gold Coast SUNS"],
+  ["18","Gold Coast Suns Redemption","Jumbo Patch","Gold Coast SUNS"],
+  ["19","Cam Mackenzie","Jumbo Patch","Hawthorn"],
+  ["20","Jai Newcombe","Jumbo Patch","Hawthorn"],
+  ["21","Kysaiah Pickett","Jumbo Patch","Melbourne"],
+  ["22","Caleb Windsor","Jumbo Patch","Melbourne"],
+  ["23","Harry Sheezel","Jumbo Patch","North Melbourne"],
+  ["24","Cameron Zurhaar","Jumbo Patch","North Melbourne"],
+  ["25","Miles Bergman","Jumbo Patch","Port Adelaide"],
+  ["26","Zak Butters","Jumbo Patch","Port Adelaide"],
+  ["27","Sam Lalor","Jumbo Patch","Richmond"],
+  ["28","Tim Taranto","Jumbo Patch","Richmond"],
+  ["29","Rowan Marshall","Jumbo Patch","St Kilda"],
+  ["30","Jack Sinclair","Jumbo Patch","St Kilda"],
+  ["31","Tom Papley","Jumbo Patch","Sydney Swans"],
+  ["32","James Rowbottom","Jumbo Patch","Sydney Swans"],
+  ["33","Luke Shuey","Jumbo Patch","West Coast Eagles"],
+  ["34","Harley Reid","Jumbo Patch","West Coast Eagles"],
+  ["35","Aaron Naughton","Jumbo Patch","Western Bulldogs"],
+  ["36","Cody Weightman","Jumbo Patch","Western Bulldogs"],
+  ["1","Sam Lalor","Rookie Badge Signature","Richmond"],
+  ["2","Jagga Smith","Rookie Badge Signature","Carlton"],
+  ["3","Finn O\'Sullivan","Rookie Badge Signature","North Melbourne"],
+  ["4","Sid Draper","Rookie Badge Signature","Adelaide Crows"],
+  ["5","Levi Ashcroft","Rookie Badge Signature","Brisbane Lions"],
+  ["6","Harvey Langford","Rookie Badge Signature","Melbourne"],
+  ["7","Josh Smillie","Rookie Badge Signature","Richmond"],
+  ["8","Josh Smillie","Rookie Badge Signature","Richmond"],
+  ["9","Alix Tauru","Rookie Badge Signature","St Kilda"],
+  ["10","Leo Lombard","Rookie Badge Signature","Gold Coast SUNS"],
+  ["11","Xavier Lindsay","Rookie Badge Signature","Melbourne"],
+  ["12","Taj Hotton","Rookie Badge Signature","Richmond"],
+  ["13","Isaac Kako","Rookie Badge Signature","Essendon"],
+  ["14","Jonty Faull","Rookie Badge Signature","Richmond"],
+  ["15","Joe Berry","Rookie Badge Signature","Port Adelaide"],
+  ["16","Bo Allan","Rookie Badge Signature","West Coast Eagles"],
+  ["17","Murphy Reid","Rookie Badge Signature","Fremantle"],
+  ["18","Oliver Hannaford","Rookie Badge Signature","GWS GIANTS"],
+  ["19","Harrison Oliver","Rookie Badge Signature","GWS GIANTS"],
+  ["20","Cooper Hynes","Rookie Badge Signature","Western Bulldogs"],
+  ["21","Luke Trainor","Rookie Badge Signature","Richmond"],
+  ["22","Jesse Dattoli","Rookie Badge Signature","Sydney Swans"],
+  ["23","Harry Armstrong","Rookie Badge Signature","Richmond"],
+  ["24","Cody Angove","Rookie Badge Signature","GWS GIANTS"],
+  ["25","Sam Marshall","Rookie Badge Signature","Brisbane Lions"],
+  ["26","Ned Bowman","Rookie Badge Signature","Sydney Swans"],
+  ["27","Matt Whitlock","Rookie Badge Signature","North Melbourne"],
+  ["28","Thomas Sims","Rookie Badge Signature","Richmond"],
+  ["29","Lachie Jaques","Rookie Badge Signature","Western Bulldogs"],
+  ["30","Jobe Shanahan","Rookie Badge Signature","West Coast Eagles"],
+  ["31","Josh Dolan","Rookie Badge Signature","Western Bulldogs"],
+  ["32","James Barrat","Rookie Badge Signature","St Kilda"],
+  ["33","Jack Whitlock","Rookie Badge Signature","Port Adelaide"],
+  ["34","Charlie Nicholls","Rookie Badge Signature","Fremantle"],
+  ["35","Noah Mraz","Rookie Badge Signature","Hawthorn"],
+  ["36","Jack Ough","Rookie Badge Signature","GWS GIANTS"],
+  ["37","Kayle Gerreyn","Rookie Badge Signature","Essendon"],
+  ["38","Christian Moraes","Rookie Badge Signature","Port Adelaide"],
+  ["39","Angus Clarke","Rookie Badge Signature","Essendon"],
+  ["40","Harry O\'Farrell","Rookie Badge Signature","Carlton"],
+  ["41","Riley Bice","Rookie Badge Signature","Sydney Swans"],
+  ["42","Ty Gallop","Rookie Badge Signature","Brisbane Lions"],
+  ["43","Ben Camporeale","Rookie Badge Signature","Carlton"],
+  ["44","Jay Polkinghorne","Rookie Badge Signature","Geelong Cats"],
+  ["45","Hugh Boxshall","Rookie Badge Signature","St Kilda"],
+  ["46","Tom Gross","Rookie Badge Signature","West Coast Eagles"],
+  ["47","Joel Cochran","Rookie Badge Signature","Collingwood"],
+  ["48","Lucca Grego","Rookie Badge Signature","West Coast Eagles"],
+  ["49","Cooper Bell","Rookie Badge Signature","Gold Coast SUNS"],
+  ["50","Charlie West","Rookie Badge Signature","Collingwood"],
+  ["51","Sam Davidson","Rookie Badge Signature","Western Bulldogs"],
+  ["52","Jacob Molier","Rookie Badge Signature","Geelong Cats"],
+  ["53","Alex Dodson","Rookie Badge Signature","St Kilda"],
+  ["54","Lucas Camporeale","Rookie Badge Signature","Carlton"],
+  ["55","Riak Andrew","Rookie Badge Signature","Sydney Swans"],
+  ["56","Will Hayes","Rookie Badge Signature","Collingwood"],
+  ["57","Luke Urquhart","Rookie Badge Signature","North Melbourne"],
+  ["58","Jasper Alger","Rookie Badge Signature","Richmond"],
+  ["59","Tyler Welsh","Rookie Badge Signature","Adelaide Crows"],
+  ["60","Patrick Said","Rookie Badge Signature","St Kilda"],
+  ["61","Rhys Unwin","Rookie Badge Signature","Essendon"],
+  ["1","Sid Draper","Rookie Badge Signature Gold","Adelaide Crows"],
+  ["2","Levi Ashcroft","Rookie Badge Signature Gold","Brisbane Lions"],
+  ["3","Jagga Smith","Rookie Badge Signature Gold","Carlton"],
+  ["4","Will Hayes","Rookie Badge Signature Gold","Collingwood"],
+  ["5","Isaac Kako","Rookie Badge Signature Gold","Essendon"],
+  ["6","Murphy Reid","Rookie Badge Signature Gold","Fremantle"],
+  ["7","Jay Polkinghorne","Rookie Badge Signature Gold","Geelong Cats"],
+  ["8","Cody Angove","Rookie Badge Signature Gold","GWS GIANTS"],
+  ["9","Leo Lombard","Rookie Badge Signature Gold","Gold Coast SUNS"],
+  ["10","Noah Mraz","Rookie Badge Signature Gold","Hawthorn"],
+  ["11","Harvey Langford","Rookie Badge Signature Gold","Melbourne"],
+  ["12","Finn O\'Sullivan","Rookie Badge Signature Gold","North Melbourne"],
+  ["13","Christian Moraes","Rookie Badge Signature Gold","Port Adelaide"],
+  ["14","Sam Lalor","Rookie Badge Signature Gold","Richmond"],
+  ["15","Tobie Travaglia","Rookie Badge Signature Gold","St Kilda"],
+  ["16","Riley Bice","Rookie Badge Signature Gold","Sydney Swans"],
+  ["17","Tom Gross","Rookie Badge Signature Gold","West Coast Eagles"],
+  ["18","Sam Davidson","Rookie Badge Signature Gold","Western Bulldogs"],
+  ["1","Ben Keays","AFL Badge Signature","Adelaide Crows"],
+  ["2","Josh Rachele","AFL Badge Signature","Adelaide Crows"],
+  ["3","Izak Rankine","AFL Badge Signature","Adelaide Crows"],
+  ["4","Zac Bailey","AFL Badge Signature","Brisbane Lions"],
+  ["5","Darcy Wilmot","AFL Badge Signature","Brisbane Lions"],
+  ["6","Dayne Zorko","AFL Badge Signature","Brisbane Lions"],
+  ["7","George Hewett","AFL Badge Signature","Carlton"],
+  ["8","Cooper Lord","AFL Badge Signature","Carlton"],
+  ["9","Ollie Hollands","AFL Badge Signature","Carlton"],
+  ["10","Jack Crisp","AFL Badge Signature","Collingwood"],
+  ["11","Josh Daicos","AFL Badge Signature","Collingwood"],
+  ["12","Darcy Cameron","AFL Badge Signature","Collingwood"],
+  ["13","Jye Caldwell","AFL Badge Signature","Essendon"],
+  ["14","Nic Martin","AFL Badge Signature","Essendon"],
+  ["15","Zach Reid","AFL Badge Signature","Essendon"],
+  ["16","Luke Jackson","AFL Badge Signature","Fremantle"],
+  ["17","Matthew Johnson","AFL Badge Signature","Fremantle"],
+  ["18","Luke Ryan","AFL Badge Signature","Fremantle"],
+  ["19","Sam De Koning","AFL Badge Signature","Geelong Cats"],
+  ["20","Shaun Mannagh","AFL Badge Signature","Geelong Cats"],
+  ["21","Bailey Smith","AFL Badge Signature","Geelong Cats"],
+  ["22","Lachie Ash","AFL Badge Signature","Gold Coast SUNS"],
+  ["23","Toby Greene","AFL Badge Signature","Gold Coast SUNS"],
+  ["24","Jesse Hogan","AFL Badge Signature","Gold Coast SUNS"],
+  ["25","Mac Andrew","AFL Badge Signature","GWS GIANTS"],
+  ["26","Jed Walter","AFL Badge Signature","GWS GIANTS"],
+  ["27","Ben Long","AFL Badge Signature","GWS GIANTS"],
+  ["28","Karl Amon","AFL Badge Signature","Hawthorn"],
+  ["29","Jack Gunston","AFL Badge Signature","Hawthorn"],
+  ["30","James Sicily","AFL Badge Signature","Hawthorn"],
+  ["31","Kade Chandler","AFL Badge Signature","Melbourne"],
+  ["32","Jake Lever","AFL Badge Signature","Melbourne"],
+  ["33","Christian Salem","AFL Badge Signature","Melbourne"],
+  ["34","Paul Curtis","AFL Badge Signature","North Melbourne"],
+  ["35","Colby McKercher","AFL Badge Signature","North Melbourne"],
+  ["36","Tom Powell","AFL Badge Signature","North Melbourne"],
+  ["37","Willem Drew","AFL Badge Signature","Port Adelaide"],
+  ["38","Kane Farrell","AFL Badge Signature","Port Adelaide"],
+  ["39","Darcy Byrne-Jones","AFL Badge Signature","Port Adelaide"],
+  ["40","Jacob Hopper","AFL Badge Signature","Richmond"],
+  ["41","Jayden Short","AFL Badge Signature","Richmond"],
+  ["42","Tom Lynch","AFL Badge Signature","Richmond"],
+  ["43","Jack Higgins","AFL Badge Signature","St Kilda"],
+  ["44","Cooper Sharman","AFL Badge Signature","St Kilda"],
+  ["45","Marcus Windhager","AFL Badge Signature","St Kilda"],
+  ["46","Errol Gulden","AFL Badge Signature","Sydney Swans"],
+  ["47","Justin McInerney","AFL Badge Signature","Sydney Swans"],
+  ["48","Callum Mills","AFL Badge Signature","Sydney Swans"],
+  ["49","Jack Graham","AFL Badge Signature","West Coast Eagles"],
+  ["50","Jeremy McGovern","AFL Badge Signature","West Coast Eagles"],
+  ["51","Jake Waterman","AFL Badge Signature","West Coast Eagles"],
+  ["52","Bailey Dale","AFL Badge Signature","Western Bulldogs"],
+  ["53","Matthew Kennedy","AFL Badge Signature","Western Bulldogs"],
+  ["54","Ed Richards","AFL Badge Signature","Western Bulldogs"],
+  ["1","Riley Thilthorpe","Patch Signature","Adelaide Crows"],
+  ["2","Cam Rayner","Patch Signature","Brisbane Lions"],
+  ["3","Marc Murphy","Patch Signature","Carlton"],
+  ["4","Adam Cerra","Patch Signature","Carlton"],
+  ["5","Bobby Hill","Patch Signature","Collingwood"],
+  ["6","Dan Houston","Patch Signature","Collingwood"],
+  ["7","Kyle Langford","Patch Signature","Essendon"],
+  ["8","Andrew McGrath","Patch Signature","Essendon"],
+  ["9","Josh Treacy","Patch Signature","Fremantle"],
+  ["10","Mark Blicavs","Patch Signature","Geelong Cats"],
+  ["11","Max Holmes","Patch Signature","Geelong Cats"],
+  ["12","Tom Green","Patch Signature","GWS GIANTS"],
+  ["13","Ben King","Patch Signature","Gold Coast SUNS"],
+  ["14","Dylan Moore","Patch Signature","Hawthorn"],
+  ["15","Nick Watson","Patch Signature","Hawthorn"],
+  ["16","Steven May","Patch Signature","Melbourne"],
+  ["17","George Wardlaw","Patch Signature","North Melbourne"],
+  ["18","Port Adelaide Redemption","Patch Signature","Port Adelaide"],
+  ["19","Toby Nankervis","Patch Signature","Richmond"],
+  ["20","Seth Campbell","Patch Signature","Richmond"],
+  ["21","Mattaes Phillipou","Patch Signature","St Kilda"],
+  ["22","Tom Papley","Patch Signature","Sydney Swans"],
+  ["23","Liam Baker","Patch Signature","West Coast Eagles"],
+  ["24","Aaron Naughton","Patch Signature","Western Bulldogs"],
+  ["1","Jordan Dawson / Rory Sloane","Dual Patch Signature Booklet","Adelaide Crows"],
+  ["2","Riley Thilthorpe / Taylor Walker","Dual Patch Signature Booklet","Adelaide Crows"],
+  ["3","Will Ashcroft / Levi Ashcroft","Dual Patch Signature Booklet","Brisbane Lions"],
+  ["4","Patrick Cripps / Sam Walsh","Dual Patch Signature Booklet","Carlton"],
+  ["5","Chris Judd / Jacob Weitering","Dual Patch Signature Booklet","Carlton"],
+  ["6","Nick Daicos / Scott Pendlebury","Dual Patch Signature Booklet","Collingwood"],
+  ["7","Jordan De Goey / Steele Sidebottom","Dual Patch Signature Booklet","Collingwood"],
+  ["8","Zach Merrett / Darcy Parish","Dual Patch Signature Booklet","Essendon"],
+  ["9","Nate Caddy / James Hird","Dual Patch Signature Booklet","Essendon"],
+  ["10","Andrew Brayshaw / Caleb Serong","Dual Patch Signature Booklet","Fremantle"],
+  ["11","Patrick Dangerfield / Tom Hawkins","Dual Patch Signature Booklet","Geelong Cats"],
+  ["12","Mark Blicavs / Jeremy Cameron","Dual Patch Signature Booklet","Geelong Cats"],
+  ["13","Finn Callaghan / Callan Ward","Dual Patch Signature Booklet","GWS GIANTS"],
+  ["14","Matt Rowell / Touk Miller","Dual Patch Signature Booklet","Gold Coast SUNS"],
+  ["15","Will Day / Jai Newcombe","Dual Patch Signature Booklet","Hawthorn"],
+  ["16","Jack Ginnivan / Josh Weddle","Dual Patch Signature Booklet","Hawthorn"],
+  ["17","Max Gawn / Jack Viney","Dual Patch Signature Booklet","Melbourne"],
+  ["18","Nick Larkey / Harry Sheezel","Dual Patch Signature Booklet","North Melbourne"],
+  ["19","Zak Butters / Jason Horne-Francis","Dual Patch Signature Booklet","Port Adelaide"],
+  ["20","Trent Cotchin / Jack Riewoldt","Dual Patch Signature Booklet","Richmond"],
+  ["21","Tim Taranto / Nick Vlastuin","Dual Patch Signature Booklet","Richmond"],
+  ["22","Robery Harvey / Mitch Owens","Dual Patch Signature Booklet","St Kilda"],
+  ["23","Darcy Wilson / Nasiah Wanganeen-Milera","Dual Patch Signature Booklet","St Kilda"],
+  ["24","Isaac Heeney / Chad Warner","Dual Patch Signature Booklet","Sydney Swans"],
+  ["25","Elliot Yeo / Josh Kennedy","Dual Patch Signature Booklet","West Coast Eagles"],
+  ["26","Harley Reid / Luke Shuey","Dual Patch Signature Booklet","West Coast Eagles"],
+  ["27","Aaron Naughton / Tom Liberatore","Dual Patch Signature Booklet","Western Bulldogs"],
+  ["1","","Mega Patch",""]
+
+];
+
+let owned  = new Set();
+let wanted = new Set();
+let currentUser = null;
+
+function cardKey(num,subset){return subset+':'+num;}
+
+// ---- AUTH ----
+function switchTab(tab){
+  document.getElementById('tab-login').classList.toggle('active', tab==='login');
+  document.getElementById('tab-signup').classList.toggle('active', tab==='signup');
+  document.getElementById('login-form').style.display  = tab==='login'  ? '' : 'none';
+  document.getElementById('signup-form').style.display = tab==='signup' ? '' : 'none';
+}
+
+async function doLogin(){
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('login-password').value;
+  const btn   = document.getElementById('login-btn');
+  const err   = document.getElementById('login-error');
+  err.classList.remove('show');
+  btn.disabled = true; btn.textContent = 'Logging in…';
+  const {error} = await _sb.auth.signInWithPassword({email, password:pass});
+  btn.disabled = false; btn.textContent = 'Log in';
+  if(error){ err.textContent = error.message; err.classList.add('show'); }
+}
+
+async function doSignup(){
+  const email = document.getElementById('signup-email').value.trim();
+  const pass  = document.getElementById('signup-password').value;
+  const btn   = document.getElementById('signup-btn');
+  const err   = document.getElementById('signup-error');
+  const suc   = document.getElementById('signup-success');
+  err.classList.remove('show'); suc.classList.remove('show');
+  if(pass.length < 6){ err.textContent='Password must be at least 6 characters.'; err.classList.add('show'); return; }
+  btn.disabled = true; btn.textContent = 'Creating account…';
+  const {error} = await _sb.auth.signUp({email, password:pass});
+  btn.disabled = false; btn.textContent = 'Create account';
+  if(error){ err.textContent = error.message; err.classList.add('show'); }
+  else { suc.textContent = 'Account created! Check your email to confirm, then log in.'; suc.classList.add('show'); }
+}
+
+let previewMode = false;
+
+function initCollapsedTeams(){
+  // Pre-collapse all subset+team combinations
+  for(const subset of SUBSETS_ORDER){
+    const teams = [...new Set(cards.filter(([,,s])=>s===subset).map(([,,,t])=>t))];
+    teams.forEach(t => collapsedTeams.add(teamKey(subset,t)));
+  }
+}
+
+function enterPreview(){
+  previewMode = true;
+  currentUser = null;
+  owned.clear(); wanted.clear();
+  initCollapsedTeams();
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display  = 'block';
+  document.getElementById('user-email-display').textContent = '';
+  document.getElementById('preview-badge').style.display = 'inline';
+  document.getElementById('save-btn').style.display = 'none';
+  document.getElementById('search').value = '';
+  document.getElementById('filter-own').value = 'all';
+  document.getElementById('filter-subset').value = 'all';
+  document.getElementById('filter-team').value = 'all';
+  document.getElementById('trade-results').innerHTML = '<div class="trade-empty">Trade Finder not available in preview mode.</div>';
+  render();
+}
+
+async function doLogout(){
+  previewMode = false;
+  if(currentUser) await _sb.auth.signOut();
+  currentUser = null;
+  owned.clear(); wanted.clear();
+  document.getElementById('preview-badge').style.display = 'none';
+  document.getElementById('save-btn').style.display = '';
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('app-screen').style.display  = 'none';
+}
+
+// ---- DATA ----
+function setSyncStatus(state, msg){
+  const el = document.getElementById('sync-status');
+  el.textContent = msg;
+  el.className = 'sync-status ' + state;
+  if(state==='saved') setTimeout(()=>{ if(el.textContent===msg) el.textContent=''; }, 3000);
+}
+
+async function loadUserList(){
+  try {
+    // Race the DB call against a 8 second timeout
+    const fetchPromise = _sb
+      .from('user_lists')
+      .select('owned, wanted')
+      .eq('user_id', currentUser.id)
+      .maybeSingle();
+
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Request timed out after 8s')), 8000)
+    );
+
+    const {data, error} = await Promise.race([fetchPromise, timeoutPromise]);
+    if(error) throw error;
+    if(data){
+      owned  = new Set(Array.isArray(data.owned)  ? data.owned  : []);
+      wanted = new Set(Array.isArray(data.wanted) ? data.wanted : []);
+    }
+  } catch(e) {
+    console.error('loadUserList error:', e);
+    // Show the table anyway with empty data rather than hanging forever
+    showToast('Could not load saved list \u2014 working offline');
+  }
+}
+
+async function manualSave(){
+  if(!currentUser || previewMode) { showToast('Log in to save your list'); return; }
+  const btn = document.getElementById('save-btn');
+  const errBar = document.getElementById('save-error');
+  btn.disabled = true;
+  btn.textContent = 'Saving\u2026';
+  errBar.style.display = 'none';
+  setSyncStatus('saving','Saving\u2026');
+  try {
+    const payload = {
+      user_id: currentUser.id,
+      user_email: currentUser.email,
+      owned:   [...owned],
+      wanted:  [...wanted],
+      updated_at: new Date().toISOString()
+    };
+    const savePromise = _sb.from('user_lists').upsert(payload, {onConflict:'user_id'}).select();
+    const timeoutPromise = new Promise((_,reject) => setTimeout(()=>reject(new Error('Save timed out')), 10000));
+    const {data, error} = await Promise.race([savePromise, timeoutPromise]);
+    if(error) throw error;
+    setSyncStatus('saved','Saved \u2713');
+    showToast('List saved!');
+  } catch(e) {
+    console.error('Save error:', e);
+    setSyncStatus('error','Save failed');
+    errBar.textContent = 'Save failed: ' + (e.message || JSON.stringify(e));
+    errBar.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Save list';
+  }
+}
+
+// ---- COLLAPSE STATE ----
+const SUBSETS_ORDER = [
+  "Base","Black","Solo Double Patch","Dual Patch","Team Multi-Patch",
+  "Jumbo Patch","Rookie Badge Signature","Rookie Badge Signature Gold",
+  "AFL Badge Signature","Patch Signature","Dual Patch Signature Booklet","Mega Patch"
+];
+
+const TEAMS_ORDER = [
+  "Adelaide Crows","Brisbane Lions","Carlton","Collingwood","Essendon",
+  "Fremantle","Geelong Cats","Gold Coast SUNS","GWS GIANTS","Hawthorn",
+  "Melbourne","North Melbourne","Port Adelaide","Richmond","St Kilda",
+  "Sydney Swans","West Coast Eagles","Western Bulldogs",""
+];
+
+// All subsets collapsed by default
+let collapsedSubsets = new Set(SUBSETS_ORDER);
+// All teams within each subset collapsed by default — key is "subset||team"
+let collapsedTeams = new Set();
+let showAllSubsets = new Set();
+
+function teamKey(subset, team){ return subset + '||' + team; }
+
+function toggleSubset(subset){
+  if(collapsedSubsets.has(subset)) collapsedSubsets.delete(subset);
+  else {
+    collapsedSubsets.add(subset);
+    showAllSubsets.delete(subset);
+  }
+  render();
+}
+
+function toggleTeam(subset, team, event){
+  event.stopPropagation();
+  const k = teamKey(subset, team);
+  if(collapsedTeams.has(k)) collapsedTeams.delete(k);
+  else collapsedTeams.add(k);
+  render();
+}
+
+function setShowAll(subset, event){
+  event.stopPropagation();
+  showAllSubsets.add(subset);
+  render();
+}
+
+function setShowTeams(subset, event){
+  event.stopPropagation();
+  showAllSubsets.delete(subset);
+  const subsetTeams = [...new Set(cards.filter(([,,s])=>s===subset).map(([,,,t])=>t))];
+  subsetTeams.forEach(t => collapsedTeams.add(teamKey(subset, t)));
+  render();
+}
+
+// ---- RENDER ----
+function updateStats(){
+  // stats bar removed — no-op kept for compatibility
+}
+
+let visibleKeys=[];
+
+function isComingSoon(){
+  const year   = document.getElementById('filter-year').value;
+  const series = document.getElementById('filter-series').value;
+  return year === '2026' || series === 'Eminence';
+}
+
+function onYearChange(){
+  const year = document.getElementById('filter-year').value;
+  const seriesEl = document.getElementById('filter-series');
+  // 2026 has no series yet — disable and reset series selector
+  if(year === '2026'){
+    seriesEl.innerHTML = '<option value="TBA">TBA</option>';
+    seriesEl.disabled = true;
+  } else {
+    seriesEl.disabled = false;
+    seriesEl.innerHTML = '<option value="Seamless">Seamless</option><option value="Eminence">Eminence</option>';
+  }
+  render();
+}
+
+function onSeriesChange(){
+  render();
+}
+
+function render(){
+  const tableWrap   = document.getElementById('main-table-wrap');
+  const comingSoon  = document.getElementById('coming-soon-panel');
+  const series      = document.getElementById('filter-series').value;
+  const year        = document.getElementById('filter-year').value;
+
+  if(isComingSoon()){
+    tableWrap.style.display  = 'none';
+    comingSoon.style.display = 'block';
+    const title = document.getElementById('coming-soon-title');
+    const sub   = document.getElementById('coming-soon-sub');
+    if(year === '2026'){
+      title.textContent = '2026 — Coming Soon';
+      sub.textContent   = 'Card data for the 2026 season hasn\'t been added yet. Check back later.';
+    } else {
+      title.textContent = `${series} — Coming Soon`;
+      sub.textContent   = `Card data for ${series} hasn\'t been added yet. Check back later.`;
+    }
+    return;
+  }
+  tableWrap.style.display  = '';
+  comingSoon.style.display = 'none';
+
+  const q=document.getElementById('search').value.toLowerCase().trim();
+  const fo=document.getElementById('filter-own').value;
+  const fs=document.getElementById('filter-subset').value;
+  const ft=document.getElementById('filter-team').value;
+  const tbody=document.getElementById('tbody');
+  visibleKeys=[];
+
+  // Group cards by subset then team
+  const groups = {}; // subset -> team -> [cards]
+  for(const [num,name,subset,team] of cards){
+    const key=cardKey(num,subset);
+    const isOwned=owned.has(key);
+    const isWanted=wanted.has(key);
+    if(fs!=='all'&&subset!==fs)continue;
+    if(ft!=='all'&&team!==ft)continue;
+    if(fo==='owned'&&!isOwned)continue;
+    if(fo==='missing'&&isOwned)continue;
+    if(fo==='wanted'&&!isWanted)continue;
+    if(q&&!String(num).toLowerCase().includes(q)&&!name.toLowerCase().includes(q)&&!subset.toLowerCase().includes(q)&&!team.toLowerCase().includes(q))continue;
+    if(!groups[subset]) groups[subset]={};
+    if(!groups[subset][team]) groups[subset][team]=[];
+    groups[subset][team].push({num,name,subset,team,key,isOwned,isWanted});
+  }
+
+  const subsetsInView = SUBSETS_ORDER.filter(s => groups[s] && Object.keys(groups[s]).length > 0);
+  if(subsetsInView.length === 0){
+    tbody.innerHTML='<tr><td colspan="6" class="empty">No cards match your search.</td></tr>';
+    updateStats(); return;
+  }
+
+  let html='';
+  const bc=(s)=>BADGE[s]||'b-base';
+  const bl=(s)=>LABEL[s]||s;
+
+  for(const subset of subsetsInView){
+    const teamGroups = groups[subset];
+    const allRows = Object.values(teamGroups).flat();
+    const isSubsetCollapsed = collapsedSubsets.has(subset);
+    const isShowAll = showAllSubsets.has(subset);
+    const subsetOwned  = allRows.filter(r=>r.isOwned).length;
+    const subsetWanted = allRows.filter(r=>r.isWanted).length;
+    const subsetTotal  = allRows.length;
+    const escSubset = subset.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    const subsetIcon = isSubsetCollapsed ? 'expand-icon' : 'expand-icon open';
+
+    // Subset header: subset badge spans cols 1-4, own col 5, wishlist col 6
+    html += `<tr class="subset-header" onclick="toggleSubset('${escSubset}')">
+      <td colspan="4">
+        <span class="${subsetIcon}">&#9658;</span>
+        <span class="badge ${bc(subset)}">${bl(subset)}</span>
+        &nbsp;${subset}
+        <span style="color:var(--text-muted);font-weight:normal;font-size:0.72rem;margin-left:8px;">${subsetTotal} card${subsetTotal===1?'':'s'}</span>
+        ${!isSubsetCollapsed ? (isShowAll
+          ? `<button class="show-all-btn" onclick="setShowTeams('${escSubset}',event)">Show by team</button>`
+          : `<button class="show-all-btn" onclick="setShowAll('${escSubset}',event)">Show all</button>`)
+          : ''}
+      </td>
+      <td class="sh-count" id="sown-${escSubset}"><span class="owned-count">${subsetOwned}</span><span class="sep"> / </span>${subsetTotal}</td>
+      <td class="sh-count" id="swant-${escSubset}"><span class="owned-count">${subsetWanted}</span><span class="sep"> / </span>${subsetTotal}</td>
+    </tr>`;
+
+    if(isSubsetCollapsed) continue;
+
+    if(isShowAll){
+      // Flat view: subset | num | team | name | own | wishlist
+      for(const {num,name,subset:s,team,key,isOwned,isWanted} of allRows){
+        visibleKeys.push(key);
+        const ek=key.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+        html+=`<tr class="${isOwned?'owned':''}" id="row-${ek}">
+          <td><span class="badge ${bc(s)}">${bl(s)}</span></td>
+          <td class="c-num">${num}</td>
+          <td class="c-team">${team}</td>
+          <td>${name}</td>
+          <td class="c-own"><input type="checkbox" ${isOwned?'checked':''} onchange="toggleOwn('${ek}',this)"></td>
+          <td class="c-want"><input type="checkbox" ${isWanted?'checked':''} onchange="toggleWant('${ek}',this)"></td>
+        </tr>`;
+      }
+    } else {
+      // Team-grouped: team header rows, then card rows when expanded
+      const teamsInSubset = TEAMS_ORDER.filter(t => teamGroups[t] && teamGroups[t].length > 0);
+      for(const team of teamsInSubset){
+        const teamRows = teamGroups[team];
+        const tk = teamKey(subset, team);
+        const isTeamCollapsed = collapsedTeams.has(tk);
+        const teamOwned  = teamRows.filter(r=>r.isOwned).length;
+        const teamWanted = teamRows.filter(r=>r.isWanted).length;
+        const teamTotal  = teamRows.length;
+        const escTeam = team.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+        const teamIcon = isTeamCollapsed ? 'expand-icon' : 'expand-icon open';
+        const teamLabel = team || 'No team';
+
+        // Team header: subset badge | empty num | team name spans 2 | own | wishlist
+        html+=`<tr class="team-header" onclick="toggleTeam('${escSubset}','${escTeam}',event)">
+          <td><span class="badge ${bc(subset)}">${bl(subset)}</span></td>
+          <td></td>
+          <td colspan="2">
+            <span class="${teamIcon}">&#9658;</span>
+            ${teamLabel}
+            <span style="font-size:0.7rem;margin-left:6px;">${teamTotal} card${teamTotal===1?'':'s'}</span>
+          </td>
+          <td class="sh-count"><span class="owned-count">${teamOwned}</span><span class="sep"> / </span>${teamTotal}</td>
+          <td class="sh-count"><span class="owned-count">${teamWanted}</span><span class="sep"> / </span>${teamTotal}</td>
+        </tr>`;
+
+        if(!isTeamCollapsed){
+          // Card rows: subset | num | team | name | own | wishlist
+          for(const {num,name,subset:s,team:t,key,isOwned,isWanted} of teamRows){
+            visibleKeys.push(key);
+            const ek=key.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+            html+=`<tr class="${isOwned?'owned':''}" id="row-${ek}">
+              <td><span class="badge ${bc(s)}">${bl(s)}</span></td>
+              <td class="c-num">${num}</td>
+              <td class="c-team">${t}</td>
+              <td>${name}</td>
+              <td class="c-own"><input type="checkbox" ${isOwned?'checked':''} onchange="toggleOwn('${ek}',this)"></td>
+              <td class="c-want"><input type="checkbox" ${isWanted?'checked':''} onchange="toggleWant('${ek}',this)"></td>
+            </tr>`;
+          }
+        }
+      }
+    }
+  }
+
+  tbody.innerHTML = html;
+  updateStats();
+}
+
+function toggleOwn(key,cb){
+  if(cb.checked)owned.add(key);else owned.delete(key);
+  updateStats();
+  render();
+}
+function toggleWant(key,cb){
+  if(cb.checked)wanted.add(key);else wanted.delete(key);
+  render();
+}
+
+function refreshSubsetCounts(){
+  // Update subset header counts
+  document.querySelectorAll('tr.subset-header').forEach(row => {
+    const badge = row.querySelector('td:first-child span.badge');
+    if(!badge) return;
+    const labelText = badge.textContent;
+    const subset = Object.keys(LABEL).find(k=>LABEL[k]===labelText) || labelText;
+    const subsetCards = cards.filter(([,,s])=>s===subset);
+    const ownedCount  = subsetCards.filter(([n,,s])=>owned.has(cardKey(n,s))).length;
+    const wantedCount = subsetCards.filter(([n,,s])=>wanted.has(cardKey(n,s))).length;
+    const total = subsetCards.length;
+    const cells = row.querySelectorAll('td.sh-count');
+    if(cells[0]) cells[0].innerHTML = `<span class="owned-count">${ownedCount}</span><span class="sep"> / </span>${total}`;
+    if(cells[1]) cells[1].innerHTML = `<span class="owned-count">${wantedCount}</span><span class="sep"> / </span>${total}`;
+  });
+  // Update team header counts
+  document.querySelectorAll('tr.team-header').forEach(row => {
+    const td = row.querySelector('td:first-child');
+    if(!td) return;
+    // team name is text content minus the expand icon and card count span
+    const teamName = td.childNodes[1] ? td.childNodes[1].textContent.trim() : '';
+    // find subset from previous subset-header row
+    let subsetRow = row.previousElementSibling;
+    while(subsetRow && !subsetRow.classList.contains('subset-header') && !subsetRow.classList.contains('team-header')){
+      subsetRow = subsetRow.previousElementSibling;
+    }
+    // walk back to find the nearest subset-header
+    let cursor = row.previousElementSibling;
+    let subset = '';
+    while(cursor){
+      if(cursor.classList.contains('subset-header')){
+        const b = cursor.querySelector('span.badge');
+        if(b){ const lt=b.textContent; subset=Object.keys(LABEL).find(k=>LABEL[k]===lt)||lt; }
+        break;
+      }
+      cursor = cursor.previousElementSibling;
+    }
+    if(!subset) return;
+    const teamCards = cards.filter(([,,s,t])=>s===subset&&t===teamName);
+    const ownedCount  = teamCards.filter(([n,,s])=>owned.has(cardKey(n,s))).length;
+    const wantedCount = teamCards.filter(([n,,s])=>wanted.has(cardKey(n,s))).length;
+    const total = teamCards.length;
+    const cells = row.querySelectorAll('td.sh-count');
+    if(cells[0]) cells[0].innerHTML = `<span class="owned-count">${ownedCount}</span><span class="sep"> / </span>${total}`;
+    if(cells[1]) cells[1].innerHTML = `<span class="owned-count">${wantedCount}</span><span class="sep"> / </span>${total}`;
+  });
+}
+function checkVisible(){visibleKeys.forEach(k=>owned.add(k));render();}
+function uncheckVisible(){visibleKeys.forEach(k=>owned.delete(k));render();}
+function resetAll(){
+  if(!confirm('Reset all checkboxes? This cannot be undone.'))return;
+  owned.clear();wanted.clear();render();
+}
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(t._timer);t._timer=setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// ---- TRADE FINDER ----
+async function loadTradeUsers() {
+  // Called on login — silently pre-loads all user lists
+  try {
+    const {data, error} = await _sb
+      .from('user_lists')
+      .select('user_id, user_email, owned, wanted');
+    if(error) throw error;
+    window._allUserLists = (data || []).filter(r => r.user_id !== currentUser.id);
+  } catch(e) {
+    console.error('loadTradeUsers error:', e);
+    window._allUserLists = [];
+  }
+}
+
+async function runTradeFinder() {
+  if(previewMode){ document.getElementById('trade-results').innerHTML = '<div class="trade-empty">Trade Finder not available in preview mode.</div>'; return; }
+  const resultsDiv = document.getElementById('trade-results');
+  resultsDiv.innerHTML = '<div class="trade-empty"><div class="loading-spin" style="width:20px;height:20px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:8px;"></div>Analysing all users&hellip;</div>';
+
+  try {
+    // Re-fetch fresh data
+    const {data, error} = await _sb
+      .from('user_lists')
+      .select('user_id, user_email, owned, wanted');
+    if(error) throw error;
+
+    const others = (data || []).filter(r => r.user_id !== currentUser.id);
+
+    if(others.length === 0){
+      resultsDiv.innerHTML = '<div class="trade-empty">No other users have saved a list yet.</div>';
+      return;
+    }
+
+    const bc = (s) => BADGE[s]||'b-base';
+    const bl = (s) => LABEL[s]||s;
+
+    // Score each user
+    const scored = others.map(user => {
+      const theirOwned  = new Set(user.owned  || []);
+      const theirWanted = new Set(user.wanted || []);
+
+      // Cards they own that I want
+      const theyHaveIWant = [];
+      for(const [num, name, subset, team] of cards){
+        const key = cardKey(num, subset);
+        if(wanted.has(key) && theirOwned.has(key))
+          theyHaveIWant.push({num, name, subset, team, key});
+      }
+
+      // Cards I own that they want
+      const iHaveTheyWant = [];
+      for(const [num, name, subset, team] of cards){
+        const key = cardKey(num, subset);
+        if(owned.has(key) && theirWanted.has(key))
+          iHaveTheyWant.push({num, name, subset, team, key});
+      }
+
+      const score = theyHaveIWant.length + iHaveTheyWant.length;
+      return {
+        email: user.user_email || user.user_id,
+        score,
+        theyHaveIWant,
+        iHaveTheyWant
+      };
+    });
+
+    // Sort by score descending, take top 3
+    const top3 = scored
+      .filter(u => u.score > 0)
+      .sort((a,b) => b.score - a.score)
+      .slice(0, 3);
+
+    if(top3.length === 0){
+      resultsDiv.innerHTML = '<div class="trade-empty">No trade opportunities found &mdash; no overlap between your list and other users\' lists yet.</div>';
+      return;
+    }
+
+    let html = '';
+    top3.forEach((user, idx) => {
+      const medal = ['🥇','🥈','🥉'][idx];
+      html += `<div style="margin-bottom:1.5rem;">
+        <div style="font-family:'Arial',sans-serif;font-size:0.9rem;font-weight:bold;padding:0.6rem 0 0.4rem;border-bottom:1px solid var(--border);margin-bottom:0.75rem;display:flex;align-items:center;gap:0.5rem;">
+          <span>${medal}</span>
+          <span>${user.email}</span>
+          <span style="font-weight:normal;font-size:0.78rem;color:var(--text-muted);margin-left:auto;">${user.score} card${user.score===1?'':'s'} total</span>
+        </div>`;
+
+      if(user.theyHaveIWant.length > 0){
+        html += `<div class="trade-count" style="margin-bottom:0.4rem;">
+          <strong>${user.theyHaveIWant.length}</strong> card${user.theyHaveIWant.length===1?'':'s'} they own that <strong>you want</strong>:
+        </div>
+        <div class="table-wrap" style="margin:0 0 0.75rem;padding:0;">
+          <table><colgroup><col class="c-num"><col class="c-subset"><col class="c-team"><col class="c-name"></colgroup>
+          <thead><tr><th>Number</th><th>Subset</th><th>Team</th><th>Name</th></tr></thead><tbody>`;
+        for(const {num,name,subset,team} of user.theyHaveIWant)
+          html += `<tr><td class="c-num">${num}</td><td><span class="badge ${bc(subset)}">${bl(subset)}</span></td><td class="c-team">${team}</td><td>${name}</td></tr>`;
+        html += '</tbody></table></div>';
+      }
+
+      if(user.iHaveTheyWant.length > 0){
+        html += `<div class="trade-count" style="margin-bottom:0.4rem;">
+          <strong>${user.iHaveTheyWant.length}</strong> card${user.iHaveTheyWant.length===1?'':'s'} <strong>you own</strong> that they want:
+        </div>
+        <div class="table-wrap" style="margin:0;padding:0;">
+          <table><colgroup><col class="c-num"><col class="c-subset"><col class="c-team"><col class="c-name"></colgroup>
+          <thead><tr><th>Number</th><th>Subset</th><th>Team</th><th>Name</th></tr></thead><tbody>`;
+        for(const {num,name,subset,team} of user.iHaveTheyWant)
+          html += `<tr><td class="c-num">${num}</td><td><span class="badge ${bc(subset)}">${bl(subset)}</span></td><td class="c-team">${team}</td><td>${name}</td></tr>`;
+        html += '</tbody></table></div>';
+      }
+
+      html += '</div>';
+    });
+
+    resultsDiv.innerHTML = html;
+  } catch(e) {
+    console.error('runTradeFinder error:', e);
+    resultsDiv.innerHTML = '<div class="trade-empty">Error loading trade data. Please try again.</div>';
+  }
+}
+
+// ---- BOOT ----
+function showApp(user) {
+  try {
+    currentUser = user;
+    document.getElementById('user-email-display').textContent = user.email;
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('app-screen').style.display  = 'block';
+    document.getElementById('search').value = '';
+    document.getElementById('filter-own').value = 'all';
+    document.getElementById('filter-subset').value = 'all';
+    document.getElementById('filter-team').value = 'all';
+  } catch(e) { console.error('showApp error:', e); }
+}
+
+function showAuth() {
+  try {
+    currentUser = null;
+    owned.clear(); wanted.clear();
+    document.getElementById('auth-screen').style.display = 'flex';
+    document.getElementById('app-screen').style.display  = 'none';
+  } catch(e) { console.error('showAuth error:', e); }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  _sb.auth.onAuthStateChange(async (event, session) => {
+    try {
+      if (session && session.user) {
+        showApp(session.user);
+        await loadUserList();
+        initCollapsedTeams();
+        render();
+      } else {
+        showAuth();
+      }
+    } catch(e) {
+      console.error('Auth state change error:', e);
+      showAuth();
+    }
+  });
+});
+</script>
+</body>
+</html>
