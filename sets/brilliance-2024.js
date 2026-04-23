@@ -1,0 +1,110 @@
+// ---- Brilliance 2024 ----
+(function() {
+  const s = document.createElement('style');
+  s.textContent = `
+  .b-br-ss  { background: #d4a017; }
+  .b-br-cc  { background: #1d4ed8; }
+  .b-br-pal { background: #94a3b8; }
+  `;
+  document.head.appendChild(s);
+})();
+
+registerSet("brilliance-2024", {
+  label:   "Brilliance 2024",
+  year:    "2024",
+  series:  "Brilliance",
+  subsets: [
+    "Superstar Gold Series",
+    "Premiership Captain & Coach Dual Signature",
+    "Palladium"
+  ],
+  badge: {
+    "Superstar Gold Series":                       "b-br-ss",
+    "Premiership Captain & Coach Dual Signature":  "b-br-cc",
+    "Palladium":                                   "b-br-pal"
+  },
+  label_short: {
+    "Superstar Gold Series":                       "Superstar Gold",
+    "Premiership Captain & Coach Dual Signature":  "Prem. Cptn & Coach",
+    "Palladium":                                   "Palladium"
+  }
+});
+
+var CARDS_BRILLIANCE_2024 = [
+  ['SS1','Jordan Dawson','Superstar Gold Series','Adelaide Crows'],
+  ['SS2','Taylor Walker','Superstar Gold Series','Adelaide Crows'],
+  ['SS3','Darren Jarman','Superstar Gold Series','Adelaide Crows'],
+  ['SS4','Charlie Cameron','Superstar Gold Series','Brisbane Lions'],
+  ['SS5','Lachie Neale','Superstar Gold Series','Brisbane Lions'],
+  ['SS6','Jonathan Brown','Superstar Gold Series','Brisbane Lions'],
+  ['SS7','Charlie Curnow','Superstar Gold Series','Carlton'],
+  ['SS8','Sam Walsh','Superstar Gold Series','Carlton'],
+  ['SS9','Ken Hunter','Superstar Gold Series','Carlton'],
+  ['SS10','Jordan De Goey','Superstar Gold Series','Collingwood'],
+  ['SS11','Darcy Moore','Superstar Gold Series','Collingwood'],
+  ['SS12','Dane Swan','Superstar Gold Series','Collingwood'],
+  ['SS13','Zach Merrett','Superstar Gold Series','Essendon'],
+  ['SS14','Darcy Parish','Superstar Gold Series','Essendon'],
+  ['SS15','Matthew Lloyd','Superstar Gold Series','Essendon'],
+  ['SS16','Luke Jackson','Superstar Gold Series','Fremantle'],
+  ['SS17','Caleb Serong','Superstar Gold Series','Fremantle'],
+  ['SS18','David Mundy','Superstar Gold Series','Fremantle'],
+  ['SS19','Patrick Dangerfield','Superstar Gold Series','Geelong Cats'],
+  ['SS20','Tom Hawkins','Superstar Gold Series','Geelong Cats'],
+  ['SS21','Gary Ablett Snr','Superstar Gold Series','Geelong Cats'],
+  ['SS22','Stephen Coniglio','Superstar Gold Series','GWS GIANTS'],
+  ['SS23','Toby Greene','Superstar Gold Series','GWS GIANTS'],
+  ['SS24','Phil Davis','Superstar Gold Series','GWS GIANTS'],
+  ['SS25','Touk Miller','Superstar Gold Series','Gold Coast SUNS'],
+  ['SS26','Matt Rowell','Superstar Gold Series','Gold Coast SUNS'],
+  ['SS27','Gary Ablett Jnr','Superstar Gold Series','Gold Coast SUNS'],
+  ['SS28','Jai Newcombe','Superstar Gold Series','Hawthorn'],
+  ['SS29','James Sicily','Superstar Gold Series','Hawthorn'],
+  ['SS30','Jason Dunstall','Superstar Gold Series','Hawthorn'],
+  ['SS31','Max Gawn','Superstar Gold Series','Melbourne'],
+  ['SS32','Christian Petracca','Superstar Gold Series','Melbourne'],
+  ['SS33','Todd Viney','Superstar Gold Series','Melbourne'],
+  ['SS34','Luke Davies-Uniacke','Superstar Gold Series','North Melbourne'],
+  ['SS35','Nick Larkey','Superstar Gold Series','North Melbourne'],
+  ['SS36','Glenn Archer','Superstar Gold Series','North Melbourne'],
+  ['SS37','Jason Horne-Francis','Superstar Gold Series','Port Adelaide'],
+  ['SS38','Travis Boak','Superstar Gold Series','Port Adelaide'],
+  ['SS39','Gavin Wanganeen','Superstar Gold Series','Port Adelaide'],
+  ['SS40','Shai Bolton','Superstar Gold Series','Richmond'],
+  ['SS41','Dion Prestia','Superstar Gold Series','Richmond'],
+  ['SS42','Trent Cotchin','Superstar Gold Series','Richmond'],
+  ['SS43','Jack Sinclair','Superstar Gold Series','St Kilda'],
+  ['SS44','Jack Steele','Superstar Gold Series','St Kilda'],
+  ['SS45','Tony Lockett','Superstar Gold Series','St Kilda'],
+  ['SS46','Errol Gulden','Superstar Gold Series','Sydney Swans'],
+  ['SS47','Isaac Heeney','Superstar Gold Series','Sydney Swans'],
+  ['SS48','Michael O’loughlin','Superstar Gold Series','Sydney Swans'],
+  ['SS49','Oscar Allen','Superstar Gold Series','West Coast Eagles'],
+  ['SS50','Dom Sheed','Superstar Gold Series','West Coast Eagles'],
+  ['SS51','Ben Cousins','Superstar Gold Series','West Coast Eagles'],
+  ['SS52','Aaron Naughton','Superstar Gold Series','Western Bulldogs'],
+  ['SS53','Bailey Smith','Superstar Gold Series','Western Bulldogs'],
+  ['SS54','Robert Murphy','Superstar Gold Series','Western Bulldogs'],
+  ['CC7','Nick Maxwell / Mick Malthouse','Premiership Captain & Coach Dual Signature','Collingwood'],
+  ['CC8','James Hird / Kevin Sheedy','Premiership Captain & Coach Dual Signature','Essendon'],
+  ['CC9','Luke Hodge / Alastair Clarkson','Premiership Captain & Coach Dual Signature','Hawthorn'],
+  ['CC10','Shannon Hurn / Adam Simpson','Premiership Captain & Coach Dual Signature','West Coast Eagles'],
+  ['P1','Josh Rachele','Palladium','Adelaide Crows'],
+  ['P2','Will Ashcroft','Palladium','Brisbane Lions'],
+  ['P3','Oliver Hollands','Palladium','Carlton'],
+  ['P4','Nick Daicos','Palladium','Collingwood'],
+  ['P5','Elijah Tsatas','Palladium','Essendon'],
+  ['P6','Jye Amiss','Palladium','Fremantle'],
+  ['P7','Tanner Bruhn','Palladium','Geelong Cats'],
+  ['P8','Tom Green','Palladium','GWS GIANTS'],
+  ['P9','Bailey Humphrey','Palladium','Gold Coast SUNS'],
+  ['P10','Will Day','Palladium','Hawthorn'],
+  ['P11','Jacob Van Rooyen','Palladium','Melbourne'],
+  ['P12','Harry Sheezel','Palladium','North Melbourne'],
+  ['P13','Zak Butters','Palladium','Port Adelaide'],
+  ['P14','Josh Gibcus','Palladium','Richmond'],
+  ['P15','Mitch Owens','Palladium','St Kilda'],
+  ['P16','Chad Warner','Palladium','Sydney Swans'],
+  ['P17','Elijah Hewett','Palladium','West Coast Eagles'],
+  ['P18','Jamarra Ugle-Hagan','Palladium','Western Bulldogs']
+];
