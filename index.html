@@ -1,4 +1,4 @@
-<!-- Really Good Trades | v1.0.25.04.25.21.45 -->
+<!-- Really Good Trades | v1.0.26.04.24 -->
 <!-- ⚠ REMINDER: Update version number above AND in the footer when making changes. Format: v1.0.YYYYMMDD -->
 <!DOCTYPE html>
 <html lang="en">
@@ -293,9 +293,25 @@
   /* Hide number/team/name column headers when no individual card rows are shown */
   table.no-card-cols #th-number,
   table.no-card-cols #th-name { visibility: hidden; background: #f0ece6; }
-  .trade-user-block { max-width: 700px; margin: 0 auto 1.5rem; }
+  .trade-user-block { max-width: 700px; margin: 0 auto 0; }
   .trade-user-heading { font-family: 'Arial', sans-serif; font-size: 0.9rem; font-weight: bold; padding: 0.6rem 0 0.4rem; border-bottom: 1px solid var(--border); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
   .trade-user-heading .trade-score { font-weight: normal; font-size: 0.78rem; color: var(--text-muted); margin-left: auto; }
+  /* Collapsed trade summary rows */
+  .trade-summary-list { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-top: 0.5rem; }
+  .trade-summary-row { border-bottom: 1px solid var(--border); }
+  .trade-summary-row:last-child { border-bottom: none; }
+  .trade-summary-header { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; cursor: pointer; user-select: none; transition: background 0.15s; }
+  .trade-summary-header:hover { background: #faf8f4; }
+  .trade-summary-header .tsm-medal { font-size: 1.1rem; flex-shrink: 0; }
+  .trade-summary-header .tsm-name { font-family: 'Arial', sans-serif; font-size: 0.92rem; font-weight: bold; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .trade-summary-header .tsm-pills { display: flex; gap: 0.5rem; flex-shrink: 0; align-items: center; }
+  .trade-summary-header .tsm-pill { font-family: 'Arial', sans-serif; font-size: 0.75rem; border-radius: 20px; padding: 0.2rem 0.65rem; white-space: nowrap; }
+  .trade-summary-header .tsm-pill.want { background: #e8f9f0; color: #1D7A4F; border: 1px solid #a8e6c8; }
+  .trade-summary-header .tsm-pill.have { background: #eef2ff; color: #4f46e5; border: 1px solid #c7d2fe; }
+  .trade-summary-header .tsm-arrow { font-size: 0.7rem; color: var(--text-muted); flex-shrink: 0; transition: transform 0.2s; }
+  .trade-summary-header .tsm-arrow.open { transform: rotate(90deg); }
+  .trade-summary-body { display: none; padding: 0.75rem 1rem 1rem; border-top: 1px solid var(--border); background: #faf8f4; }
+  .trade-summary-body.open { display: block; }
   .trade-card-list { margin: 0 0 0.75rem; }
   .trade-card-list.last { margin: 0; }
   .trade-card-list table { width: 100%; border-collapse: collapse; background: var(--surface); border-radius: 10px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
@@ -744,7 +760,7 @@
     </div>
   </div>
 
-  <footer>Really Good Trades &mdash; AFL Trading Cards Checklist &mdash; <span style="opacity:0.6;">v1.0.25.04.25.21.45</span></footer>
+  <footer>Really Good Trades &mdash; AFL Trading Cards Checklist &mdash; <span style="opacity:0.6;">v1.0.26.04.24</span></footer>
 </div>
 
 <!-- WISHLIST MODAL -->
@@ -1801,58 +1817,82 @@ async function runTradeFinder() {
       return;
     }
 
-    let html = '';
+    // Store trade data so expand buttons can reference it without embedding JSON in HTML
+    window._tradeStore = top3;
+
+    const tradeTable = (rows) => `
+      <table>
+        <colgroup><col class="tc-num"><col class="tc-subset"><col class="tc-team"><col class="tc-name"></colgroup>
+        <thead><tr>
+          <th>Number</th><th>Subset</th><th>Team</th><th>Name</th>
+        </tr></thead>
+        <tbody>
+          ${rows.map(({num,name,subset,team}) => `<tr>
+            <td class="tc-num">${num}</td>
+            <td><span class="badge ${bc(subset)}"></span> ${bl(subset)}</td>
+            <td class="tc-team">${team}</td>
+            <td class="tc-name">${name}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>`;
+
+    const medals = ['🥇','🥈','🥉'];
+    let html = '<div class="trade-summary-list">';
     top3.forEach((user, idx) => {
-      const medal = ['🥇','🥈','🥉'][idx];
-      html += `<div class="trade-user-block">
-        <div class="trade-user-heading">
-          <span>${medal}</span>
-          <span>${user.displayName}</span>
-          <span class="trade-score">${user.score} card${user.score===1?'':'s'} total</span>
-        </div>`;
+      const wantCount = user.theyHaveIWant.length;
+      const haveCount = user.iHaveTheyWant.length;
+      const wantPill  = wantCount > 0
+        ? `<span class="tsm-pill want">They have ${wantCount} you want</span>`
+        : '';
+      const havePill  = haveCount > 0
+        ? `<span class="tsm-pill have">You have ${haveCount} they want</span>`
+        : '';
 
-      const tradeTable = (rows) => `
-        <table>
-          <colgroup><col class="tc-num"><col class="tc-subset"><col class="tc-team"><col class="tc-name"></colgroup>
-          <thead><tr>
-            <th>Number</th><th>Subset</th><th>Team</th><th>Name</th>
-          </tr></thead>
-          <tbody>
-            ${rows.map(({num,name,subset,team}) => `<tr>
-              <td class="tc-num">${num}</td>
-              <td><span class="badge ${bc(subset)}"></span> ${bl(subset)}</td>
-              <td class="tc-team">${team}</td>
-              <td class="tc-name">${name}</td>
-            </tr>`).join('')}
-          </tbody>
-        </table>`;
-
-      if(user.theyHaveIWant.length > 0){
-        html += `<div class="trade-count" style="margin-bottom:0.4rem;">
-          <strong>${user.theyHaveIWant.length}</strong> card${user.theyHaveIWant.length===1?'':'s'} they own that <strong>you want</strong>:
+      let detailHtml = '';
+      if(wantCount > 0){
+        detailHtml += `<div class="trade-count" style="margin-bottom:0.4rem;">
+          <strong>${wantCount}</strong> card${wantCount===1?'':'s'} they own that <strong>you want</strong>:
         </div>
-        <div class="trade-card-list${user.iHaveTheyWant.length === 0 ? ' last' : ''}">
+        <div class="trade-card-list${haveCount === 0 ? ' last' : ''}" style="margin-bottom:${haveCount>0?'0.75rem':'0'};">
           ${tradeTable(user.theyHaveIWant)}
         </div>`;
       }
-
-      if(user.iHaveTheyWant.length > 0){
-        html += `<div class="trade-count" style="margin-bottom:0.4rem;">
-          <strong>${user.iHaveTheyWant.length}</strong> card${user.iHaveTheyWant.length===1?'':'s'} <strong>you own</strong> that they want:
+      if(haveCount > 0){
+        detailHtml += `<div class="trade-count" style="margin-bottom:0.4rem;">
+          <strong>${haveCount}</strong> card${haveCount===1?'':'s'} <strong>you own</strong> that they want:
         </div>
         <div class="trade-card-list last">
           ${tradeTable(user.iHaveTheyWant)}
         </div>`;
       }
 
-      html += '</div>';
+      html += `<div class="trade-summary-row">
+        <div class="trade-summary-header" onclick="toggleTradeRow(${idx})">
+          <span class="tsm-medal">${medals[idx]}</span>
+          <span class="tsm-name">${user.displayName}</span>
+          <span class="tsm-pills">${wantPill}${havePill}</span>
+          <span class="tsm-arrow" id="trade-arrow-${idx}">&#9658;</span>
+        </div>
+        <div class="trade-summary-body" id="trade-body-${idx}">
+          ${detailHtml}
+        </div>
+      </div>`;
     });
+    html += '</div>';
 
     resultsDiv.innerHTML = html;
   } catch(e) {
     console.error('runTradeFinder error:', e);
     resultsDiv.innerHTML = '<div class="trade-empty">Error loading trade data. Please try again.</div>';
   }
+}
+
+function toggleTradeRow(idx) {
+  const body  = document.getElementById('trade-body-' + idx);
+  const arrow = document.getElementById('trade-arrow-' + idx);
+  if(!body || !arrow) return;
+  const isOpen = body.classList.toggle('open');
+  arrow.classList.toggle('open', isOpen);
 }
 
 // ---- WISHLISTS ----
