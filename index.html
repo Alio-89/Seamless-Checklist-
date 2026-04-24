@@ -1,4 +1,4 @@
-<!-- Really Good Trades | v1.0.20250424 -->
+<!-- Really Good Trades | v1.0.20250425 -->
 <!-- ⚠ REMINDER: Update version number above AND in the footer when making changes. Format: v1.0.YYYYMMDD -->
 <!DOCTYPE html>
 <html lang="en">
@@ -744,7 +744,7 @@
     </div>
   </div>
 
-  <footer>Really Good Trades &mdash; AFL Trading Cards Checklist &mdash; <span style="opacity:0.6;">v1.0.20250424</span></footer>
+  <footer>Really Good Trades &mdash; AFL Trading Cards Checklist &mdash; <span style="opacity:0.6;">v1.0.20250425</span></footer>
 </div>
 
 <!-- WISHLIST MODAL -->
@@ -1349,10 +1349,15 @@ async function loadUserList(){
     }
   } catch(e) {
     console.error('loadUserList error:', e);
-    // Show the table anyway with empty data rather than hanging forever
-    showToast('Could not load saved list \u2014 working offline');
-    // Trigger a render so the table doesn't stay stuck on the loading spinner
-    try { render(); } catch(re) { console.error('render after loadUserList error:', re); }
+    if (e.message && e.message.includes('timed out')) {
+      // Stale/expired session — clear it automatically and bounce to login
+      showToast('Session expired \u2014 please log in again');
+      setTimeout(() => emergencyLogout(), 1500);
+    } else {
+      // Other error — render in offline mode rather than hanging forever
+      showToast('Could not load saved list \u2014 working offline');
+      try { render(); } catch(re) { console.error('render after loadUserList error:', re); }
+    }
   }
 }
 
