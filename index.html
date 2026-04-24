@@ -1,4 +1,4 @@
-<!-- Really Good Trades | v1.0.20250425 -->
+<!-- Really Good Trades | v1.0.20250425b -->
 <!-- ⚠ REMINDER: Update version number above AND in the footer when making changes. Format: v1.0.YYYYMMDD -->
 <!DOCTYPE html>
 <html lang="en">
@@ -744,7 +744,7 @@
     </div>
   </div>
 
-  <footer>Really Good Trades &mdash; AFL Trading Cards Checklist &mdash; <span style="opacity:0.6;">v1.0.20250425</span></footer>
+  <footer>Really Good Trades &mdash; AFL Trading Cards Checklist &mdash; <span style="opacity:0.6;">v1.0.20250425b</span></footer>
 </div>
 
 <!-- WISHLIST MODAL -->
@@ -2438,6 +2438,27 @@ document.addEventListener('DOMContentLoaded', function() {
   const defaultYear = document.getElementById('filter-year').value;
   populateSeriesDropdown(defaultYear);
   loadActiveSet();
+
+  // On page load, proactively verify the session with Supabase before doing anything.
+  // This catches stale/expired tokens stored in localStorage before they cause a timeout.
+  (async () => {
+    try {
+      const { data: { session }, error } = await Promise.race([
+        _sb.auth.getSession(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Session check timed out')), 5000))
+      ]);
+      if (error || !session) {
+        // No valid session — clear storage and show login cleanly
+        Object.keys(localStorage).forEach(k => { if (k.startsWith('sb-')) localStorage.removeItem(k); });
+        sessionStorage.clear();
+      }
+    } catch(e) {
+      // getSession itself timed out — stale token, clear it
+      console.warn('Session validation failed, clearing:', e.message);
+      Object.keys(localStorage).forEach(k => { if (k.startsWith('sb-')) localStorage.removeItem(k); });
+      sessionStorage.clear();
+    }
+  })();
 
   _sb.auth.onAuthStateChange(async (event, session) => {
     try {
