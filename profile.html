@@ -155,6 +155,17 @@
   .msg-send-btn:disabled { background: #aaa; cursor: not-allowed; }
   .msg-loading { text-align: center; padding: 1.5rem; font-family: 'Arial', sans-serif; font-size: 0.85rem; color: var(--text-muted); }
 
+  /* ---- INBOX CONVERSATION LIST ---- */
+  .inbox-item { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 0.85rem 1rem; display: flex; align-items: center; gap: 0.85rem; cursor: pointer; transition: background 0.15s; }
+  .inbox-item:hover { background: #faf8f4; }
+  .inbox-item .inbox-avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-family: 'Georgia', serif; font-size: 0.95rem; color: #fff; flex-shrink: 0; }
+  .inbox-item .inbox-meta { flex: 1; min-width: 0; }
+  .inbox-item .inbox-name { font-family: 'Arial', sans-serif; font-size: 0.88rem; font-weight: bold; margin-bottom: 0.2rem; }
+  .inbox-item .inbox-preview { font-family: 'Arial', sans-serif; font-size: 0.78rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .inbox-item .inbox-time { font-family: 'Arial', sans-serif; font-size: 0.72rem; color: var(--text-muted); flex-shrink: 0; align-self: flex-start; }
+  .inbox-item.unread .inbox-name { color: var(--accent); }
+  .inbox-item.unread .inbox-preview { color: var(--text); font-weight: bold; }
+
   /* ---- UNREAD BADGE (used in user bar) ---- */
   .unread-badge { display: inline-block; background: #c0392b; color: #fff; font-family: 'Arial', sans-serif; font-size: 0.65rem; font-weight: bold; border-radius: 10px; padding: 1px 5px; margin-left: 3px; vertical-align: middle; line-height: 1.4; }
 
@@ -280,6 +291,7 @@
     <div class="profile-tabs">
       <button class="profile-tab active" id="tab-owned" onclick="switchTab('owned')">Owned</button>
       <button class="profile-tab" id="tab-wanted" onclick="switchTab('wanted')">Wishlist</button>
+      <button class="profile-tab" id="tab-messages" onclick="switchTab('messages')" style="display:none;">Messages <span id="tab-unread-badge" class="unread-badge" style="display:none;"></span></button>
     </div>
 
     <!-- OWNED CARDS -->
@@ -293,6 +305,28 @@
     <div id="panel-wanted" style="display:none;">
       <div id="wanted-sets-list" class="sets-list">
         <div class="empty-section">Loading&hellip;</div>
+      </div>
+    </div>
+
+    <!-- MESSAGES INBOX (own profile only) -->
+    <div id="panel-messages" style="display:none;">
+      <div id="inbox-list" class="sets-list">
+        <div class="empty-section">Loading&hellip;</div>
+      </div>
+      <!-- Active thread inside inbox -->
+      <div id="inbox-thread-wrap" style="display:none;">
+        <div class="msg-panel open" style="margin-top:0.75rem;">
+          <div class="msg-panel-header">
+            <h3>&#8592; <button onclick="closeInboxThread()" style="background:none;border:none;cursor:pointer;font-family:'Arial',sans-serif;font-size:0.85rem;color:var(--text-muted);padding:0;">Back to inbox</button> &nbsp; <span id="inbox-thread-name" style="color:var(--text);"></span></h3>
+          </div>
+          <div class="msg-thread" id="inbox-thread"></div>
+          <div class="msg-compose">
+            <textarea id="inbox-msg-input" placeholder="Write a message&hellip;" rows="1"
+              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendInboxMessage();}"
+              oninput="autoResizeMsgInput(this)"></textarea>
+            <button class="msg-send-btn" id="inbox-send-btn" onclick="sendInboxMessage()">Send</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -533,6 +567,8 @@ function renderProfile(profile, ownedKeys, wantedKeys) {
     actionsEl.innerHTML = `
       <button class="btn sm" onclick="toggleEditForm()">&#9998; Edit profile</button>
     `;
+    // Show messages tab
+    document.getElementById('tab-messages').style.display = '';
     // Pre-fill edit form
     document.getElementById('edit-username').value = profile.username || '';
     const teamSel = document.getElementById('edit-team');
@@ -587,6 +623,7 @@ function renderCardSets(containerId, keySet, cardMeta, tagClass) {
     const setMeta  = resolveSetMeta(setId);
     const setLabel = setMeta ? (setMeta.label || setId) : setId;
     const setYear  = setMeta?.year || '';
+    const ns = tagClass + '-' + setIdx;  // namespace prevents ID clashes between tabs
 
     const allSubsetCards = Object.values(subsets).flat();
     const totalCount = allSubsetCards.length;
@@ -606,19 +643,19 @@ function renderCardSets(containerId, keySet, cardMeta, tagClass) {
 
     html += `
     <div class="set-block">
-      <div class="set-block-header" onclick="toggleSetBlock(${setIdx})">
-        <span class="sb-arrow" id="sb-arrow-${setIdx}">&#9658;</span>
+      <div class="set-block-header" onclick="toggleSetBlock('${ns}')">
+        <span class="sb-arrow" id="sb-arrow-${ns}">&#9658;</span>
         <span class="sb-title">${escHtml(setLabel)} <span style="font-weight:normal;color:var(--text-muted);font-size:0.78rem;">${setYear}</span></span>
         <span class="sb-pills">
           <span class="sb-pill ${tagClass}">${totalCount} card${totalCount === 1 ? '' : 's'}</span>
         </span>
       </div>
-      <div class="set-block-body" id="sb-body-${setIdx}">`;
+      <div class="set-block-body" id="sb-body-${ns}">`;
 
     subsetEntries.forEach(([subset, cards], subIdx) => {
       const badge = (setMeta?.badge || {})[subset] || 'b-base';
       const lbl   = (setMeta?.label_short || {})[subset] || subset;
-      const blockId = `ss-${setIdx}-${subIdx}`;
+      const blockId = `ss-${ns}-${subIdx}`;
       const count = cards.length;
 
       // Sort cards numerically where possible
@@ -660,9 +697,9 @@ function renderCardSets(containerId, keySet, cardMeta, tagClass) {
   container.innerHTML = html;
 }
 
-function toggleSetBlock(idx) {
-  const body  = document.getElementById('sb-body-' + idx);
-  const arrow = document.getElementById('sb-arrow-' + idx);
+function toggleSetBlock(ns) {
+  const body  = document.getElementById('sb-body-' + ns);
+  const arrow = document.getElementById('sb-arrow-' + ns);
   if (!body || !arrow) return;
   const isOpen = body.classList.toggle('open');
   arrow.classList.toggle('open', isOpen);
@@ -679,10 +716,209 @@ function toggleSubset(blockId) {
 // ---- TABS ----
 function switchTab(tab) {
   activeTab = tab;
-  document.getElementById('panel-owned').style.display  = tab === 'owned'  ? '' : 'none';
-  document.getElementById('panel-wanted').style.display = tab === 'wanted' ? '' : 'none';
-  document.getElementById('tab-owned').classList.toggle('active',  tab === 'owned');
-  document.getElementById('tab-wanted').classList.toggle('active', tab === 'wanted');
+  document.getElementById('panel-owned').style.display    = tab === 'owned'    ? '' : 'none';
+  document.getElementById('panel-wanted').style.display   = tab === 'wanted'   ? '' : 'none';
+  document.getElementById('panel-messages').style.display = tab === 'messages' ? '' : 'none';
+  document.getElementById('tab-owned').classList.toggle('active',    tab === 'owned');
+  document.getElementById('tab-wanted').classList.toggle('active',   tab === 'wanted');
+  document.getElementById('tab-messages').classList.toggle('active', tab === 'messages');
+  if (tab === 'messages') loadInbox();
+}
+
+// ---- INBOX (own profile) ----
+let _inboxOtherUserId   = null;
+let _inboxOtherUsername = null;
+let _inboxChannel       = null;
+
+async function loadInbox() {
+  const listEl = document.getElementById('inbox-list');
+  listEl.innerHTML = '<div class="empty-section">Loading&hellip;</div>';
+  document.getElementById('inbox-thread-wrap').style.display = 'none';
+  document.getElementById('inbox-list').style.display = '';
+
+  try {
+    // Get all messages involving current user
+    const { data, error } = await _sb
+      .from('messages')
+      .select('id, from_user, to_user, body, created_at, read')
+      .or(`from_user.eq.${currentUser.id},to_user.eq.${currentUser.id}`)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    if (!data || data.length === 0) {
+      listEl.innerHTML = '<div class="empty-section">No messages yet.</div>';
+      return;
+    }
+
+    // Group into conversations by the other user's id
+    const convMap = {};
+    for (const m of data) {
+      const otherId = m.from_user === currentUser.id ? m.to_user : m.from_user;
+      if (!convMap[otherId]) convMap[otherId] = { latest: m, unread: 0 };
+      if (m.from_user !== currentUser.id && !m.read) convMap[otherId].unread++;
+    }
+
+    // Fetch usernames for other users
+    const otherIds = Object.keys(convMap);
+    const { data: profiles } = await _sb
+      .from('profiles')
+      .select('user_id, username')
+      .in('user_id', otherIds);
+
+    const usernameMap = {};
+    for (const p of (profiles || [])) usernameMap[p.user_id] = p.username || 'Anonymous';
+
+    // Sort conversations by latest message
+    const convEntries = Object.entries(convMap).sort(([,a],[,b]) =>
+      new Date(b.latest.created_at) - new Date(a.latest.created_at)
+    );
+
+    let html = '';
+    for (const [otherId, conv] of convEntries) {
+      const name     = usernameMap[otherId] || 'Anonymous';
+      const initials = name.replace(/[^a-zA-Z0-9]/g,'').slice(0,2).toUpperCase() || '?';
+      const preview  = (conv.latest.from_user === currentUser.id ? 'You: ' : '') + conv.latest.body;
+      const time     = new Date(conv.latest.created_at).toLocaleDateString('en-AU', { day:'numeric', month:'short' });
+      const unreadClass = conv.unread > 0 ? 'unread' : '';
+      html += `
+        <div class="inbox-item ${unreadClass}" onclick="openInboxThread('${otherId}','${escHtml(name)}')">
+          <div class="inbox-avatar">${initials}</div>
+          <div class="inbox-meta">
+            <div class="inbox-name">${escHtml(name)}${conv.unread > 0 ? ` <span class="unread-badge">${conv.unread}</span>` : ''}</div>
+            <div class="inbox-preview">${escHtml(preview)}</div>
+          </div>
+          <div class="inbox-time">${time}</div>
+        </div>`;
+    }
+    listEl.innerHTML = `<div class="sets-list" style="gap:0.5rem;">${html}</div>`;
+
+  } catch(e) {
+    console.error('loadInbox error:', e);
+    listEl.innerHTML = '<div class="empty-section">Could not load messages.</div>';
+  }
+}
+
+async function openInboxThread(otherId, otherName) {
+  _inboxOtherUserId   = otherId;
+  _inboxOtherUsername = otherName;
+
+  document.getElementById('inbox-list').style.display        = 'none';
+  document.getElementById('inbox-thread-wrap').style.display = '';
+  document.getElementById('inbox-thread-name').textContent   = otherName;
+  document.getElementById('inbox-thread').innerHTML = '<div class="msg-loading">Loading&hellip;</div>';
+
+  try {
+    const { data, error } = await _sb
+      .from('messages')
+      .select('id, from_user, body, created_at, read')
+      .or(`and(from_user.eq.${currentUser.id},to_user.eq.${otherId}),and(from_user.eq.${otherId},to_user.eq.${currentUser.id})`)
+      .order('created_at', { ascending: true });
+
+    if (error) throw error;
+    renderInboxThread(data || []);
+
+    // Mark unread as read
+    const unreadIds = (data || []).filter(m => m.from_user === otherId && !m.read).map(m => m.id);
+    if (unreadIds.length > 0) {
+      await _sb.from('messages').update({ read: true }).in('id', unreadIds);
+      updateUnreadBadge();
+    }
+  } catch(e) {
+    document.getElementById('inbox-thread').innerHTML = '<div class="msg-thread-empty">Could not load thread.</div>';
+  }
+
+  subscribeToInboxThread(otherId);
+  document.getElementById('inbox-msg-input').focus();
+}
+
+function renderInboxThread(messages) {
+  const threadEl = document.getElementById('inbox-thread');
+  if (messages.length === 0) {
+    threadEl.innerHTML = '<div class="msg-thread-empty">No messages yet.</div>';
+    return;
+  }
+  threadEl.innerHTML = messages.map(m => {
+    const mine = m.from_user === currentUser.id;
+    const time = new Date(m.created_at).toLocaleString('en-AU', {
+      day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+    });
+    return `
+      <div class="msg-bubble-wrap ${mine ? 'mine' : 'theirs'}">
+        <div class="msg-bubble">${escHtml(m.body)}</div>
+        <div class="msg-time">${time}</div>
+      </div>`;
+  }).join('');
+  threadEl.scrollTop = threadEl.scrollHeight;
+}
+
+function subscribeToInboxThread(otherId) {
+  if (_inboxChannel) _sb.removeChannel(_inboxChannel);
+  _inboxChannel = _sb
+    .channel('inbox-thread-' + currentUser.id)
+    .on('postgres_changes', {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'messages',
+      filter: `to_user=eq.${currentUser.id}`
+    }, async (payload) => {
+      const m = payload.new;
+      if (m.from_user !== otherId) { updateUnreadBadge(); return; }
+      const threadEl = document.getElementById('inbox-thread');
+      const time = new Date(m.created_at).toLocaleString('en-AU', {
+        day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+      });
+      const div = document.createElement('div');
+      div.className = 'msg-bubble-wrap theirs';
+      div.innerHTML = `<div class="msg-bubble">${escHtml(m.body)}</div><div class="msg-time">${time}</div>`;
+      threadEl.appendChild(div);
+      threadEl.scrollTop = threadEl.scrollHeight;
+      await _sb.from('messages').update({ read: true }).eq('id', m.id);
+    })
+    .subscribe();
+}
+
+async function sendInboxMessage() {
+  const input = document.getElementById('inbox-msg-input');
+  const btn   = document.getElementById('inbox-send-btn');
+  const body  = input.value.trim();
+  if (!body || !_inboxOtherUserId) return;
+
+  btn.disabled = true;
+  input.disabled = true;
+
+  try {
+    const { data, error } = await _sb
+      .from('messages')
+      .insert({ from_user: currentUser.id, to_user: _inboxOtherUserId, body })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    input.value = '';
+    input.style.height = 'auto';
+    const threadEl = document.getElementById('inbox-thread');
+    const time = new Date(data.created_at).toLocaleString('en-AU', {
+      day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+    });
+    const div = document.createElement('div');
+    div.className = 'msg-bubble-wrap mine';
+    div.innerHTML = `<div class="msg-bubble">${escHtml(data.body)}</div><div class="msg-time">${time}</div>`;
+    threadEl.appendChild(div);
+    threadEl.scrollTop = threadEl.scrollHeight;
+  } catch(e) {
+    showToast('Failed to send. Please try again.');
+  } finally {
+    btn.disabled = false;
+    input.disabled = false;
+    input.focus();
+  }
+}
+
+function closeInboxThread() {
+  if (_inboxChannel) { _sb.removeChannel(_inboxChannel); _inboxChannel = null; }
+  document.getElementById('inbox-thread-wrap').style.display = 'none';
+  loadInbox();
 }
 
 // ---- EDIT FORM ----
@@ -929,6 +1165,7 @@ async function updateUnreadBadge() {
       .eq('to_user', currentUser.id)
       .eq('read', false);
 
+    // User bar badge
     const barLink = document.getElementById('bar-username-link');
     const existing = document.getElementById('bar-unread-badge');
     if (count > 0) {
@@ -943,6 +1180,17 @@ async function updateUnreadBadge() {
       }
     } else {
       if (existing) existing.remove();
+    }
+
+    // Messages tab badge
+    const tabBadge = document.getElementById('tab-unread-badge');
+    if (tabBadge) {
+      if (count > 0) {
+        tabBadge.textContent = count;
+        tabBadge.style.display = 'inline-block';
+      } else {
+        tabBadge.style.display = 'none';
+      }
     }
   } catch(e) {
     console.warn('updateUnreadBadge error:', e);
