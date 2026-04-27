@@ -1,4 +1,4 @@
-<!-- Really Good Trades | v1.0.26.04.24 -->
+<!-- Really Good Trades | v1.0.26.04.27 -->
 <!-- ⚠ REMINDER: Update version number above AND in the footer when making changes. Format: v1.0.YYYYMMDD -->
 <!DOCTYPE html>
 <html lang="en">
@@ -64,6 +64,7 @@
   .sync-status.saving { color:#f5d88a; }
   .sync-status.saved  { color:#88f5c4; }
   .sync-status.error  { color:#f5a888; }
+  .unread-badge { display: inline-block; background: #c0392b; color: #fff; font-family: 'Arial', sans-serif; font-size: 0.65rem; font-weight: bold; border-radius: 10px; padding: 1px 5px; margin-left: 3px; vertical-align: middle; line-height: 1.4; }
   .controls-wrap { position: sticky; top: 0; z-index: 99; background: var(--bg); border-bottom: 1px solid var(--border); }
   .controls { max-width: 1020px; margin: 0 auto; padding: 0.6rem 1rem; display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; }
   .controls + .controls { padding-top: 0; padding-bottom: 0.6rem; }
@@ -581,7 +582,7 @@
   <div class="sticky-top">
   <div class="user-bar">
     <button class="info-btn" onclick="openInfo()" title="About Really Good Trades">&#9432;</button>
-    <button id="my-account-btn" onclick="openAccountModal()" style="background:none;border:1px solid #444;color:#ccc;border-radius:4px;padding:2px 10px;font-size:0.75rem;cursor:pointer;font-family:'Arial',sans-serif;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:all 0.15s;" onmouseover="this.style.borderColor='#888';this.style.color='#fff'" onmouseout="this.style.borderColor='#444';this.style.color='#ccc'">My Account</button>
+    <a id="my-account-btn" href="profile.html" style="background:none;border:1px solid #444;color:#ccc;border-radius:4px;padding:2px 10px;font-size:0.75rem;cursor:pointer;font-family:'Arial',sans-serif;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:all 0.15s;text-decoration:none;display:inline-block;" onmouseover="this.style.borderColor='#888';this.style.color='#fff'" onmouseout="this.style.borderColor='#444';this.style.color='#ccc'">My Account</a><span id="main-unread-badge" class="unread-badge" style="display:none;"></span>
     <span id="preview-badge" style="display:none;background:#8B6914;color:#fff5cc;font-size:0.7rem;font-weight:bold;padding:2px 8px;border-radius:10px;letter-spacing:0.04em;text-transform:uppercase;">Preview mode</span>
     <span class="sync-status" id="sync-status"></span>
     <button class="save-btn" id="save-btn" onclick="manualSave()">Save list</button>
@@ -760,7 +761,7 @@
     </div>
   </div>
 
-  <footer>Really Good Trades &mdash; AFL Trading Cards Checklist &mdash; <span style="opacity:0.6;">v1.0.26.04.24</span></footer>
+  <footer>Really Good Trades &mdash; AFL Trading Cards Checklist &mdash; <span style="opacity:0.6;">v1.0.26.04.27</span></footer>
 </div>
 
 <!-- WISHLIST MODAL -->
@@ -1804,6 +1805,7 @@ async function runTradeFinder() {
       const score = theyHaveIWant.length + iHaveTheyWant.length;
       return {
         displayName: user.username || user.user_email || 'Anonymous',
+        userId: user.user_id,
         score,
         theyHaveIWant,
         iHaveTheyWant
@@ -1873,7 +1875,7 @@ async function runTradeFinder() {
       html += `<div class="trade-summary-row">
         <div class="trade-summary-header" onclick="toggleTradeRow(${idx})">
           <span class="tsm-medal">${medals[idx]}</span>
-          <span class="tsm-name">${user.displayName}</span>
+          <span class="tsm-name"><a href="profile.html?user=${user.userId}" style="color:inherit;text-decoration:none;border-bottom:1px dotted var(--border-strong);" onmouseover="this.style.borderBottomColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderBottomColor='var(--border-strong)';this.style.color='inherit'">${user.displayName}</a></span>
           <span class="tsm-pills">${wantPill}${havePill}</span>
           <span class="tsm-arrow" id="trade-arrow-${idx}">&#9658;</span>
         </div>
@@ -1960,11 +1962,11 @@ async function runWishlists(){
       }).join('');
 
       const idx = _wishlistStore.length;
-      _wishlistStore.push({name: displayName, wanted: wantedKeys});
+      _wishlistStore.push({name: displayName, userId: user.user_id, wanted: wantedKeys});
 
       html += `<div class="wishlist-user-block">
         <div class="wishlist-user-name">
-          <span>${displayName}</span>
+          <span><a href="profile.html?user=${user.user_id}" style="color:inherit;text-decoration:none;border-bottom:1px dotted var(--border-strong);" onmouseover="this.style.borderBottomColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderBottomColor='var(--border-strong)';this.style.color='inherit'">${displayName}</a></span>
           <span class="wl-count">${total} card${total===1?'':'s'}</span>
         </div>
         <div class="wishlist-pills">
@@ -2442,6 +2444,26 @@ function updateAccountBtn() {
   const btn = document.getElementById('my-account-btn');
   if(!btn) return;
   btn.textContent = (currentProfile && currentProfile.username) ? currentProfile.username : 'My Account';
+  if(currentUser) btn.href = 'profile.html?user=' + currentUser.id;
+  loadUnreadBadge();
+}
+
+async function loadUnreadBadge() {
+  try {
+    const { count } = await _sb
+      .from('messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('to_user', currentUser.id)
+      .eq('read', false);
+    const badge = document.getElementById('main-unread-badge');
+    if(!badge) return;
+    if(count > 0) {
+      badge.textContent = count;
+      badge.style.display = 'inline-block';
+    } else {
+      badge.style.display = 'none';
+    }
+  } catch(e) { console.warn('loadUnreadBadge error:', e); }
 }
 
 function showApp(user) {

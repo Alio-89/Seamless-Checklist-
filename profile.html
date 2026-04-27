@@ -1,0 +1,990 @@
+<!-- Really Good Trades | Profile Page | v1.0.26.04.27 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profile — Really Good Trades</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f7f5f0; --surface: #ffffff; --border: #e2ddd6; --border-strong: #c8c2b8;
+    --text: #1a1814; --text-muted: #7a7268; --accent: #1D7A4F;
+    --checked-bg: #f0faf5; --header-bg: #1a1814;
+  }
+  body { font-family: 'Georgia', serif; background: var(--bg); color: var(--text); min-height: 100vh; -webkit-text-size-adjust: 100%; }
+  input, select, button, textarea { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+
+  /* ---- HEADER / USER BAR ---- */
+  .user-bar { background: #111; color: #aaa; font-family: 'Arial', sans-serif; font-size: 0.78rem; display: flex; align-items: center; justify-content: flex-end; gap: 1rem; padding: 0.4rem 1.25rem; border-bottom: 3px solid #CC0000; }
+  .user-bar a { color: #ccc; text-decoration: none; font-family: 'Arial', sans-serif; font-size: 0.78rem; }
+  .user-bar a:hover { color: #fff; }
+  .user-bar button { background: none; border: 1px solid #444; color: #aaa; border-radius: 4px; padding: 2px 10px; font-size: 0.75rem; cursor: pointer; font-family: 'Arial', sans-serif; transition: all 0.15s; }
+  .user-bar button:hover { border-color: #888; color: #fff; }
+  .page-header { background: #ffffff; border-bottom: 1px solid var(--border); display: flex; justify-content: center; align-items: center; padding: 10px 1.25rem; }
+  .page-header img { height: 80px; width: auto; display: block; }
+
+  /* ---- LOADING / AUTH STATES ---- */
+  .state-screen { display: flex; align-items: center; justify-content: center; min-height: 60vh; }
+  .state-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 2.5rem 2rem; text-align: center; max-width: 360px; width: 100%; box-shadow: 0 4px 24px rgba(0,0,0,0.08); font-family: 'Arial', sans-serif; }
+  .state-card h2 { font-size: 1.1rem; font-weight: normal; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.75rem; }
+  .state-card p { font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1.25rem; line-height: 1.6; }
+  .state-card .btn { display: inline-block; padding: 0.55rem 1.25rem; font-size: 0.85rem; font-family: 'Arial', sans-serif; background: var(--accent); color: #fff; border: none; border-radius: 6px; cursor: pointer; text-decoration: none; transition: background 0.15s; }
+  .state-card .btn:hover { background: #165f3d; }
+  .loading-spin { display: inline-block; width: 28px; height: 28px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; margin-bottom: 1rem; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ---- PROFILE LAYOUT ---- */
+  .profile-wrap { max-width: 860px; margin: 0 auto; padding: 2rem 1rem 4rem; }
+
+  /* ---- PROFILE HEADER CARD ---- */
+  .profile-header-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.75rem 2rem; margin-bottom: 1.5rem; box-shadow: 0 2px 12px rgba(0,0,0,0.06); display: flex; align-items: flex-start; gap: 1.5rem; flex-wrap: wrap; }
+  .profile-avatar { width: 64px; height: 64px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-family: 'Georgia', serif; font-size: 1.6rem; color: #fff; flex-shrink: 0; letter-spacing: -0.02em; }
+  .profile-meta { flex: 1; min-width: 0; }
+  .profile-username { font-size: 1.4rem; font-weight: normal; letter-spacing: 0.04em; margin-bottom: 0.25rem; word-break: break-word; }
+  .profile-username-anon { font-size: 1.4rem; font-weight: normal; letter-spacing: 0.04em; color: var(--text-muted); font-style: italic; margin-bottom: 0.25rem; }
+  .profile-team { font-family: 'Arial', sans-serif; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.5rem; }
+  .profile-since { font-family: 'Arial', sans-serif; font-size: 0.78rem; color: var(--text-muted); }
+  .profile-stats { display: flex; gap: 1.5rem; margin-top: 0.85rem; flex-wrap: wrap; }
+  .profile-stat { font-family: 'Arial', sans-serif; font-size: 0.78rem; color: var(--text-muted); }
+  .profile-stat strong { display: block; font-size: 1.15rem; color: var(--accent); font-family: 'Georgia', serif; font-weight: normal; }
+  .profile-actions { display: flex; flex-direction: column; gap: 0.5rem; flex-shrink: 0; align-self: flex-start; }
+  .btn { padding: 0.52rem 0.9rem; font-size: 0.82rem; font-family: 'Arial', sans-serif; letter-spacing: 0.04em; border: 1px solid var(--border-strong); border-radius: 6px; background: var(--surface); color: var(--text); cursor: pointer; transition: background 0.15s; white-space: nowrap; text-decoration: none; display: inline-block; text-align: center; }
+  .btn:hover { background: var(--bg); }
+  .btn.accent { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn.accent:hover { background: #165f3d; }
+  .btn.sm { padding: 0.35rem 0.7rem; font-size: 0.75rem; }
+
+  /* ---- EDIT FORM (own profile) ---- */
+  .edit-form-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem 2rem; margin-bottom: 1.5rem; box-shadow: 0 2px 12px rgba(0,0,0,0.06); display: none; }
+  .edit-form-card.open { display: block; }
+  .edit-form-card h3 { font-size: 0.85rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); font-family: 'Arial', sans-serif; margin-bottom: 1.25rem; }
+  .edit-field { margin-bottom: 1rem; }
+  .edit-field label { display: block; font-family: 'Arial', sans-serif; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.3rem; text-transform: uppercase; letter-spacing: 0.06em; }
+  .edit-field input, .edit-field select { width: 100%; padding: 0.6rem 0.8rem; font-size: 0.9rem; font-family: 'Arial', sans-serif; border: 1px solid var(--border-strong); border-radius: 6px; background: var(--surface); color: var(--text); outline: none; }
+  .edit-field input:focus, .edit-field select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(29,122,79,0.12); }
+  .edit-field .field-hint { font-family: 'Arial', sans-serif; font-size: 0.72rem; color: var(--text-muted); margin-top: 0.3rem; }
+  .edit-actions { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.25rem; }
+  .edit-error { font-family: 'Arial', sans-serif; font-size: 0.8rem; color: #c0392b; background: #fdf0ee; border: 1px solid #f5c6c0; border-radius: 6px; padding: 0.5rem 0.75rem; margin-top: 0.75rem; display: none; }
+  .edit-error.show { display: block; }
+  .edit-success { font-family: 'Arial', sans-serif; font-size: 0.8rem; color: #1D7A4F; background: #e8f9f0; border: 1px solid #a8e6c8; border-radius: 6px; padding: 0.5rem 0.75rem; margin-top: 0.75rem; display: none; }
+  .edit-success.show { display: block; }
+
+  /* ---- SECTION HEADER ---- */
+  .section-label { font-family: 'Arial', sans-serif; font-size: 0.72rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-muted); margin: 0 0 0.6rem; }
+
+  /* ---- CARD LIST (sets → subsets → cards) ---- */
+  .sets-list { display: flex; flex-direction: column; gap: 0.75rem; }
+  .set-block { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+  .set-block-header { display: flex; align-items: center; gap: 0.75rem; padding: 0.85rem 1rem; cursor: pointer; user-select: none; background: var(--surface); transition: background 0.15s; }
+  .set-block-header:hover { background: #faf8f4; }
+  .set-block-header .sb-arrow { font-size: 0.7rem; color: var(--text-muted); transition: transform 0.2s; flex-shrink: 0; }
+  .set-block-header .sb-arrow.open { transform: rotate(90deg); }
+  .set-block-header .sb-title { font-family: 'Arial', sans-serif; font-size: 0.92rem; font-weight: bold; flex: 1; }
+  .set-block-header .sb-pills { display: flex; gap: 0.4rem; flex-shrink: 0; align-items: center; }
+  .sb-pill { font-family: 'Arial', sans-serif; font-size: 0.72rem; border-radius: 20px; padding: 0.18rem 0.6rem; white-space: nowrap; }
+  .sb-pill.owned { background: #e8f9f0; color: #1D7A4F; border: 1px solid #a8e6c8; }
+  .sb-pill.wanted { background: #eef2ff; color: #4f46e5; border: 1px solid #c7d2fe; }
+  .set-block-body { display: none; border-top: 1px solid var(--border); }
+  .set-block-body.open { display: block; }
+  .subset-section { border-bottom: 1px solid var(--border); }
+  .subset-section:last-child { border-bottom: none; }
+  .subset-header { display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1rem; background: #f7f5f0; font-family: 'Arial', sans-serif; font-size: 0.78rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); cursor: pointer; user-select: none; transition: background 0.15s; }
+  .subset-header:hover { background: #f0ece6; }
+  .subset-header .ss-arrow { font-size: 0.6rem; transition: transform 0.2s; }
+  .subset-header .ss-arrow.open { transform: rotate(90deg); }
+  .subset-header .ss-count { margin-left: auto; font-size: 0.72rem; color: var(--text-muted); font-weight: normal; }
+  .badge { display: inline-block; width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; vertical-align: middle; }
+  .card-rows { display: none; }
+  .card-rows.open { display: block; }
+  .card-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 1rem 0.5rem 1.5rem; border-top: 1px solid var(--border); font-family: 'Arial', sans-serif; font-size: 0.85rem; }
+  .card-row .cr-num { width: 44px; flex-shrink: 0; color: var(--text-muted); font-size: 0.78rem; font-variant-numeric: tabular-nums; }
+  .card-row .cr-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .card-row .cr-team { color: var(--text-muted); font-size: 0.78rem; flex-shrink: 0; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .card-row .cr-tag { font-size: 0.68rem; border-radius: 10px; padding: 0.1rem 0.45rem; flex-shrink: 0; }
+  .cr-tag.owned { background: #e8f9f0; color: #1D7A4F; border: 1px solid #a8e6c8; }
+  .cr-tag.wanted { background: #eef2ff; color: #4f46e5; border: 1px solid #c7d2fe; }
+  .empty-section { padding: 2rem; text-align: center; font-family: 'Arial', sans-serif; font-size: 0.88rem; color: var(--text-muted); }
+
+  /* ---- TABS (Owned / Wishlist) ---- */
+  .profile-tabs { display: flex; border-bottom: 2px solid var(--border); margin-bottom: 1rem; }
+  .profile-tab { font-family: 'Arial', sans-serif; font-size: 0.82rem; padding: 0.5rem 1rem; cursor: pointer; color: var(--text-muted); border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s; background: none; border-top: none; border-left: none; border-right: none; }
+  .profile-tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: bold; }
+  .profile-tab:hover:not(.active) { color: var(--text); }
+
+  /* ---- TOAST ---- */
+  .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(10px); background: #1a1814; color: #f7f5f0; font-family: 'Arial', sans-serif; font-size: 0.85rem; padding: 0.6rem 1.25rem; border-radius: 20px; opacity: 0; pointer-events: none; transition: opacity 0.2s, transform 0.2s; white-space: nowrap; z-index: 999; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* Badge colours — copied from index.html */
+  .b-base{background:#b0a898}.b-black{background:#3a3a3a}.b-sdp{background:#e8a020}.b-dp{background:#4a9fe0}.b-tmp{background:#a855f7}.b-jp{background:#22c97a}.b-rs{background:#ef4444}.b-rsg{background:#f5c842}.b-as{background:#6b8cef}.b-ps{background:#4ade80}.b-psb{background:#f97316}.b-mp{background:#22d4d4}
+  .b-fs25-base{background:#a0968a}.b-fs25-aflw{background:#e879f9}.b-fs25-fh{background:#f97316}.b-fs25-bo{background:#38bdf8}.b-fs25-mg{background:#d4a017}.b-fs25-bm{background:#dc2626}.b-fs25-er{background:#ef4444}.b-fs25-eg{background:#ca8a04}.b-fs25-bpsg{background:#7c3aed}.b-fs25-bppg{background:#6d28d9}.b-fs25-cpsg{background:#0891b2}.b-fs25-cppg{background:#0e7490}.b-fs25-ppsg{background:#16a34a}.b-fs25-npsg{background:#15803d}.b-fs25-rpsg{background:#f59e0b}.b-fs25-rppg{background:#d97706}.b-fs25-iw{background:#f43f5e}.b-fs25-lb{background:#c8e0f0}.b-fs25-lt{background:#60a5fa}.b-fs25-ltg{background:#b45309}.b-fs25-lkn{background:#22d3ee}.b-fs25-ld{background:#4ade80}.b-fs25-ldg{background:#16a34a}.b-fs25-ldp{background:#ec4899}.b-fs25-ls{background:#8b5cf6}.b-fs25-lm{background:#6366f1}.b-fs25-lms{background:#4f46e5}.b-fs25-lmsr{background:#4338ca}.b-fs25-lgt{background:#fbbf24}
+  .b-sr22-rpg{background:#16a34a}.b-sr22-rpb{background:#2563eb}
+  .b-sr23-rpg{background:#16a34a}.b-sr23-rpb{background:#2563eb}.b-sr23-rdc{background:#64748b}
+  .b-sr24-rpg{background:#16a34a}.b-sr24-rpb{background:#2563eb}.b-sr24-rdc{background:#64748b}
+  .b-sr25-rpg{background:#16a34a}.b-sr25-rpb{background:#2563eb}.b-sr25-rdc{background:#64748b}.b-sr25-rs{background:#d4a017}
+  .b-br25-sig{background:#d4a017}.b-br25-sil{background:#94a3b8}.b-br25-cc{background:#1d4ed8}
+  .b-br-ss{background:#d4a017}.b-br-cc{background:#1d4ed8}.b-br-pal{background:#94a3b8}
+  .b-fs26h-base{background:#a0968a}.b-fs26h-aflw{background:#e879f9}.b-fs26h-lb{background:#c8e0f0}.b-fs26h-ocg{background:#d4a017}.b-fs26h-mg{background:#c0c0c0}.b-fs26h-etc{background:#64748b}.b-fs26h-bl{background:#dc2626}.b-fs26h-gf{background:#16a34a}.b-fs26h-mys{background:#94a3b8}.b-fs26h-ng{background:#0891b2}.b-fs26h-ry{background:#b45309}.b-fs26h-bpsp{background:#ca8a04}.b-fs26h-cpsp{background:#f59e0b}.b-fs26h-npsp{background:#6366f1}.b-fs26h-ppsp{background:#7c3aed}.b-fs26h-rpsp{background:#2563eb}.b-fs26h-sb{background:#e2e8f0}.b-fs26h-sbs{background:#cbd5e1}.b-fs26h-sbsr{background:#94a3b8}.b-fs26h-iw{background:#f43f5e}
+  .b-fs-base{background:#a0968a}.b-fs-lb{background:#c8e0f0}.b-fs-fh{background:#f97316}.b-fs-adr{background:#ef4444}.b-fs-mg{background:#d4a017}.b-fs-oct{background:#0891b2}.b-fs-rew{background:#7c3aed}.b-fs-boom{background:#dc2626}.b-fs-mtc{background:#64748b}.b-fs-mg2{background:#16a34a}.b-fs-ref{background:#38bdf8}.b-fs-rwn{background:#4f46e5}.b-fs-bpg{background:#ca8a04}.b-fs-bpp{background:#92400e}.b-fs-cc{background:#be185d}.b-fs-iw{background:#f59e0b}.b-fs-gt{background:#b45309}.b-fs-ap{background:#ec4899}.b-fs-oeb{background:#3b82f6}.b-fs-mtd{background:#8b5cf6}
+  .b-gem23-base{background:#94a3b8}.b-gem23-sap{background:#3b82f6}.b-gem23-eme{background:#16a34a}.b-gem23-rub{background:#dc2626}.b-gem23-gds{background:#d4a017}.b-gem23-gdsr{background:#b45309}
+  .b-em-base{background:#c8bfb0}.b-em-bp{background:#8a7a6a}.b-em-col{background:#e05c2a}.b-em-ng{background:#d4a017}.b-em-nb{background:#2a2a2a}.b-em-gc{background:#c8960c}.b-em-deb{background:#3b82f6}.b-em-aa{background:#16a34a}.b-em-u22{background:#7c3aed}.b-em-em{background:#dc2626}.b-em-cls{background:#0891b2}.b-em-hg{background:#ca8a04}.b-em-med{background:#9333ea}.b-em-ds{background:#059669}.b-em-dsr{background:#065f46}.b-em-dpsc{background:#b45309}.b-em-dpsg{background:#d97706}.b-em-dpsp{background:#6b7280}.b-em-dts{background:#be185d}.b-em-dtsr{background:#831843}
+
+  /* ---- MESSAGING PANEL ---- */
+  .msg-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 1.5rem; box-shadow: 0 2px 12px rgba(0,0,0,0.06); overflow: hidden; display: none; }
+  .msg-panel.open { display: block; }
+  .msg-panel-header { display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 1.25rem; border-bottom: 1px solid var(--border); background: #faf8f4; }
+  .msg-panel-header h3 { font-family: 'Arial', sans-serif; font-size: 0.85rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin: 0; }
+  .msg-panel-close { background: none; border: none; color: var(--text-muted); font-size: 1rem; cursor: pointer; padding: 0; line-height: 1; transition: color 0.15s; }
+  .msg-panel-close:hover { color: var(--text); }
+  .msg-thread { max-height: 340px; overflow-y: auto; padding: 1rem 1.25rem; display: flex; flex-direction: column; gap: 0.6rem; }
+  .msg-thread-empty { text-align: center; padding: 2rem; font-family: 'Arial', sans-serif; font-size: 0.85rem; color: var(--text-muted); }
+  .msg-bubble-wrap { display: flex; flex-direction: column; }
+  .msg-bubble-wrap.mine { align-items: flex-end; }
+  .msg-bubble-wrap.theirs { align-items: flex-start; }
+  .msg-bubble { max-width: 75%; padding: 0.55rem 0.85rem; border-radius: 14px; font-family: 'Arial', sans-serif; font-size: 0.85rem; line-height: 1.5; word-break: break-word; }
+  .msg-bubble-wrap.mine .msg-bubble { background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
+  .msg-bubble-wrap.theirs .msg-bubble { background: #f0ece6; color: var(--text); border-bottom-left-radius: 4px; }
+  .msg-time { font-family: 'Arial', sans-serif; font-size: 0.68rem; color: var(--text-muted); margin-top: 0.2rem; padding: 0 0.25rem; }
+  .msg-compose { display: flex; gap: 0.5rem; padding: 0.75rem 1.25rem; border-top: 1px solid var(--border); background: #faf8f4; }
+  .msg-compose textarea { flex: 1; padding: 0.55rem 0.75rem; font-size: 0.85rem; font-family: 'Arial', sans-serif; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--surface); color: var(--text); outline: none; resize: none; height: 40px; max-height: 120px; overflow-y: auto; line-height: 1.4; transition: border-color 0.15s, box-shadow 0.15s; }
+  .msg-compose textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(29,122,79,0.12); }
+  .msg-send-btn { background: var(--accent); border: none; color: #fff; border-radius: 8px; padding: 0 1rem; font-family: 'Arial', sans-serif; font-size: 0.82rem; font-weight: bold; cursor: pointer; flex-shrink: 0; transition: background 0.15s; }
+  .msg-send-btn:hover { background: #165f3d; }
+  .msg-send-btn:disabled { background: #aaa; cursor: not-allowed; }
+  .msg-loading { text-align: center; padding: 1.5rem; font-family: 'Arial', sans-serif; font-size: 0.85rem; color: var(--text-muted); }
+
+  /* ---- UNREAD BADGE (used in user bar) ---- */
+  .unread-badge { display: inline-block; background: #c0392b; color: #fff; font-family: 'Arial', sans-serif; font-size: 0.65rem; font-weight: bold; border-radius: 10px; padding: 1px 5px; margin-left: 3px; vertical-align: middle; line-height: 1.4; }
+
+  @media (max-width: 600px) {
+    .profile-header-card { padding: 1.25rem; gap: 1rem; }
+    .profile-wrap { padding: 1rem 0.75rem 3rem; }
+    .card-row .cr-team { display: none; }
+    .profile-actions { flex-direction: row; flex-wrap: wrap; }
+    .msg-bubble { max-width: 90%; }
+  }
+</style>
+</head>
+<body>
+
+<!-- USER BAR -->
+<div class="user-bar" id="user-bar">
+  <span id="bar-logged-in" style="display:none;">
+    Logged in as <a id="bar-username-link" href="#">—</a>
+  </span>
+  <span id="bar-logged-out" style="display:none; font-family:'Arial',sans-serif; font-size:0.78rem; color:#aaa;">Not logged in</span>
+  <button onclick="doLogout()" id="logout-btn" style="display:none;">Log out</button>
+  <a href="index.html" style="color:#aaa;text-decoration:none;font-family:'Arial',sans-serif;font-size:0.75rem;border:1px solid #444;border-radius:4px;padding:2px 10px;transition:all 0.15s;" onmouseover="this.style.borderColor='#888';this.style.color='#fff'" onmouseout="this.style.borderColor='#444';this.style.color='#aaa'">&#8592; Checklist</a>
+</div>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <a href="index.html"><img src="RGT_Logo_.png" alt="Really Good Trades"></a>
+</div>
+
+<!-- LOADING STATE -->
+<div id="state-loading" class="state-screen">
+  <div class="state-card">
+    <div class="loading-spin"></div>
+    <p>Loading profile&hellip;</p>
+  </div>
+</div>
+
+<!-- NOT FOUND STATE -->
+<div id="state-not-found" class="state-screen" style="display:none;">
+  <div class="state-card">
+    <h2>Profile not found</h2>
+    <p>This user doesn&rsquo;t exist or hasn&rsquo;t set up their profile yet.</p>
+    <a href="index.html" class="btn">Back to checklist</a>
+  </div>
+</div>
+
+<!-- NOT LOGGED IN STATE -->
+<div id="state-auth" class="state-screen" style="display:none;">
+  <div class="state-card">
+    <h2>Sign in required</h2>
+    <p>You need to be logged in to view profiles.</p>
+    <a href="index.html" class="btn">Go to login</a>
+  </div>
+</div>
+
+<!-- MAIN PROFILE CONTENT -->
+<div id="profile-content" style="display:none;">
+  <div class="profile-wrap">
+
+    <!-- PROFILE HEADER -->
+    <div class="profile-header-card">
+      <div class="profile-avatar" id="profile-avatar">?</div>
+      <div class="profile-meta">
+        <div id="profile-username-display" class="profile-username">—</div>
+        <div class="profile-team" id="profile-team-display" style="display:none;"></div>
+        <div class="profile-since" id="profile-since-display"></div>
+        <div class="profile-stats">
+          <div class="profile-stat"><strong id="stat-owned">—</strong>Cards owned</div>
+          <div class="profile-stat"><strong id="stat-wanted">—</strong>Cards wishlisted</div>
+        </div>
+      </div>
+      <div class="profile-actions" id="profile-actions">
+        <!-- Populated by JS depending on own/other profile -->
+      </div>
+    </div>
+
+    <!-- EDIT FORM (own profile only) -->
+    <div class="edit-form-card" id="edit-form-card">
+      <h3>Edit Profile</h3>
+      <div class="edit-field">
+        <label>Username</label>
+        <input type="text" id="edit-username" maxlength="30" oninput="this.value=this.value.replace(/[^a-zA-Z0-9_]/g,'')">
+        <div class="field-hint">Shown to other traders. Letters, numbers and underscores only.</div>
+      </div>
+      <div class="edit-field">
+        <label>Favourite Team <span style="font-size:0.72rem;color:var(--text-muted);text-transform:none;letter-spacing:0;">(optional)</span></label>
+        <select id="edit-team">
+          <option value="">— No preference —</option>
+          <option>Adelaide Crows</option><option>Brisbane Lions</option><option>Carlton</option>
+          <option>Collingwood</option><option>Essendon</option><option>Fremantle</option>
+          <option>Geelong Cats</option><option>Gold Coast SUNS</option><option>GWS GIANTS</option>
+          <option>Hawthorn</option><option>Melbourne</option><option>North Melbourne</option>
+          <option>Port Adelaide</option><option>Richmond</option><option>St Kilda</option>
+          <option>Sydney Swans</option><option>West Coast Eagles</option><option>Western Bulldogs</option>
+        </select>
+      </div>
+      <div class="edit-error" id="edit-error"></div>
+      <div class="edit-success" id="edit-success"></div>
+      <div class="edit-actions">
+        <button class="btn" onclick="closeEditForm()">Cancel</button>
+        <button class="btn accent" id="edit-save-btn" onclick="saveProfile()">Save changes</button>
+      </div>
+    </div>
+
+    <!-- MESSAGING PANEL (other user only) -->
+    <div class="msg-panel" id="msg-panel">
+      <div class="msg-panel-header">
+        <h3>Message <span id="msg-panel-name"></span></h3>
+        <button class="msg-panel-close" onclick="closeMsgPanel()" title="Close">&#x2715;</button>
+      </div>
+      <div class="msg-thread" id="msg-thread">
+        <div class="msg-loading">Loading messages&hellip;</div>
+      </div>
+      <div class="msg-compose">
+        <textarea id="msg-input" placeholder="Write a message&hellip;" rows="1"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage();}"
+          oninput="autoResizeMsgInput(this)"></textarea>
+        <button class="msg-send-btn" id="msg-send-btn" onclick="sendMessage()">Send</button>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="profile-tabs">
+      <button class="profile-tab active" id="tab-owned" onclick="switchTab('owned')">Owned</button>
+      <button class="profile-tab" id="tab-wanted" onclick="switchTab('wanted')">Wishlist</button>
+    </div>
+
+    <!-- OWNED CARDS -->
+    <div id="panel-owned">
+      <div id="owned-sets-list" class="sets-list">
+        <div class="empty-section">Loading&hellip;</div>
+      </div>
+    </div>
+
+    <!-- WANTED CARDS -->
+    <div id="panel-wanted" style="display:none;">
+      <div id="wanted-sets-list" class="sets-list">
+        <div class="empty-section">Loading&hellip;</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<!-- SET DATA — must match index.html -->
+<script src="sets/seamless-2025.js"></script>
+<script src="sets/footy-stars-2025.js"></script>
+<script src="sets/footy-stars-2026.js"></script>
+<script src="sets/footy-stars-2026-hobby.js"></script>
+<script src="sets/eminence-2025.js"></script>
+<script src="sets/brilliance-2024.js"></script>
+<script src="sets/brilliance-2025.js"></script>
+<script src="sets/supremacy-rookie-2022.js"></script>
+<script src="sets/supremacy-rookie-2023.js"></script>
+<script src="sets/supremacy-rookie-2024.js"></script>
+<script src="sets/supremacy-rookie-2025.js"></script>
+<script src="sets/gem-football-2023.js"></script>
+<script src="sets/legacy-ultimate-2024.js"></script>
+
+<script>
+// ---- SUPABASE ----
+const SUPABASE_URL = "https://jisozambxgufhgwwdmjz.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imppc296YW1ieGd1Zmhnd3dkbWp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2ODI4MDQsImV4cCI6MjA5MjI1ODgwNH0.1tK7xFter9rgqAz5-8WzwGoWELT5vrH9EnqjOajlL5M";
+const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ---- SET REGISTRY (mirrors index.html) ----
+const SETS = {};
+const SHARED_POOLS = {
+  "instant-win-2026": {
+    subsetName: "Instant Win",
+    cards: [
+      ['IW1','Adelaide Crows','Instant Win','Adelaide Crows'],['IW2','Brisbane Lions','Instant Win','Brisbane Lions'],
+      ['IW3','Carlton','Instant Win','Carlton'],['IW4','Collingwood','Instant Win','Collingwood'],
+      ['IW5','Essendon','Instant Win','Essendon'],['IW6','Fremantle','Instant Win','Fremantle'],
+      ['IW7','Geelong Cats','Instant Win','Geelong Cats'],['IW8','GWS GIANTS','Instant Win','GWS GIANTS'],
+      ['IW9','Gold Coast SUNS','Instant Win','Gold Coast SUNS'],['IW10','Hawthorn','Instant Win','Hawthorn'],
+      ['IW11','Melbourne','Instant Win','Melbourne'],['IW12','North Melbourne','Instant Win','North Melbourne'],
+      ['IW13','Port Adelaide','Instant Win','Port Adelaide'],['IW14','Richmond','Instant Win','Richmond'],
+      ['IW15','St Kilda','Instant Win','St Kilda'],['IW16','Sydney Swans','Instant Win','Sydney Swans'],
+      ['IW17','West Coast Eagles','Instant Win','West Coast Eagles'],['IW18','Western Bulldogs','Instant Win','Western Bulldogs']
+    ]
+  }
+};
+
+function registerSet(id, meta, cards) {
+  SETS[id] = meta;
+  if (cards !== undefined) window['CARDS_' + id.toUpperCase().replace(/-/g, '_')] = cards;
+}
+
+// ---- BUILD ALL CARDS (mirrors index.html) ----
+let allCards = [];
+function buildAllCards() {
+  allCards = [];
+  for (const [setId, setMeta] of Object.entries(SETS)) {
+    const varName = 'CARDS_' + setId.toUpperCase().replace(/-/g, '_');
+    const setData = window[varName];
+    if (!setData) continue;
+    for (const entry of setData) {
+      if (entry[0] === '__shared__') continue;
+      allCards.push([entry[0], entry[1], entry[2], entry[3], setId]);
+    }
+  }
+  const injectedPools = new Set();
+  for (const [setId, setMeta] of Object.entries(SETS)) {
+    for (const subsetEntry of (setMeta.subsets || [])) {
+      if (typeof subsetEntry !== 'object' || !subsetEntry.sharedPool) continue;
+      const poolId = subsetEntry.sharedPool;
+      if (injectedPools.has(poolId)) continue;
+      injectedPools.add(poolId);
+      const pool = SHARED_POOLS[poolId];
+      if (!pool) continue;
+      const sharedSetId = 'shared:' + poolId;
+      for (const entry of pool.cards) {
+        allCards.push([entry[0], entry[1], entry[2], entry[3], sharedSetId]);
+      }
+    }
+  }
+}
+
+// cardKey mirrors index.html exactly
+function cardKey(id, subset, setId) {
+  return setId + ':' + subset + ':' + id;
+}
+
+// Build lookup: cardKey -> card meta
+function buildCardMeta() {
+  const meta = {};
+  for (const c of allCards) {
+    const key = cardKey(c[0], c[2], c[4]);
+    meta[key] = { num: c[0], name: c[1], subset: c[2], team: c[3], setId: c[4] };
+  }
+  return meta;
+}
+
+// Resolve set meta for a given setId (handles shared pools)
+function resolveSetMeta(setId) {
+  if (SETS[setId]) return SETS[setId];
+  const poolMatch = setId.match(/^shared:(.+)$/);
+  if (!poolMatch) return null;
+  const poolId = poolMatch[1];
+  const pool = SHARED_POOLS[poolId];
+  if (!pool) return null;
+  for (const [, meta] of Object.entries(SETS)) {
+    for (const s of (meta.subsets || [])) {
+      if (typeof s === 'object' && s.sharedPool === poolId) {
+        return { label: pool.subsetName, year: meta.year, badge: meta.badge || {}, label_short: meta.label_short || {}, subsets: [pool.subsetName] };
+      }
+    }
+  }
+  return { label: pool.subsetName, year: '?', badge: {}, label_short: {}, subsets: [pool.subsetName] };
+}
+
+// ---- STATE ----
+let currentUser  = null;
+let profileUserId = null;
+let isOwnProfile  = false;
+let activeTab     = 'owned';
+
+// ---- BOOT ----
+document.addEventListener('DOMContentLoaded', async () => {
+  buildAllCards();
+
+  // Get user id from URL
+  const params = new URLSearchParams(window.location.search);
+  profileUserId = params.get('user');
+
+  // Validate session
+  let session = null;
+  try {
+    const result = await Promise.race([
+      _sb.auth.getSession(),
+      new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 5000))
+    ]);
+    session = result.data?.session || null;
+  } catch(e) {
+    session = null;
+  }
+
+  if (!session) {
+    show('state-auth');
+    return;
+  }
+
+  currentUser = session.user;
+  setupUserBar();
+
+  if (!profileUserId) {
+    // No user param — redirect to own profile
+    window.location.replace('profile.html?user=' + currentUser.id);
+    return;
+  }
+
+  isOwnProfile = (profileUserId === currentUser.id);
+
+  await loadProfile();
+  updateUnreadBadge();
+});
+
+function setupUserBar() {
+  if (!currentUser) return;
+  const barLoggedIn = document.getElementById('bar-logged-in');
+  const barLoggedOut = document.getElementById('bar-logged-out');
+  const logoutBtn = document.getElementById('logout-btn');
+  const barUsernameLink = document.getElementById('bar-username-link');
+  barLoggedIn.style.display = 'inline';
+  logoutBtn.style.display   = 'inline-block';
+  barLoggedOut.style.display = 'none';
+  barUsernameLink.href = 'profile.html?user=' + currentUser.id;
+  // Populate username in bar after profile loads — updated in loadProfile()
+}
+
+async function loadProfile() {
+  show('state-loading');
+
+  try {
+    // Fetch profile row
+    const { data: profileData, error: profileError } = await _sb
+      .from('profiles')
+      .select('username, favourite_team, user_id, created_at')
+      .eq('user_id', profileUserId)
+      .maybeSingle();
+
+    if (profileError) throw profileError;
+    if (!profileData) {
+      show('state-not-found');
+      return;
+    }
+
+    // Fetch user list (owned + wanted)
+    const { data: listData } = await _sb
+      .from('user_lists')
+      .select('owned, wanted')
+      .eq('user_id', profileUserId)
+      .maybeSingle();
+
+    const ownedKeys  = new Set(listData?.owned  || []);
+    const wantedKeys = new Set(listData?.wanted || []);
+
+    renderProfile(profileData, ownedKeys, wantedKeys);
+    show('profile-content');
+
+  } catch(e) {
+    console.error('loadProfile error:', e);
+    show('state-not-found');
+  }
+}
+
+function renderProfile(profile, ownedKeys, wantedKeys) {
+  const username = profile.username || 'Anonymous';
+  const team     = profile.favourite_team || null;
+  const since    = profile.created_at
+    ? new Date(profile.created_at).toLocaleDateString('en-AU', { month: 'long', year: 'numeric' })
+    : null;
+
+  // Avatar initials
+  const initials = username.replace(/[^a-zA-Z0-9]/g, '').slice(0, 2).toUpperCase() || '?';
+  document.getElementById('profile-avatar').textContent = initials;
+
+  // Username in header bar
+  const barLink = document.getElementById('bar-username-link');
+  barLink.textContent = isOwnProfile ? (username + ' (you)') : username;
+
+  // Profile header
+  const unEl = document.getElementById('profile-username-display');
+  if (profile.username) {
+    unEl.textContent = username;
+    unEl.className = 'profile-username';
+  } else {
+    unEl.textContent = 'No username set';
+    unEl.className = 'profile-username-anon';
+  }
+
+  const teamEl = document.getElementById('profile-team-display');
+  if (team) {
+    teamEl.textContent = '🏉 ' + team;
+    teamEl.style.display = 'block';
+  }
+
+  const sinceEl = document.getElementById('profile-since-display');
+  if (since) sinceEl.textContent = 'Member since ' + since;
+
+  document.getElementById('stat-owned').textContent  = ownedKeys.size;
+  document.getElementById('stat-wanted').textContent = wantedKeys.size;
+
+  // Action buttons
+  const actionsEl = document.getElementById('profile-actions');
+  if (isOwnProfile) {
+    actionsEl.innerHTML = `
+      <button class="btn sm" onclick="toggleEditForm()">&#9998; Edit profile</button>
+    `;
+    // Pre-fill edit form
+    document.getElementById('edit-username').value = profile.username || '';
+    const teamSel = document.getElementById('edit-team');
+    teamSel.value = team || '';
+  } else {
+    // Message button added in Pass 2
+    actionsEl.innerHTML = `
+      <button class="btn sm accent" onclick="startMessage()" id="msg-btn">&#9993; Message</button>
+    `;
+  }
+
+  // Render card lists
+  const cardMeta = buildCardMeta();
+  renderCardSets('owned-sets-list',  ownedKeys,  cardMeta, 'owned');
+  renderCardSets('wanted-sets-list', wantedKeys, cardMeta, 'wanted');
+}
+
+// ---- CARD LIST RENDERING ----
+// Groups card keys into setId → subset → cards[], renders collapsible blocks
+function renderCardSets(containerId, keySet, cardMeta, tagClass) {
+  const container = document.getElementById(containerId);
+
+  if (keySet.size === 0) {
+    const label = tagClass === 'owned' ? 'owned cards' : 'wishlisted cards';
+    container.innerHTML = `<div class="empty-section">No ${label} yet.</div>`;
+    return;
+  }
+
+  // Group: setId → subset → [card, ...]
+  // We want sets ordered by year desc, then series name
+  const grouped = {};
+  for (const key of keySet) {
+    const m = cardMeta[key];
+    if (!m) continue;
+    if (!grouped[m.setId]) grouped[m.setId] = {};
+    if (!grouped[m.setId][m.subset]) grouped[m.setId][m.subset] = [];
+    grouped[m.setId][m.subset].push(m);
+  }
+
+  // Sort sets: by year desc, then label
+  const setEntries = Object.entries(grouped).sort(([aId], [bId]) => {
+    const aMeta = resolveSetMeta(aId);
+    const bMeta = resolveSetMeta(bId);
+    const aYear = parseInt(aMeta?.year) || 0;
+    const bYear = parseInt(bMeta?.year) || 0;
+    if (bYear !== aYear) return bYear - aYear;
+    return (aMeta?.label || aId).localeCompare(bMeta?.label || bId);
+  });
+
+  let html = '';
+  setEntries.forEach(([setId, subsets], setIdx) => {
+    const setMeta  = resolveSetMeta(setId);
+    const setLabel = setMeta ? (setMeta.label || setId) : setId;
+    const setYear  = setMeta?.year || '';
+
+    const allSubsetCards = Object.values(subsets).flat();
+    const totalCount = allSubsetCards.length;
+
+    // Sort subsets by SUBSETS_ORDER if available, otherwise alpha
+    const subsetsOrder = setMeta?.subsets
+      ? setMeta.subsets.map(s => typeof s === 'object' ? s.name : s)
+      : [];
+    const subsetEntries = Object.entries(subsets).sort(([a], [b]) => {
+      const ai = subsetsOrder.indexOf(a);
+      const bi = subsetsOrder.indexOf(b);
+      if (ai !== -1 && bi !== -1) return ai - bi;
+      if (ai !== -1) return -1;
+      if (bi !== -1) return 1;
+      return a.localeCompare(b);
+    });
+
+    html += `
+    <div class="set-block">
+      <div class="set-block-header" onclick="toggleSetBlock(${setIdx})">
+        <span class="sb-arrow" id="sb-arrow-${setIdx}">&#9658;</span>
+        <span class="sb-title">${escHtml(setLabel)} <span style="font-weight:normal;color:var(--text-muted);font-size:0.78rem;">${setYear}</span></span>
+        <span class="sb-pills">
+          <span class="sb-pill ${tagClass}">${totalCount} card${totalCount === 1 ? '' : 's'}</span>
+        </span>
+      </div>
+      <div class="set-block-body" id="sb-body-${setIdx}">`;
+
+    subsetEntries.forEach(([subset, cards], subIdx) => {
+      const badge = (setMeta?.badge || {})[subset] || 'b-base';
+      const lbl   = (setMeta?.label_short || {})[subset] || subset;
+      const blockId = `ss-${setIdx}-${subIdx}`;
+      const count = cards.length;
+
+      // Sort cards numerically where possible
+      cards.sort((a, b) => {
+        const na = parseInt(a.num); const nb = parseInt(b.num);
+        if (!isNaN(na) && !isNaN(nb)) return na - nb;
+        return String(a.num).localeCompare(String(b.num));
+      });
+
+      html += `
+        <div class="subset-section">
+          <div class="subset-header" onclick="toggleSubset('${blockId}')">
+            <span class="ss-arrow" id="ss-arrow-${blockId}">&#9658;</span>
+            <span class="badge ${badge}"></span>
+            ${escHtml(lbl)}
+            <span class="ss-count">${count}</span>
+          </div>
+          <div class="card-rows" id="card-rows-${blockId}">`;
+
+      for (const c of cards) {
+        html += `
+            <div class="card-row">
+              <span class="cr-num">${escHtml(c.num)}</span>
+              <span class="cr-name">${escHtml(c.name)}</span>
+              <span class="cr-team">${escHtml(c.team)}</span>
+            </div>`;
+      }
+
+      html += `
+          </div>
+        </div>`;
+    });
+
+    html += `
+      </div>
+    </div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+function toggleSetBlock(idx) {
+  const body  = document.getElementById('sb-body-' + idx);
+  const arrow = document.getElementById('sb-arrow-' + idx);
+  if (!body || !arrow) return;
+  const isOpen = body.classList.toggle('open');
+  arrow.classList.toggle('open', isOpen);
+}
+
+function toggleSubset(blockId) {
+  const rows  = document.getElementById('card-rows-' + blockId);
+  const arrow = document.getElementById('ss-arrow-' + blockId);
+  if (!rows || !arrow) return;
+  const isOpen = rows.classList.toggle('open');
+  arrow.classList.toggle('open', isOpen);
+}
+
+// ---- TABS ----
+function switchTab(tab) {
+  activeTab = tab;
+  document.getElementById('panel-owned').style.display  = tab === 'owned'  ? '' : 'none';
+  document.getElementById('panel-wanted').style.display = tab === 'wanted' ? '' : 'none';
+  document.getElementById('tab-owned').classList.toggle('active',  tab === 'owned');
+  document.getElementById('tab-wanted').classList.toggle('active', tab === 'wanted');
+}
+
+// ---- EDIT FORM ----
+function toggleEditForm() {
+  const card = document.getElementById('edit-form-card');
+  const isOpen = card.classList.toggle('open');
+  if (isOpen) {
+    document.getElementById('edit-username').focus();
+  }
+}
+function closeEditForm() {
+  document.getElementById('edit-form-card').classList.remove('open');
+  clearEditMessages();
+}
+function clearEditMessages() {
+  ['edit-error', 'edit-success'].forEach(id => {
+    const el = document.getElementById(id);
+    el.textContent = '';
+    el.classList.remove('show');
+  });
+}
+
+async function saveProfile() {
+  const username = document.getElementById('edit-username').value.trim();
+  const team     = document.getElementById('edit-team').value || null;
+  const errEl    = document.getElementById('edit-error');
+  const sucEl    = document.getElementById('edit-success');
+  const btn      = document.getElementById('edit-save-btn');
+  clearEditMessages();
+
+  if (username.length < 3) {
+    errEl.textContent = 'Username must be at least 3 characters.';
+    errEl.classList.add('show');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Saving\u2026';
+
+  try {
+    const { error } = await _sb
+      .from('profiles')
+      .update({ username, favourite_team: team })
+      .eq('user_id', currentUser.id);
+
+    if (error) throw error;
+
+    // Also update username in user_lists so trade finder picks it up
+    await _sb.from('user_lists').update({ username }).eq('user_id', currentUser.id);
+
+    // Refresh displayed username/team
+    document.getElementById('profile-username-display').textContent = username;
+    document.getElementById('profile-username-display').className = 'profile-username';
+    const teamEl = document.getElementById('profile-team-display');
+    if (team) {
+      teamEl.textContent = '🏉 ' + team;
+      teamEl.style.display = 'block';
+    } else {
+      teamEl.style.display = 'none';
+    }
+    // Update avatar initials
+    const initials = username.replace(/[^a-zA-Z0-9]/g, '').slice(0, 2).toUpperCase() || '?';
+    document.getElementById('profile-avatar').textContent = initials;
+    // Update bar
+    document.getElementById('bar-username-link').textContent = username + ' (you)';
+
+    sucEl.textContent = 'Profile saved!';
+    sucEl.classList.add('show');
+    setTimeout(() => { sucEl.classList.remove('show'); closeEditForm(); }, 1500);
+  } catch(e) {
+    console.error('saveProfile error:', e);
+    errEl.textContent = e.message || 'Save failed. Please try again.';
+    errEl.classList.add('show');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Save changes';
+  }
+}
+
+// ---- MESSAGING ----
+let _msgChannel = null;       // Supabase Realtime channel
+let _otherUserId = null;      // the profile user's id (set when panel opens)
+let _otherUsername = null;
+
+async function startMessage() {
+  _otherUserId   = profileUserId;
+  _otherUsername = document.getElementById('profile-username-display').textContent;
+
+  const panel = document.getElementById('msg-panel');
+  document.getElementById('msg-panel-name').textContent = _otherUsername;
+  panel.classList.add('open');
+
+  // Scroll panel into view
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  await loadThread();
+  subscribeToThread();
+
+  document.getElementById('msg-input').focus();
+}
+
+function closeMsgPanel() {
+  document.getElementById('msg-panel').classList.remove('open');
+  document.getElementById('msg-thread').innerHTML = '<div class="msg-loading">Loading messages&hellip;</div>';
+  document.getElementById('msg-input').value = '';
+  if (_msgChannel) {
+    _sb.removeChannel(_msgChannel);
+    _msgChannel = null;
+  }
+}
+
+async function loadThread() {
+  const threadEl = document.getElementById('msg-thread');
+  threadEl.innerHTML = '<div class="msg-loading">Loading messages&hellip;</div>';
+
+  try {
+    const { data, error } = await _sb
+      .from('messages')
+      .select('id, from_user, body, created_at, read')
+      .or(`and(from_user.eq.${currentUser.id},to_user.eq.${_otherUserId}),and(from_user.eq.${_otherUserId},to_user.eq.${currentUser.id})`)
+      .order('created_at', { ascending: true });
+
+    if (error) throw error;
+    renderThread(data || []);
+
+    // Mark incoming messages as read
+    const unreadIds = (data || [])
+      .filter(m => m.from_user === _otherUserId && !m.read)
+      .map(m => m.id);
+    if (unreadIds.length > 0) {
+      await _sb.from('messages').update({ read: true }).in('id', unreadIds);
+      updateUnreadBadge();
+    }
+  } catch(e) {
+    console.error('loadThread error:', e);
+    threadEl.innerHTML = '<div class="msg-thread-empty">Could not load messages.</div>';
+  }
+}
+
+function renderThread(messages) {
+  const threadEl = document.getElementById('msg-thread');
+  if (messages.length === 0) {
+    threadEl.innerHTML = '<div class="msg-thread-empty">No messages yet. Say hello!</div>';
+    return;
+  }
+  threadEl.innerHTML = messages.map(m => {
+    const mine = m.from_user === currentUser.id;
+    const time = new Date(m.created_at).toLocaleString('en-AU', {
+      day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+    });
+    return `
+      <div class="msg-bubble-wrap ${mine ? 'mine' : 'theirs'}">
+        <div class="msg-bubble">${escHtml(m.body)}</div>
+        <div class="msg-time">${time}</div>
+      </div>`;
+  }).join('');
+  // Scroll to bottom
+  threadEl.scrollTop = threadEl.scrollHeight;
+}
+
+function subscribeToThread() {
+  if (_msgChannel) _sb.removeChannel(_msgChannel);
+  _msgChannel = _sb
+    .channel('msg-thread-' + currentUser.id)
+    .on('postgres_changes', {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'messages',
+      filter: `to_user=eq.${currentUser.id}`
+    }, async (payload) => {
+      const m = payload.new;
+      // Only append if it's from the person we're currently viewing
+      if (m.from_user !== _otherUserId) {
+        updateUnreadBadge();
+        return;
+      }
+      appendBubble(m, false);
+      // Mark as read immediately since panel is open
+      await _sb.from('messages').update({ read: true }).eq('id', m.id);
+    })
+    .subscribe();
+}
+
+function appendBubble(m, mine) {
+  const threadEl = document.getElementById('msg-thread');
+  // Remove empty-state div if present
+  const empty = threadEl.querySelector('.msg-thread-empty');
+  if (empty) empty.remove();
+
+  const time = new Date(m.created_at).toLocaleString('en-AU', {
+    day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+  });
+  const div = document.createElement('div');
+  div.className = 'msg-bubble-wrap ' + (mine ? 'mine' : 'theirs');
+  div.innerHTML = `
+    <div class="msg-bubble">${escHtml(m.body)}</div>
+    <div class="msg-time">${time}</div>`;
+  threadEl.appendChild(div);
+  threadEl.scrollTop = threadEl.scrollHeight;
+}
+
+async function sendMessage() {
+  const input = document.getElementById('msg-input');
+  const btn   = document.getElementById('msg-send-btn');
+  const body  = input.value.trim();
+  if (!body) return;
+
+  btn.disabled = true;
+  input.disabled = true;
+
+  try {
+    const { data, error } = await _sb
+      .from('messages')
+      .insert({ from_user: currentUser.id, to_user: _otherUserId, body })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    input.value = '';
+    input.style.height = 'auto';
+    appendBubble(data, true);
+  } catch(e) {
+    console.error('sendMessage error:', e);
+    showToast('Failed to send message. Please try again.');
+  } finally {
+    btn.disabled = false;
+    input.disabled = false;
+    input.focus();
+  }
+}
+
+function autoResizeMsgInput(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+// Fetch unread count and update badge in user bar
+async function updateUnreadBadge() {
+  try {
+    const { count } = await _sb
+      .from('messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('to_user', currentUser.id)
+      .eq('read', false);
+
+    const barLink = document.getElementById('bar-username-link');
+    const existing = document.getElementById('bar-unread-badge');
+    if (count > 0) {
+      if (existing) {
+        existing.textContent = count;
+      } else {
+        const badge = document.createElement('span');
+        badge.id = 'bar-unread-badge';
+        badge.className = 'unread-badge';
+        badge.textContent = count;
+        barLink.parentNode.insertBefore(badge, barLink.nextSibling);
+      }
+    } else {
+      if (existing) existing.remove();
+    }
+  } catch(e) {
+    console.warn('updateUnreadBadge error:', e);
+  }
+}
+
+// ---- LOGOUT ----
+async function doLogout() {
+  await _sb.auth.signOut();
+  window.location.href = 'index.html';
+}
+
+// ---- HELPERS ----
+function show(id) {
+  ['state-loading','state-not-found','state-auth','profile-content'].forEach(sid => {
+    document.getElementById(sid).style.display = sid === id ? '' : 'none';
+  });
+}
+function escHtml(str) {
+  return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>
