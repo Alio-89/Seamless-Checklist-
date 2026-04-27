@@ -226,6 +226,10 @@ function doLogout() {
 if (sessionStorage.getItem('rgt_admin') === '1') {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app-screen').style.display = 'block';
+  // Load data immediately on session restore — DOMContentLoaded may fire too late
+  // relative to the Supabase client initialising, so we call here too (guarded below)
+  window._adminAutoLoaded = true;
+  loadDashboard();
 }
 
 // ---- HELPERS ----
@@ -296,10 +300,21 @@ async function loadDashboard() {
   document.getElementById('last-updated').textContent = 'Refreshing\u2026';
 
   try {
-    const { data: userLists, error: ulErr } = await _sb
+    let { data: userLists, error: ulErr } = await _sb
       .from('user_lists')
       .select('user_id, user_email, username, owned, wanted, updated_at');
     if (ulErr) throw ulErr;
+
+    // Retry once if result is unexpectedly empty (handles cold-start / timing issues)
+    if (!userLists || userLists.length === 0) {
+      await new Promise(r => setTimeout(r, 1500));
+      const retry = await _sb
+        .from('user_lists')
+        .select('user_id, user_email, username, owned, wanted, updated_at');
+      if (!retry.error && retry.data && retry.data.length > 0) {
+        userLists = retry.data;
+      }
+    }
 
     const { data: bugData, error: brErr } = await _sb
       .from('bug_reports')
@@ -440,7 +455,8 @@ function renderBugs(bugs, fetchError) {
 
 // ---- BOOT ----
 document.addEventListener('DOMContentLoaded', function() {
-  if (sessionStorage.getItem('rgt_admin') === '1') loadDashboard();
+  // Only call if session restore block above didn't already trigger it
+  if (sessionStorage.getItem('rgt_admin') === '1' && !window._adminAutoLoaded) loadDashboard();
 });
 </script>
 </body>

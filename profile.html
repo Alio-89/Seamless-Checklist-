@@ -183,7 +183,7 @@
 <!-- USER BAR -->
 <div class="user-bar" id="user-bar">
   <span id="bar-logged-in" style="display:none;">
-    Logged in as <a id="bar-username-link" href="#">—</a>
+    <span id="bar-label-text">Logged in as</span> <a id="bar-username-link" href="#">—</a>
   </span>
   <span id="bar-logged-out" style="display:none; font-family:'Arial',sans-serif; font-size:0.78rem; color:#aaa;">Not logged in</span>
   <button onclick="doLogout()" id="logout-btn" style="display:none;">Log out</button>
@@ -536,8 +536,15 @@ function renderProfile(profile, ownedKeys, wantedKeys) {
   document.getElementById('profile-avatar').textContent = initials;
 
   // Username in header bar
-  const barLink = document.getElementById('bar-username-link');
-  barLink.textContent = isOwnProfile ? (username + ' (you)') : username;
+  const barLink  = document.getElementById('bar-username-link');
+  const barLabel = document.getElementById('bar-label-text');
+  if (isOwnProfile) {
+    barLabel.textContent = 'Logged in as';
+    barLink.textContent  = username + ' (you)';
+  } else {
+    barLabel.textContent = 'Viewing';
+    barLink.textContent  = username;
+  }
 
   // Profile header
   const unEl = document.getElementById('profile-username-display');
