@@ -301,21 +301,6 @@
 
 <div id="toast" class="toast"></div>
 
-<!-- SET DATA — must match index.html -->
-<script src="sets/seamless-2025.js"></script>
-<script src="sets/footy-stars-2025.js"></script>
-<script src="sets/footy-stars-2026.js"></script>
-<script src="sets/footy-stars-2026-hobby.js"></script>
-<script src="sets/eminence-2025.js"></script>
-<script src="sets/brilliance-2024.js"></script>
-<script src="sets/brilliance-2025.js"></script>
-<script src="sets/supremacy-rookie-2022.js"></script>
-<script src="sets/supremacy-rookie-2023.js"></script>
-<script src="sets/supremacy-rookie-2024.js"></script>
-<script src="sets/supremacy-rookie-2025.js"></script>
-<script src="sets/gem-football-2023.js"></script>
-<script src="sets/legacy-ultimate-2024.js"></script>
-
 <script>
 // ---- SUPABASE ----
 const SUPABASE_URL = "https://jisozambxgufhgwwdmjz.supabase.co";
@@ -416,7 +401,8 @@ let isOwnProfile  = false;
 let activeTab     = 'owned';
 
 // ---- BOOT ----
-document.addEventListener('DOMContentLoaded', async () => {
+// Called after set scripts load (see bottom of page)
+async function initProfile() {
   buildAllCards();
 
   // Get user id from URL
@@ -986,5 +972,21 @@ function showToast(msg) {
   t._timer = setTimeout(() => t.classList.remove('show'), 2500);
 }
 </script>
+
+<!-- SET DATA — must match index.html; loaded after registerSet is defined -->
+<script src="sets/seamless-2025.js"></script>
+<script src="sets/footy-stars-2025.js"></script>
+<script src="sets/footy-stars-2026.js"></script>
+<script src="sets/footy-stars-2026-hobby.js"></script>
+<script src="sets/eminence-2025.js"></script>
+<script src="sets/brilliance-2024.js"></script>
+<script src="sets/brilliance-2025.js"></script>
+<script src="sets/supremacy-rookie-2022.js"></script>
+<script src="sets/supremacy-rookie-2023.js"></script>
+<script src="sets/supremacy-rookie-2024.js"></script>
+<script src="sets/supremacy-rookie-2025.js"></script>
+<script src="sets/gem-football-2023.js"></script>
+<script src="sets/legacy-ultimate-2024.js"></script>
+<script>initProfile();</script>
 </body>
 </html>
