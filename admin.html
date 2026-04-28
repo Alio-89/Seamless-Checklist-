@@ -197,7 +197,13 @@ const ADMIN_PASSWORD = 'RICHMOND171920';
 
 const SUPABASE_URL = "https://jisozambxgufhgwwdmjz.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imppc296YW1ieGd1Zmhnd3dkbWp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2ODI4MDQsImV4cCI6MjA5MjI1ODgwNH0.1tK7xFter9rgqAz5-8WzwGoWELT5vrH9EnqjOajlL5M";
-const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: {
+    storageKey: 'sb-rgt-admin',
+    persistSession: true,
+    autoRefreshToken: false
+  }
+});
 
 // ---- AUTH ----
 function tryLogin() {
