@@ -1,4 +1,4 @@
-<!-- Really Good Trades | v1.0.28.04.28 -->
+<!-- Really Good Trades | v1.0.29.04.28 -->
 <!-- ⚠ REMINDER: Update version number above AND in the footer when making changes. Format: v1.0.YYYYMMDD -->
 <!DOCTYPE html>
 <html lang="en">
@@ -761,7 +761,7 @@
     </div>
   </div>
 
-  <footer>Really Good Trades &mdash; AFL Trading Cards Checklist &mdash; <span style="opacity:0.6;">v1.0.28.04.28</span></footer>
+  <footer>Really Good Trades &mdash; AFL Trading Cards Checklist &mdash; <span style="opacity:0.6;">v1.0.29.04.28</span></footer>
 </div>
 
 <!-- WISHLIST MODAL -->
@@ -825,7 +825,7 @@
 
 <!-- INFO MODAL -->
 <div class="modal-overlay" id="info-modal" onclick="closeInfo()">
-  <div class="modal-card" onclick="event.stopPropagation()">
+  <div class="modal-card" onclick="event.stopPropagation()" style="max-width:520px;">
     <h3>&#9432; About Really Good Trades</h3>
     <p class="sub" style="margin-bottom:1rem;">Your Seamless AFL trading card checklist.</p>
     <div style="font-family:'Arial',sans-serif;font-size:0.85rem;color:var(--text);line-height:1.7;">
@@ -835,13 +835,30 @@
       Click a subset row to expand it by team. Click a team row to see individual cards. Use <em>Show all</em> to skip team grouping.</p>
       <p style="margin-bottom:0.75rem;"><strong>Trade Finder</strong><br>
       Scroll down and click <em>Find Trades</em> to see which other users have cards you want — and want cards you have.</p>
-      <p style="margin-bottom:0.75rem;"><strong>Saving</strong><br>
+      <p style="margin-bottom:1rem;"><strong>Saving</strong><br>
       Tick your boxes then click <em>Save list</em> to sync to the cloud. Your list is private and linked to your account.</p>
-      <p><strong>Subsets included</strong><br>
-      Base &middot; Black &middot; Solo Double Patch &middot; Dual Patch &middot; Team Multi-Patch &middot; Jumbo Patch &middot; Rookie Badge Sig &middot; Rookie Badge Sig Gold &middot; AFL Badge Sig &middot; Patch Sig &middot; Dual Patch Sig Book &middot; Mega Patch</p>
+      <div style="border-top:1px solid var(--border);padding-top:1rem;margin-top:0.25rem;">
+        <strong>Search by Player</strong>
+        <p style="font-size:0.82rem;color:var(--text-muted);margin:0.3rem 0 0.75rem;">Find all cards for a player across every set in the database.</p>
+        <input type="text" id="info-player-search" placeholder="Type a player name&hellip;" oninput="onInfoPlayerSearch()" autocomplete="off"
+          style="width:100%;padding:0.52rem 0.8rem;font-size:0.88rem;font-family:'Arial',sans-serif;border:1px solid var(--border-strong);border-radius:6px;background:var(--surface);color:var(--text);outline:none;box-sizing:border-box;">
+        <div id="info-player-results" style="margin-top:0.5rem;max-height:220px;overflow-y:auto;"></div>
+      </div>
     </div>
     <div class="modal-actions">
       <button class="modal-cancel" onclick="closeInfo()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- WHAT'S NEW MODAL -->
+<div class="modal-overlay" id="whatsnew-modal" onclick="closeWhatsNew()">
+  <div class="modal-card" onclick="event.stopPropagation()" style="max-width:480px;">
+    <h3>&#127881; What's New</h3>
+    <p class="sub" style="margin-bottom:1rem;" id="whatsnew-subtitle"></p>
+    <div id="whatsnew-body" style="max-height:360px;overflow-y:auto;font-family:'Arial',sans-serif;font-size:0.85rem;"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeWhatsNew()">Got it</button>
     </div>
   </div>
 </div>
@@ -939,6 +956,25 @@ const TEAMS_ORDER = [
 <script src="sets/legacy-ultimate-2024.js"></script>
 
 <script>
+// ---- CHANGELOG ----
+// Add a new entry here every deployment. Key = version string (must sort correctly).
+// This is read by checkWhatsNew() on page load to show users what changed since their last visit.
+const CHANGELOG = {
+  '1.0.29': {
+    date: 'Apr 28 2025',
+    changes: [
+      "What’s New modal — you’ll now see a summary of changes each time the site is updated",
+      'About page updated — removed subsets list, added player search across all sets',
+      'Wishlists capped at 5 on the main page — ‘See All’ button shows the full list in a modal',
+      'Viewing another user’s profile now correctly shows “Viewing [username]” in the top bar',
+      'Admin dashboard now retries data load on blank result — fixes occasional empty page on reload',
+      'Fixed random logouts caused by admin page sharing auth storage with the main page',
+      'Sentry now captures silent session timeouts and unexpected logouts for diagnosis',
+    ]
+  },
+};
+const CURRENT_VERSION = '1.0.29';
+
 const SUPABASE_URL = "https://jisozambxgufhgwwdmjz.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imppc296YW1ieGd1Zmhnd3dkbWp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2ODI4MDQsImV4cCI6MjA5MjI1ODgwNH0.1tK7xFter9rgqAz5-8WzwGoWELT5vrH9EnqjOajlL5M";
 window._sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -959,9 +995,102 @@ if(typeof Sentry !== 'undefined'){
 // ---- BUG REPORT ----
 function openInfo(){
   document.getElementById('info-modal').classList.add('show');
+  const inp = document.getElementById('info-player-search');
+  const res = document.getElementById('info-player-results');
+  if(inp) inp.value = '';
+  if(res) res.innerHTML = '';
 }
 function closeInfo(){
   document.getElementById('info-modal').classList.remove('show');
+}
+
+// ---- WHAT'S NEW ----
+function checkWhatsNew(){
+  const lastSeen = localStorage.getItem('rgt_last_version');
+  if(lastSeen === CURRENT_VERSION) return;
+
+  const versions = Object.keys(CHANGELOG).sort().reverse();
+  // First-ever visit: show latest only so we don't overwhelm new users
+  const unseen = lastSeen
+    ? versions.filter(v => v > lastSeen)
+    : [versions[0]];
+
+  if(unseen.length === 0){
+    localStorage.setItem('rgt_last_version', CURRENT_VERSION);
+    return;
+  }
+
+  const subtitle = document.getElementById('whatsnew-subtitle');
+  const body     = document.getElementById('whatsnew-body');
+
+  if(unseen.length === 1){
+    const entry = CHANGELOG[unseen[0]];
+    subtitle.textContent = 'Here’s what changed in the latest update (' + entry.date + ')';
+  } else {
+    subtitle.textContent = 'You’ve missed ' + unseen.length + ' updates — here’s what’s new:';
+  }
+
+  body.innerHTML = unseen.map(v => {
+    const entry = CHANGELOG[v];
+    const header = unseen.length > 1
+      ? '<div style="font-weight:bold;color:var(--accent);margin:0.75rem 0 0.35rem;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.04em;">' + entry.date + '</div>'
+      : '';
+    const items = entry.changes.map(c =>
+      '<li style="margin-bottom:0.4rem;">' + c + '</li>'
+    ).join('');
+    return header + '<ul style="margin:0 0 0.5rem 1.1rem;padding:0;">' + items + '</ul>';
+  }).join('');
+
+  document.getElementById('whatsnew-modal').classList.add('show');
+  localStorage.setItem('rgt_last_version', CURRENT_VERSION);
+}
+
+function closeWhatsNew(){
+  document.getElementById('whatsnew-modal').classList.remove('show');
+}
+
+let _infoSearchTimer = null;
+function onInfoPlayerSearch(){
+  clearTimeout(_infoSearchTimer);
+  _infoSearchTimer = setTimeout(_doInfoPlayerSearch, 180);
+}
+function _doInfoPlayerSearch(){
+  const inp = document.getElementById('info-player-search');
+  const res = document.getElementById('info-player-results');
+  if(!inp || !res) return;
+  const q = inp.value.trim().toLowerCase();
+  if(q.length < 2){ res.innerHTML = ''; return; }
+
+  const idx = getPlayerIndex();
+  const matches = Object.values(idx)
+    .filter(e => e.displayName.toLowerCase().includes(q))
+    .sort((a,b) => {
+      const as = a.displayName.toLowerCase().startsWith(q) ? 0 : 1;
+      const bs = b.displayName.toLowerCase().startsWith(q) ? 0 : 1;
+      return as - bs || a.displayName.localeCompare(b.displayName);
+    })
+    .slice(0, 8);
+
+  if(matches.length === 0){
+    res.innerHTML = '<div style="font-family:'Arial',sans-serif;font-size:0.82rem;color:var(--text-muted);padding:0.4rem 0;">No players found.</div>';
+    return;
+  }
+  res.innerHTML = matches.map(e => {
+    const total   = e.entries.length;
+    const ownedC  = e.entries.filter(c => owned.has(c.key)).length;
+    const wantedC = e.entries.filter(c => wanted.has(c.key)).length;
+    const teams   = [...new Set(e.entries.map(c => c.team).filter(Boolean))].join(', ');
+    return '<div onclick="closeInfo();openPlayerModal('' + e.displayName.replace(/'/g,"\'") + '',null)"'
+      + ' style="display:flex;align-items:center;justify-content:space-between;padding:0.45rem 0.6rem;border-radius:6px;cursor:pointer;border:1px solid var(--border);margin-bottom:0.35rem;background:var(--surface);transition:background 0.1s;"'
+      + ' onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='var(--surface)'">'
+      + '<div><div style="font-weight:bold;font-size:0.88rem;">' + e.displayName + '</div>'
+      + '<div style="font-size:0.75rem;color:var(--text-muted);">' + teams + '</div></div>'
+      + '<div style="text-align:right;font-size:0.75rem;font-family:'Arial',sans-serif;">'
+      + '<span style="color:var(--accent);font-weight:bold;">' + total + '</span> card' + (total===1?'':'s')
+      + (ownedC > 0 ? ' &nbsp;&middot;&nbsp; <span style="color:#1D7A4F;">' + ownedC + ' owned</span>' : '')
+      + (wantedC > 0 ? ' &nbsp;&middot;&nbsp; <span style="color:#e67e22;">' + wantedC + ' wanted</span>' : '')
+      + '</div></div>';
+  }).join('');
 }
 
 function openBugReport(){
@@ -2546,6 +2675,7 @@ document.addEventListener('DOMContentLoaded', function() {
           initCollapsedTeams();
           render();
           checkAndPromptUsername();
+          checkWhatsNew();
         } else {
           if (window.Sentry) Sentry.captureMessage('onAuthStateChange — no session', {
             level: 'warning',
