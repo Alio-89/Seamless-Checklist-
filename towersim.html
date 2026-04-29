@@ -98,7 +98,9 @@
   .b-hit  { background: #E1F5EE; color: #085041; }
   .b-norm { background: var(--bg2); color: var(--text2); border: 0.5px solid var(--border); }
   .b-exc  { background: #FAEEDA; color: #633806; }
-  @media (prefers-color-scheme: dark) { .b-hit { background: #085041; color: #9FE1CB; } .b-exc { background: #633806; color: #FAC775; } }
+  .b-2nd  { background: #EDE9FE; color: #4C1D95; }
+  .b-2nd-took { background: #DDD6FE; color: #3B0764; }
+  @media (prefers-color-scheme: dark) { .b-hit { background: #085041; color: #9FE1CB; } .b-exc { background: #633806; color: #FAC775; } .b-2nd { background: #4C1D95; color: #DDD6FE; } .b-2nd-took { background: #3B0764; color: #C4B5FD; } }
   .ev-pos { color: #1D9E75; font-size: 11px; }
   .ev-neg { color: #E24B4A; font-size: 11px; }
   #resultsArea { display: none; }
@@ -158,6 +160,40 @@
   .limitation-list li { font-size: 14px; color: var(--text2); line-height: 1.55; margin-bottom: .5rem; padding-left: 18px; position: relative; }
   .limitation-list li::before { content: '–'; position: absolute; left: 0; color: var(--text3); }
 
+  /* Scenario manager */
+  .scenario-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 2000; align-items: flex-start; justify-content: center; padding: 40px 16px; overflow-y: auto; }
+  .scenario-modal-overlay.open { display: flex; }
+  .scenario-modal { background: var(--bg); border-radius: var(--radius-lg); max-width: 560px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.25); }
+  .scenario-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.5rem; border-bottom: 0.5px solid var(--border); }
+  .scenario-modal-header h2 { font-size: 16px; font-weight: 500; }
+  .scenario-modal-body { padding: 1.25rem 1.5rem; }
+  .scenario-save-row { display: flex; gap: 8px; margin-bottom: 1.25rem; }
+  .scenario-save-row input { flex: 1; height: 36px; padding: 0 10px; font-size: 14px; background: var(--bg); color: var(--text); border: 0.5px solid var(--border2); border-radius: var(--radius); outline: none; }
+  .scenario-save-row input:focus { border-color: #378ADD; box-shadow: 0 0 0 2px rgba(55,138,221,0.15); }
+  .scenario-save-btn { height: 36px; padding: 0 16px; font-size: 13px; font-weight: 500; cursor: pointer; background: var(--text); color: var(--bg); border: none; border-radius: var(--radius); white-space: nowrap; flex-shrink: 0; }
+  .scenario-save-btn:hover { opacity: .88; }
+  .scenario-list { display: flex; flex-direction: column; gap: 8px; max-height: 340px; overflow-y: auto; }
+  .scenario-item { display: flex; align-items: center; gap: 8px; background: var(--bg2); border-radius: var(--radius); padding: .65rem .85rem; }
+  .scenario-item-name { flex: 1; font-size: 14px; font-weight: 500; color: var(--text); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .scenario-item-date { font-size: 11px; color: var(--text3); flex-shrink: 0; }
+  .scenario-item-actions { display: flex; gap: 5px; flex-shrink: 0; }
+  .sc-btn { height: 28px; padding: 0 10px; font-size: 12px; font-weight: 500; cursor: pointer; border-radius: var(--radius); border: 0.5px solid var(--border2); background: transparent; color: var(--text2); white-space: nowrap; }
+  .sc-btn:hover { background: var(--bg3); color: var(--text); }
+  .sc-btn.load { color: var(--info-text); border-color: var(--info-border); }
+  .sc-btn.load:hover { background: var(--info-bg); }
+  .sc-btn.del:hover { background: #fcebeb; color: #a32d2d; border-color: #f09595; }
+  .scenario-empty { font-size: 13px; color: var(--text3); text-align: center; padding: 1.5rem 0; }
+  .share-box { margin-top: 1.25rem; padding-top: 1.25rem; border-top: 0.5px solid var(--border); }
+  .share-box-title { font-size: 12px; font-weight: 500; color: var(--text2); text-transform: uppercase; letter-spacing: .06em; margin-bottom: .65rem; }
+  .share-url-row { display: flex; gap: 8px; }
+  .share-url-input { flex: 1; height: 34px; padding: 0 10px; font-size: 12px; background: var(--bg2); color: var(--text2); border: 0.5px solid var(--border); border-radius: var(--radius); outline: none; font-family: monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .share-copy-btn { height: 34px; padding: 0 14px; font-size: 12px; font-weight: 500; cursor: pointer; background: transparent; border: 0.5px solid var(--border2); border-radius: var(--radius); color: var(--text); white-space: nowrap; }
+  .share-copy-btn:hover { background: var(--bg2); }
+  .share-copy-btn.copied { color: var(--success-text); border-color: currentColor; }
+  .scenario-loaded-banner { display: none; background: var(--info-bg); border: 0.5px solid var(--info-border); color: var(--info-text); border-radius: var(--radius); padding: .6rem 1rem; font-size: 13px; margin-bottom: 1.25rem; display: none; align-items: center; justify-content: space-between; gap: 12px; }
+  .scenario-loaded-banner.visible { display: flex; }
+  .scenario-loaded-banner button { background: transparent; border: none; cursor: pointer; font-size: 16px; color: inherit; opacity: .7; padding: 0; line-height: 1; }
+
   @media (max-width: 600px) {
     .row3, .row4 { grid-template-columns: 1fr 1fr; }
     .th, .tg, .totals-row { grid-template-columns: 1.5fr 1fr 1fr 60px 30px; }
@@ -203,6 +239,14 @@ function checkPw(){
       <h1>Tower auction simulator</h1>
       <p class="subtitle">Build your card tiers, set pricing, run Monte Carlo simulations, then drill into any individual run card by card.</p>
     </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+    <button class="how-to-btn" onclick="openScenarioModal()">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2 2h7l3 3v7H2V2z" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round"/>
+        <path d="M5 2v3h5M5 7h4M5 9.5h4" stroke="currentColor" stroke-width="1.15" stroke-linecap="round"/>
+      </svg>
+      Scenarios
+    </button>
     <button class="how-to-btn" onclick="openModal()">
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="7" cy="7" r="6.25" stroke="currentColor" stroke-width="1.25"/>
@@ -210,10 +254,16 @@ function checkPw(){
       </svg>
       How to use
     </button>
+    </div>
+  </div>
+
+  <!-- Loaded from shared link banner -->
+  <div class="scenario-loaded-banner" id="sharedBanner">
+    <span id="sharedBannerText">Scenario loaded from shared link.</span>
+    <button onclick="dismissSharedBanner()" title="Dismiss">×</button>
   </div>
 
   <div class="card">
-    <div class="sec-title">Card tiers</div>
     <div class="th">
       <span>Tier name</span><span>Value / card</span><span>Qty</span><span>Tier total</span><span>% of total</span><span>Highlight</span><span></span>
     </div>
@@ -272,6 +322,26 @@ function checkPw(){
         <div class="hint">big hit boosts next bid</div>
       </div>
     </div>
+    <div class="row4" style="margin-top:4px">
+      <div class="field">
+        <div class="label">2nd chance min bid</div>
+        <input type="number" id="spinThreshold" value="0" min="0" step="0.50"/>
+        <div class="hint">min bid to trigger offer — 0 disables</div>
+      </div>
+      <div class="field">
+        <div class="label">Re-spin threshold ×</div>
+        <input type="number" id="respinMult" value="1.0" min="0.1" max="5.0" step="0.1"/>
+        <div class="hint">re-spin if card &lt; avg × this</div>
+      </div>
+      <div class="field">
+        <div class="label">Re-spin rationality %</div>
+        <input type="number" id="respinRationality" value="70" min="0" max="100" step="5"/>
+        <div class="hint">how often bidders follow EV logic</div>
+      </div>
+      <div class="field" style="justify-content:flex-end">
+        <div class="hint" style="margin-top:auto;padding-bottom:4px">Re-spin uses bid variance for noise</div>
+      </div>
+    </div>
     <button class="run-btn" onclick="runSimulation()">Run simulation</button>
   </div>
 
@@ -323,7 +393,7 @@ function checkPw(){
               <th style="width:80px">EV before</th>
               <th style="width:80px">EV after</th>
               <th style="width:75px">EV shift</th>
-              <th style="width:80px">Bid price</th>
+              <th style="width:80px">Bid (gross)</th>
               <th style="width:90px">Running total</th>
               <th style="width:75px">Status</th>
             </tr></thead>
@@ -347,6 +417,40 @@ function checkPw(){
 
       <div id="panel-insights" class="panel">
         <div id="insightsContent"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Scenario Manager Modal -->
+<div class="scenario-modal-overlay" id="scenarioModal" onclick="closeScenarioModalOutside(event)">
+  <div class="scenario-modal">
+    <div class="scenario-modal-header">
+      <h2>Scenarios</h2>
+      <button class="modal-close" onclick="closeScenarioModal()">×</button>
+    </div>
+    <div class="scenario-modal-body">
+      <div style="font-size:13px;color:var(--text2);margin-bottom:.85rem;line-height:1.55">
+        Save your current tower configuration — tiers, fees, settings, and auction model — as a named scenario. All saved scenarios are visible to everyone using the simulator.
+      </div>
+      <div class="scenario-save-row" style="flex-wrap:wrap">
+        <input type="text" id="scenarioSavedBy" placeholder="Your name" maxlength="40" style="flex:0 0 140px"
+          onkeydown="if(event.key==='Enter')saveScenario()"/>
+        <input type="text" id="scenarioNameInput" placeholder="Scenario name…" maxlength="60"
+          onkeydown="if(event.key==='Enter')saveScenario()"/>
+        <button class="scenario-save-btn" onclick="saveScenario()">Save</button>
+      </div>
+      <div class="scenario-list" id="scenarioList"></div>
+
+      <div class="share-box" id="shareBox" style="display:none">
+        <div class="share-box-title">Share link</div>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:.65rem;line-height:1.55">
+          Anyone with this link can open the simulator and load this exact scenario.
+        </p>
+        <div class="share-url-row">
+          <input class="share-url-input" id="shareUrlInput" readonly/>
+          <button class="share-copy-btn" id="shareCopyBtn" onclick="copyShareUrl()">Copy link</button>
+        </div>
       </div>
     </div>
   </div>
@@ -381,8 +485,12 @@ function checkPw(){
       <div class="modal-section">
         <h3>Auction model parameters</h3>
         <p><strong>Bidder rationality %</strong> — how close to EV a typical bidder pays. At 80%, a bidder seeing an EV of $1.00 will bid around $0.80. Lower for cautious audiences, raise for competitive regulars.</p>
-        <p><strong>Bid variance %</strong> — random noise applied per bid to simulate human unpredictability. Higher values widen the distribution of outcomes.</p>
-        <p><strong>Excitement multiplier</strong> — when a hit is revealed, subsequent bids are multiplied by this factor (capped at 2.5×). The effect decays gradually. Set to 1.0 to disable.</p>
+        <p><strong>Bid variance %</strong> — random noise applied per bid to simulate human unpredictability. Higher values widen the distribution of outcomes. Set to 0 to disable.</p>
+        <p><strong>Excitement multiplier</strong> — when a hit is revealed, subsequent bids are multiplied by this factor (capped at 2.5×). The effect decays at 0.95× per card reveal. Set to <strong>1.0</strong> to disable entirely.</p>
+        <p style="margin-top:.75rem"><strong>2nd chance re-spin</strong> — after a card is revealed, the bidder can be offered a chance to discard it and draw again. This models a common live auction mechanic where the seller charges a second bid for the opportunity to swap.</p>
+        <p><strong>2nd chance min bid</strong> — the gross bid must reach this threshold before a re-spin is offered. For example, set to $5.00 to only offer re-spins on cards where the bidder paid at least $5. Set to <strong>0</strong> to disable the 2nd chance mechanic entirely.</p>
+        <p><strong>Re-spin threshold ×</strong> — the bidder will want a re-spin if the revealed card is worth less than (average card value × this multiplier). At 1.0, they re-spin any card below average. At 0.5, they only re-spin cards worth less than half the average. Higher values mean bidders are harder to satisfy and re-spin more often.</p>
+        <p><strong>Re-spin rationality %</strong> — how often the bidder actually follows the re-spin logic above versus acting randomly. At 100%, they always make the EV-correct decision. At 0%, they flip a coin. Bid variance adds additional noise on top. This only applies when a re-spin has been offered — it has no effect if 2nd chance min bid is set to 0.</p>
       </div>
 
       <div class="modal-section">
@@ -415,6 +523,15 @@ function checkPw(){
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
+// --- SUPABASE CONFIG ---
+const SB_URL = 'https://jisozambxgufhgwwdmjz.supabase.co';
+const SB_KEY = 'sb_publishable_QfbF7g4Dzr8Tm0NHwy18YQ_kXVvZwFz';
+const SB_HEADERS = {
+  'Content-Type': 'application/json',
+  'apikey': SB_KEY,
+  'Authorization': 'Bearer ' + SB_KEY
+};
+
 let tiers = [
   {name:'Base commons', value:0.10, qty:60, hlOn:false, hlColor:'#e6f1fb'},
   {name:'Uncommons',    value:0.50, qty:25, hlOn:false, hlColor:'#faeeda'},
@@ -564,29 +681,75 @@ function shuffle(arr){
   return a;
 }
 
-function simulateRun(deck, rationality, variance, excitement){
+function simulateRun(deck, rationality, variance, excitement, spinThreshold, respinMult, respinRationality){
   const cards = shuffle(deck);
-  const n = cards.length;
-  let remVal = cards.reduce((s,c) => s+c.value, 0);
+  // Use a mutable array so we can splice/insert returned cards
+  let remaining = [...cards];
+  let remVal = remaining.reduce((s,c) => s+c.value, 0);
   let totalBid = 0, exciteMult = 1.0, runningTotal = 0;
   const evCurve = [], log = [];
   const avgCard = getTotalValue() / getTotalQty();
-  for(let i=0; i<n; i++){
-    const evBefore = remVal / (n - i);
+  let pos = 0;
+
+  while(remaining.length > 0){
+    pos++;
+    const remCount = remaining.length;
+    const evBefore = remVal / remCount;
     evCurve.push(evBefore);
+
+    // Draw first card
+    const firstCard = remaining.shift();
+    remVal -= firstCard.value;
+
     const baseBid = evBefore * (rationality/100) * exciteMult;
     const noise   = baseBid * (variance/100) * (Math.random()*2 - 1);
     const bid     = Math.max(0, baseBid + noise);
-    // Apply tower fees per card sale
     const fee     = calcFeeForSale(bid, 'tower');
     const netBid  = Math.max(0, bid - fee);
     totalBid     += netBid;
     runningTotal += netBid;
-    remVal       -= cards[i].value;
-    const evAfter = i < n-1 ? remVal/(n-i-1) : 0;
-    const isHit   = cards[i].value >= avgCard * 4;
+
+    const isHit = firstCard.value >= avgCard * 4;
     exciteMult = isHit ? Math.min(exciteMult * excitement, 2.5) : Math.max(1.0, exciteMult * 0.95);
-    log.push({ pos:i+1, card:cards[i], evBefore, evAfter, bid:netBid, grossBid:bid, runningTotal, isHit, exciteMult:parseFloat(exciteMult.toFixed(3)) });
+
+    // 2nd chance spin logic
+    let secondSpinOffered = false, tookSpin = false, secondCard = null, keptCard = firstCard;
+
+    if(spinThreshold > 0 && bid >= spinThreshold && remaining.length > 0){
+      secondSpinOffered = true;
+
+      // Decision: re-spin if firstCard.value < avgCard * respinMult (with noise)
+      const wantsRespin = firstCard.value < avgCard * respinMult;
+      // Apply rationality — respinRationality% chance they follow EV logic, else random
+      const followsLogic = Math.random() * 100 < respinRationality;
+      const noiseFlip    = (variance/100) * (Math.random()*2 - 1);
+      tookSpin = followsLogic ? wantsRespin : (Math.random() < 0.5 + noiseFlip);
+
+      if(tookSpin && remaining.length > 0){
+        // Draw second card from remaining pool
+        secondCard = remaining.shift();
+        remVal -= secondCard.value;
+
+        // Bidder keeps whichever card they prefer (the second, since they chose to spin)
+        keptCard = secondCard;
+        // Return first card at random position in remaining deck
+        const insertAt = Math.floor(Math.random() * (remaining.length + 1));
+        remaining.splice(insertAt, 0, firstCard);
+        remVal += firstCard.value;
+      }
+    }
+
+    const evAfter = remaining.length > 0 ? remVal / remaining.length : 0;
+
+    log.push({
+      pos, card: keptCard, firstCard,
+      secondCard: tookSpin ? secondCard : null,
+      evBefore, evAfter,
+      bid: netBid, grossBid: bid, runningTotal,
+      isHit: keptCard.value >= avgCard * 4,
+      exciteMult: parseFloat(exciteMult.toFixed(3)),
+      secondSpinOffered, tookSpin
+    });
   }
   return { revenue: totalBid, evCurve, log };
 }
@@ -606,12 +769,15 @@ function runSimulation(){
   const n           = parseInt(document.getElementById('nSims').value) || 1000;
   const rationality = parseFloat(document.getElementById('rationality').value) || 80;
   const variance    = parseFloat(document.getElementById('variance').value) || 20;
-  const excitement  = parseFloat(document.getElementById('excitement').value) || 1.00;
-  const acq            = parseFloat(document.getElementById('acqCost').value) || 0;
+  const excitement       = parseFloat(document.getElementById('excitement').value) || 1.00;
+  const spinThreshold    = parseFloat(document.getElementById('spinThreshold').value) || 0;
+  const respinMult       = parseFloat(document.getElementById('respinMult').value) || 1.0;
+  const respinRationality= parseFloat(document.getElementById('respinRationality').value) || 70;
+  const acq              = parseFloat(document.getElementById('acqCost').value) || 0;
 
   const results = [], allEV = []; allRunLogs = [];
   for(let i=0; i<n; i++){
-    const r = simulateRun(deck, rationality, variance, excitement);
+    const r = simulateRun(deck, rationality, variance, excitement, spinThreshold, respinMult, respinRationality);
     results.push(r.revenue); allEV.push(r.evCurve); allRunLogs.push(r.log);
   }
   results.sort((a,b) => a-b);
@@ -630,6 +796,18 @@ function runSimulation(){
   const profit    = mean - acq;
   const mc = (v,g,w) => v>=g?'good':v>=w?'warn':'bad';
 
+  // 2nd chance stats across all runs
+  let totalOffered = 0, totalTook = 0, totalSpinEvents = 0;
+  allRunLogs.forEach(log => {
+    log.forEach(r => {
+      if(r.secondSpinOffered){ totalOffered++; if(r.tookSpin) totalTook++; }
+      totalSpinEvents++;
+    });
+  });
+  const avgOfferedPct = totalSpinEvents > 0 ? totalOffered / totalSpinEvents * 100 : 0;
+  const tookPct       = totalOffered > 0 ? totalTook / totalOffered * 100 : 0;
+  const spinActive    = spinThreshold > 0;
+
   document.getElementById('simMetrics').innerHTML = `
     <div class="metric"><div class="mlabel">Mean revenue (net)</div><div class="mval ${mc(mean,target,acq)}">${fmt(mean)}</div></div>
     <div class="metric"><div class="mlabel">Median revenue (net)</div><div class="mval ${mc(median,target,acq)}">${fmt(median)}</div></div>
@@ -638,7 +816,10 @@ function runSimulation(){
     <div class="metric"><div class="mlabel">10th percentile</div><div class="mval">${fmt(p10)}</div></div>
     <div class="metric"><div class="mlabel">90th percentile</div><div class="mval">${fmt(p90)}</div></div>
     <div class="metric"><div class="mlabel">Mean profit</div><div class="mval ${profit>=0?'good':'bad'}">${fmt(profit)}</div></div>
-    <div class="metric"><div class="mlabel">Mean ROI</div><div class="mval ${profit>=0?'good':'bad'}">${acq>0?pct((profit/acq)*100):'—'}</div></div>`;
+    <div class="metric"><div class="mlabel">Mean ROI</div><div class="mval ${profit>=0?'good':'bad'}">${acq>0?pct((profit/acq)*100):'—'}</div></div>
+    ${spinActive ? `
+    <div class="metric"><div class="mlabel">2nd chance offered</div><div class="mval">${pct(avgOfferedPct)}</div></div>
+    <div class="metric"><div class="mlabel">Re-spin taken</div><div class="mval">${pct(tookPct)}</div></div>` : ''}`;
 
   const bins=30, minR=results[0], maxR=results[results.length-1], step=(maxR-minR)/bins;
   const binCounts=new Array(bins).fill(0), binLabels=[];
@@ -691,6 +872,7 @@ function runSimulation(){
     <div class="insight"><strong>Excitement effect:</strong> With a ${excitement}× multiplier after high-value reveals, hits drive above-average bidding on subsequent cards. Use the drill-down tab to see this play out card by card.</div>
     <div class="insight"><strong>Beats general sale:</strong> The auction exceeds the general sale equivalent (${fmt(generalSaleNet)}) in <strong>${pct(hitTarget)}</strong> of runs. ${hitTarget>80?'Auction is the dominant strategy with this mix.':hitTarget>50?'Auction edges out the general sale more often than not.':'General sale is more reliable — consider adjusting tier mix or rationality.'}</div>
     <div class="insight"><strong>Safe floor estimate:</strong> In 90% of simulations you earn at least <strong>${fmt(p10)}</strong>. Use this as your worst-case planning number.</div>
+    ${spinActive ? `<div class="insight"><strong>2nd chance spin:</strong> With a ${fmt(spinThreshold)} trigger, a 2nd chance was offered on <strong>${pct(avgOfferedPct)}</strong> of cards on average. Of those, bidders took the re-spin <strong>${pct(tookPct)}</strong> of the time. ${tookPct > 60 ? 'High re-spin rate — threshold multiplier may be set aggressively.' : tookPct > 30 ? 'Moderate re-spin rate — bidders are selective.' : 'Low re-spin rate — most bidders are happy with their first card.'}</div>` : ''}
     ${fees.length ? `<div class="insight"><strong>Fees impact:</strong> Fees are applied per sale. Tower fees reduce each bid; sale fees reduce the general sale total. Review the Auction vs Sale tab for a net comparison.</div>` : ''}`;
 
   document.getElementById('resultsArea').style.display = 'block';
@@ -784,16 +966,22 @@ function renderDrill(){
   const target = parseFloat(document.getElementById('salePrice').value) || 0;
   const totalRev    = log[log.length-1].runningTotal;
   const hits        = log.filter(r => r.isHit).length;
-  const highestBid  = Math.max(...log.map(r => r.bid));
+  const highestBid  = Math.max(...log.map(r => r.grossBid));
   const highestCard = log.reduce((best,r) => r.card.value > best.card.value ? r : best, log[0]);
+
+  const spinsOffered = log.filter(r => r.secondSpinOffered).length;
+  const spinsTook    = log.filter(r => r.tookSpin).length;
 
   document.getElementById('drillSummary').innerHTML = `
     <div class="rs-card"><div class="rs-label">Total revenue (net)</div><div class="rs-val" style="color:${totalRev>=target?'#1D9E75':totalRev>=acq?'var(--text)':'#E24B4A'}">${fmt(totalRev)}</div></div>
     <div class="rs-card"><div class="rs-label">vs acquisition cost</div><div class="rs-val" style="color:${totalRev>=acq?'#1D9E75':'#E24B4A'}">${totalRev>=acq?'+':''}${fmt(totalRev-acq)}</div></div>
     <div class="rs-card"><div class="rs-label">Cards auctioned</div><div class="rs-val">${log.length}</div></div>
     <div class="rs-card"><div class="rs-label">Hits pulled</div><div class="rs-val">${hits}</div></div>
-    <div class="rs-card"><div class="rs-label">Highest bid (net)</div><div class="rs-val">${fmt(highestBid)}</div></div>
-    <div class="rs-card"><div class="rs-label">Highest card</div><div class="rs-val">${fmt(highestCard.card.value)}</div></div>`;
+    <div class="rs-card"><div class="rs-label">Highest bid (gross)</div><div class="rs-val">${fmt(highestBid)}</div></div>
+    <div class="rs-card"><div class="rs-label">Highest card</div><div class="rs-val">${fmt(highestCard.card.value)}</div></div>
+    ${spinsOffered > 0 ? `
+    <div class="rs-card"><div class="rs-label">2nd chance offered</div><div class="rs-val">${spinsOffered}</div></div>
+    <div class="rs-card"><div class="rs-label">Re-spins taken</div><div class="rs-val">${spinsTook}</div></div>` : ''}`;
 
   const hlTiers = tiers.filter(t => t.hlOn);
   document.getElementById('drillLegend').innerHTML = hlTiers.length
@@ -805,22 +993,31 @@ function renderDrill(){
     const deltaHtml = r.pos < log.length
       ? `<span class="${evDelta>=0?'ev-pos':'ev-neg'}">${evDelta>=0?'+':''}${fmt(evDelta)}</span>`
       : `<span style="color:var(--text3);font-size:11px">—</span>`;
-    const statusBadge = r.isHit
-      ? '<span class="badge b-hit">hit</span>'
-      : r.exciteMult > 1.05
-        ? '<span class="badge b-exc">excited</span>'
-        : '<span class="badge b-norm">standard</span>';
+
+    // Status badge — 2nd chance takes priority over hit/excited/standard
+    let statusBadge;
+    if(r.tookSpin)
+      statusBadge = `<span class="badge b-2nd-took" title="Took re-spin: kept ${r.card.tierName} (${fmt(r.card.value)}), returned ${r.firstCard.tierName} (${fmt(r.firstCard.value)})">re-spun ✓</span>`;
+    else if(r.secondSpinOffered)
+      statusBadge = `<span class="badge b-2nd" title="Offered re-spin but kept first card: ${r.card.tierName} (${fmt(r.card.value)})">kept 1st</span>`;
+    else if(r.isHit)
+      statusBadge = '<span class="badge b-hit">hit</span>';
+    else if(r.exciteMult > 1.05)
+      statusBadge = '<span class="badge b-exc">excited</span>';
+    else
+      statusBadge = '<span class="badge b-norm">standard</span>';
+
     const rowBg = r.card.hlOn ? `background:${r.card.hlColor}20` : '';
     const leftBorder = r.card.hlOn ? `border-left:3px solid ${r.card.hlColor};` : 'border-left:3px solid transparent;';
     return `<tr style="${rowBg}">
       <td style="color:var(--text3);${leftBorder}">${r.pos}</td>
-      <td style="font-weight:${r.card.hlOn?500:400}">${r.card.tierName}</td>
+      <td style="font-weight:${r.card.hlOn?500:400}">${r.card.tierName}${r.tookSpin ? ` <span style="font-size:10px;color:var(--text3)">(was ${r.firstCard.tierName})</span>` : ''}</td>
       <td><span class="badge b-norm" style="${r.card.hlOn?`background:${r.card.hlColor}30;border-color:${r.card.hlColor};color:inherit`:''}">${r.card.tierIdx+1}</span></td>
       <td style="${r.card.hlOn?'font-weight:600':''}">${fmt(r.card.value)}</td>
       <td>${fmt(r.evBefore)}</td>
       <td>${r.pos < log.length ? fmt(r.evAfter) : '<span style="color:var(--text3);font-size:11px">—</span>'}</td>
       <td>${deltaHtml}</td>
-      <td style="font-weight:500">${fmt(r.bid)}</td>
+      <td style="font-weight:500">${fmt(r.grossBid)}</td>
       <td>${fmt(r.runningTotal)}</td>
       <td>${statusBadge}</td>
     </tr>`;
@@ -852,11 +1049,211 @@ function closeModal(){ document.getElementById('howToModal').classList.remove('o
 function closeModalOutside(e){ if(e.target === document.getElementById('howToModal')) closeModal(); }
 document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
 
+// --- SCENARIO MANAGER ---
+
+function captureScenario(){
+  return {
+    tiers: JSON.parse(JSON.stringify(tiers)),
+    fees: JSON.parse(JSON.stringify(fees)),
+    settings: {
+      acqCost:     document.getElementById('acqCost').value,
+      salePrice:   document.getElementById('salePrice').value,
+      nSims:       document.getElementById('nSims').value,
+      rationality: document.getElementById('rationality').value,
+      variance:    document.getElementById('variance').value,
+      excitement:  document.getElementById('excitement').value,
+      spinThreshold:     document.getElementById('spinThreshold').value,
+      respinMult:        document.getElementById('respinMult').value,
+      respinRationality: document.getElementById('respinRationality').value,
+    }
+  };
+}
+
+function applyScenario(data){
+  tiers = data.tiers;
+  fees = data.fees;
+  renderTiers();
+  renderFees();
+  if(data.settings){
+    const s = data.settings;
+    ['acqCost','salePrice','nSims','rationality','variance','excitement',
+     'spinThreshold','respinMult','respinRationality'].forEach(id => {
+      if(s[id] !== undefined) document.getElementById(id).value = s[id];
+    });
+  }
+  syncAll();
+}
+
+function setScenarioListLoading(msg){
+  document.getElementById('scenarioList').innerHTML =
+    `<div class="scenario-empty">${msg}</div>`;
+}
+
+async function getSavedScenarios(){
+  const res = await fetch(
+    `${SB_URL}/rest/v1/tower_scenarios?select=id,name,saved_by,created_at&order=created_at.desc`,
+    { headers: SB_HEADERS }
+  );
+  if(!res.ok) throw new Error('Failed to load scenarios');
+  return res.json();
+}
+
+async function saveScenario(){
+  const name = document.getElementById('scenarioNameInput').value.trim();
+  const savedBy = document.getElementById('scenarioSavedBy').value.trim();
+  if(!name){ document.getElementById('scenarioNameInput').focus(); return; }
+  if(!savedBy){ document.getElementById('scenarioSavedBy').focus(); return; }
+  const btn = document.querySelector('.scenario-save-btn');
+  btn.textContent = 'Saving…'; btn.disabled = true;
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/tower_scenarios`, {
+      method: 'POST',
+      headers: { ...SB_HEADERS, 'Prefer': 'return=representation' },
+      body: JSON.stringify({ name, saved_by: savedBy, data: captureScenario() })
+    });
+    if(!res.ok) throw new Error('Save failed');
+    const [saved] = await res.json();
+    document.getElementById('scenarioNameInput').value = '';
+    await renderScenarioList(saved.id);
+  } catch(e){
+    alert('Could not save scenario. Check your connection and try again.');
+  } finally {
+    btn.textContent = 'Save'; btn.disabled = false;
+  }
+}
+
+async function loadScenario(id){
+  setScenarioListLoading('Loading…');
+  try {
+    const res = await fetch(
+      `${SB_URL}/rest/v1/tower_scenarios?id=eq.${id}&select=*`,
+      { headers: SB_HEADERS }
+    );
+    if(!res.ok) throw new Error();
+    const [entry] = await res.json();
+    applyScenario(entry.data);
+    showShareBoxForId(entry.id, entry.name);
+    closeScenarioModal();
+  } catch(e){
+    alert('Could not load scenario.');
+    renderScenarioList(null);
+  }
+}
+
+async function deleteScenario(id){
+  if(!confirm('Delete this scenario? This cannot be undone.')) return;
+  try {
+    await fetch(`${SB_URL}/rest/v1/tower_scenarios?id=eq.${id}`, {
+      method: 'DELETE',
+      headers: SB_HEADERS
+    });
+  } catch(e){ /* best effort */ }
+  renderScenarioList(null);
+}
+
+async function renderScenarioList(highlightId){
+  const el = document.getElementById('scenarioList');
+  el.innerHTML = '<div class="scenario-empty">Loading…</div>';
+  try {
+    const list = await getSavedScenarios();
+    if(!list.length){
+      el.innerHTML = '<div class="scenario-empty">No saved scenarios yet. Configure a tower above and hit Save.</div>';
+      document.getElementById('shareBox').style.display = 'none';
+      return;
+    }
+    el.innerHTML = list.map(e => {
+      const d = new Date(e.created_at);
+      const dateStr = d.toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'2-digit'});
+      const hl = highlightId === e.id ? 'outline:1.5px solid var(--info-border);' : '';
+      const byTag = e.saved_by
+        ? `<span style="font-size:11px;color:var(--text3);flex-shrink:0">by ${e.saved_by}</span>`
+        : '';
+      return `<div class="scenario-item" style="${hl}">
+        <div style="flex:1;min-width:0">
+          <div class="scenario-item-name" title="${e.name}">${e.name}</div>
+          <div style="display:flex;gap:8px;align-items:center;margin-top:2px">${byTag}<span class="scenario-item-date">${dateStr}</span></div>
+        </div>
+        <div class="scenario-item-actions">
+          <button class="sc-btn" onclick="shareScenarioById('${e.id}')">Share</button>
+          <button class="sc-btn load" onclick="loadScenario('${e.id}')">Load</button>
+          <button class="sc-btn del" onclick="deleteScenario('${e.id}')">×</button>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e){
+    el.innerHTML = '<div class="scenario-empty" style="color:var(--danger-text)">Could not connect to database.</div>';
+  }
+}
+
+async function shareScenarioById(id){
+  showShareBoxForId(id, null);
+}
+
+function showShareBoxForId(id, name){
+  const url = location.href.split('#')[0] + '#load=' + id;
+  document.getElementById('shareUrlInput').value = url;
+  document.getElementById('shareBox').style.display = '';
+  const copyBtn = document.getElementById('shareCopyBtn');
+  copyBtn.textContent = 'Copy link';
+  copyBtn.classList.remove('copied');
+}
+
+function copyShareUrl(){
+  const input = document.getElementById('shareUrlInput');
+  navigator.clipboard.writeText(input.value).then(() => {
+    const btn = document.getElementById('shareCopyBtn');
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy link'; btn.classList.remove('copied'); }, 2000);
+  }).catch(() => {
+    input.select();
+    document.execCommand('copy');
+  });
+}
+
+async function openScenarioModal(){
+  document.getElementById('shareBox').style.display = 'none';
+  document.getElementById('scenarioModal').classList.add('open');
+  await renderScenarioList(null);
+}
+function closeScenarioModal(){ document.getElementById('scenarioModal').classList.remove('open'); }
+function closeScenarioModalOutside(e){ if(e.target === document.getElementById('scenarioModal')) closeScenarioModal(); }
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeScenarioModal(); });
+
+function dismissSharedBanner(){
+  document.getElementById('sharedBanner').classList.remove('visible');
+  history.replaceState(null,'', location.pathname + location.search);
+}
+
+async function tryLoadFromHash(){
+  const hash = location.hash;
+  if(!hash.startsWith('#load=')) return;
+  const id = hash.slice('#load='.length);
+  if(!id) return;
+  try {
+    const res = await fetch(
+      `${SB_URL}/rest/v1/tower_scenarios?id=eq.${id}&select=*`,
+      { headers: SB_HEADERS }
+    );
+    if(!res.ok) throw new Error();
+    const [entry] = await res.json();
+    if(!entry) throw new Error('Not found');
+    applyScenario(entry.data);
+    const banner = document.getElementById('sharedBanner');
+    document.getElementById('sharedBannerText').textContent =
+      entry.name ? `Scenario loaded: "${entry.name}"` : 'Scenario loaded from shared link.';
+    banner.classList.add('visible');
+  } catch(e){
+    console.warn('Failed to load scenario from URL:', e);
+  }
+}
+
 // --- INIT ---
 document.getElementById('acqCost').addEventListener('input', syncAll);
 document.getElementById('salePrice').addEventListener('input', syncAll);
 renderTiers();
 renderFees();
+tryLoadFromHash();
 </script>
 </body>
 </html>
