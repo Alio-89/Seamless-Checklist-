@@ -435,10 +435,19 @@ function checkPw(){
       </div>
       <div class="scenario-save-row" style="flex-wrap:wrap">
         <input type="text" id="scenarioSavedBy" placeholder="Your name" maxlength="40" style="flex:0 0 140px"
+          autocomplete="off" autocorrect="off" spellcheck="false"
           onkeydown="if(event.key==='Enter')saveScenario()"/>
         <input type="text" id="scenarioNameInput" placeholder="Scenario name…" maxlength="60"
+          autocomplete="off" autocorrect="off" spellcheck="false"
           onkeydown="if(event.key==='Enter')saveScenario()"/>
-        <button class="scenario-save-btn" onclick="saveScenario()">Save</button>
+        <button class="scenario-save-btn" onclick="saveScenario()">Save as new</button>
+      </div>
+      <div id="activeScenarioBanner" style="display:none;margin-bottom:.85rem;background:var(--info-bg);border:0.5px solid var(--info-border);border-radius:var(--radius);padding:.65rem .85rem;display:none;align-items:center;justify-content:space-between;gap:10px">
+        <div>
+          <div style="font-size:12px;color:var(--info-text);font-weight:500;margin-bottom:1px">Currently loaded</div>
+          <div id="activeScenarioName" style="font-size:14px;color:var(--text);font-weight:500"></div>
+        </div>
+        <button class="scenario-save-btn" id="updateScenarioBtn" onclick="updateScenario()" style="flex-shrink:0">Update</button>
       </div>
       <div class="scenario-list" id="scenarioList"></div>
 
@@ -1050,6 +1059,20 @@ function closeModalOutside(e){ if(e.target === document.getElementById('howToMod
 document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
 
 // --- SCENARIO MANAGER ---
+let currentScenarioId = null;
+let currentScenarioName = null;
+
+function setActiveScenario(id, name){
+  currentScenarioId = id;
+  currentScenarioName = name;
+  const banner = document.getElementById('activeScenarioBanner');
+  if(id){
+    document.getElementById('activeScenarioName').textContent = name;
+    banner.style.display = 'flex';
+  } else {
+    banner.style.display = 'none';
+  }
+}
 
 function captureScenario(){
   return {
@@ -1114,11 +1137,32 @@ async function saveScenario(){
     if(!res.ok) throw new Error('Save failed');
     const [saved] = await res.json();
     document.getElementById('scenarioNameInput').value = '';
+    setActiveScenario(saved.id, saved.name);
     await renderScenarioList(saved.id);
   } catch(e){
     alert('Could not save scenario. Check your connection and try again.');
   } finally {
-    btn.textContent = 'Save'; btn.disabled = false;
+    btn.textContent = 'Save as new'; btn.disabled = false;
+  }
+}
+
+async function updateScenario(){
+  if(!currentScenarioId) return;
+  const btn = document.getElementById('updateScenarioBtn');
+  btn.textContent = 'Saving…'; btn.disabled = true;
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/tower_scenarios?id=eq.${currentScenarioId}`, {
+      method: 'PATCH',
+      headers: { ...SB_HEADERS, 'Prefer': 'return=representation' },
+      body: JSON.stringify({ data: captureScenario() })
+    });
+    if(!res.ok) throw new Error('Update failed');
+    btn.textContent = 'Saved ✓';
+    setTimeout(() => { btn.textContent = 'Update'; btn.disabled = false; }, 1500);
+    await renderScenarioList(currentScenarioId);
+  } catch(e){
+    alert('Could not update scenario. Check your connection and try again.');
+    btn.textContent = 'Update'; btn.disabled = false;
   }
 }
 
@@ -1132,6 +1176,7 @@ async function loadScenario(id){
     if(!res.ok) throw new Error();
     const [entry] = await res.json();
     applyScenario(entry.data);
+    setActiveScenario(entry.id, entry.name);
     showShareBoxForId(entry.id, entry.name);
     closeScenarioModal();
   } catch(e){
@@ -1164,13 +1209,14 @@ async function renderScenarioList(highlightId){
     el.innerHTML = list.map(e => {
       const d = new Date(e.created_at);
       const dateStr = d.toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'2-digit'});
-      const hl = highlightId === e.id ? 'outline:1.5px solid var(--info-border);' : '';
+      const isActive = e.id === currentScenarioId;
+      const hl = (highlightId === e.id || isActive) ? 'outline:1.5px solid var(--info-border);' : '';
       const byTag = e.saved_by
         ? `<span style="font-size:11px;color:var(--text3);flex-shrink:0">by ${e.saved_by}</span>`
         : '';
       return `<div class="scenario-item" style="${hl}">
         <div style="flex:1;min-width:0">
-          <div class="scenario-item-name" title="${e.name}">${e.name}</div>
+          <div class="scenario-item-name" title="${e.name}">${e.name}${isActive ? ' <span style="font-size:10px;color:var(--info-text);font-weight:500">● active</span>' : ''}</div>
           <div style="display:flex;gap:8px;align-items:center;margin-top:2px">${byTag}<span class="scenario-item-date">${dateStr}</span></div>
         </div>
         <div class="scenario-item-actions">
@@ -1213,8 +1259,17 @@ function copyShareUrl(){
 
 async function openScenarioModal(){
   document.getElementById('shareBox').style.display = 'none';
+  // Restore active scenario banner if one is loaded
+  if(currentScenarioId){
+    document.getElementById('activeScenarioName').textContent = currentScenarioName;
+    document.getElementById('activeScenarioBanner').style.display = 'flex';
+    document.getElementById('updateScenarioBtn').textContent = 'Update';
+    document.getElementById('updateScenarioBtn').disabled = false;
+  } else {
+    document.getElementById('activeScenarioBanner').style.display = 'none';
+  }
   document.getElementById('scenarioModal').classList.add('open');
-  await renderScenarioList(null);
+  await renderScenarioList(currentScenarioId);
 }
 function closeScenarioModal(){ document.getElementById('scenarioModal').classList.remove('open'); }
 function closeScenarioModalOutside(e){ if(e.target === document.getElementById('scenarioModal')) closeScenarioModal(); }
@@ -1239,6 +1294,7 @@ async function tryLoadFromHash(){
     const [entry] = await res.json();
     if(!entry) throw new Error('Not found');
     applyScenario(entry.data);
+    setActiveScenario(entry.id, entry.name);
     const banner = document.getElementById('sharedBanner');
     document.getElementById('sharedBannerText').textContent =
       entry.name ? `Scenario loaded: "${entry.name}"` : 'Scenario loaded from shared link.';
