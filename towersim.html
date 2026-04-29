@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Tower Auction Simulator</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #ffffff; --bg2: #f5f5f3; --bg3: #efefec;
+    --text: #1a1a18; --text2: #6b6b67; --text3: #a0a09b;
+    --border: rgba(0,0,0,0.12); --border2: rgba(0,0,0,0.22);
+    --info-bg: #e6f1fb; --info-text: #0c447c; --info-border: rgba(24,95,165,0.35);
+    --success-bg: #e1f5ee;
+    --warn-text: #ba7517; --danger-text: #e24b4a; --success-text: #1d9e75;
+    --radius: 8px; --radius-lg: 12px;
+    --auction-color: #378ADD; --sale-color: #8B5CF6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1e1e1c; --bg2: #2a2a28; --bg3: #333330;
+      --text: #f0f0ec; --text2: #a0a09b; --text3: #6b6b67;
+      --border: rgba(255,255,255,0.12); --border2: rgba(255,255,255,0.22);
+      --info-bg: #0c447c; --info-text: #b5d4f4; --info-border: rgba(55,138,221,0.35);
+      --success-bg: #085041;
+    }
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg3); color: var(--text); font-size: 15px; line-height: 1.5; }
+  .page { max-width: 860px; margin: 0 auto; padding: 2rem 1rem 4rem; }
+  .page-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 2rem; flex-wrap: wrap; }
+  .page-header-left h1 { font-size: 20px; font-weight: 500; margin-bottom: .25rem; }
+  .subtitle { font-size: 13px; color: var(--text2); }
+  .how-to-btn { flex-shrink: 0; height: 34px; padding: 0 14px; font-size: 13px; font-weight: 500; cursor: pointer; background: transparent; border: 0.5px solid var(--border2); border-radius: var(--radius); color: var(--text2); display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .how-to-btn:hover { background: var(--bg2); color: var(--text); }
+  .how-to-btn svg { opacity: .7; }
+  .card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; margin-bottom: 1.25rem; }
+  .sec-title { font-size: 11px; font-weight: 500; color: var(--text2); text-transform: uppercase; letter-spacing: .07em; margin-bottom: .85rem; }
+  .sec-title span { font-size: 11px; color: var(--text3); font-weight: 400; text-transform: none; letter-spacing: 0; margin-left: 6px; }
+  .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .row4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 12px; }
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .label { font-size: 12px; color: var(--text2); }
+  .hint { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  input, select {
+    width: 100%; height: 36px; padding: 0 10px; font-size: 14px;
+    background: var(--bg); color: var(--text);
+    border: 0.5px solid var(--border2); border-radius: var(--radius);
+    outline: none; transition: border-color .15s;
+  }
+  input:focus, select:focus { border-color: #378ADD; box-shadow: 0 0 0 2px rgba(55,138,221,0.15); }
+  input[readonly] { background: var(--bg2); color: var(--text2); cursor: default; }
+  .divider { border: none; border-top: 0.5px solid var(--border); margin: 1rem 0; }
+  .th { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr 80px 34px; gap: 8px; margin-bottom: 6px; }
+  .th span { font-size: 11px; color: var(--text3); font-weight: 500; }
+  .tg { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr 80px 34px; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .totals-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr 80px 34px; gap: 8px; align-items: center; border-top: 0.5px solid var(--border2); padding-top: 10px; margin-top: 4px; margin-bottom: 12px; }
+  .tcell { font-size: 13px; font-weight: 500; color: var(--text); background: var(--bg2); border-radius: var(--radius); padding: 6px 10px; text-align: right; }
+  .tcell.tlabel { text-align: left; color: var(--text2); }
+  .del { width: 30px; height: 30px; border: 0.5px solid var(--border2); border-radius: var(--radius); background: transparent; color: var(--text2); cursor: pointer; font-size: 16px; line-height: 1; }
+  .del:hover { background: #fcebeb; color: #a32d2d; border-color: #f09595; }
+  .add-btn { font-size: 13px; cursor: pointer; color: var(--info-text); background: transparent; border: 0.5px dashed var(--info-border); border-radius: var(--radius); padding: 5px 14px; margin-top: 2px; }
+  .add-btn:hover { background: var(--info-bg); }
+  .run-btn { width: 100%; padding: 11px; font-size: 14px; font-weight: 500; color: var(--text); background: transparent; border: 0.5px solid var(--border2); border-radius: var(--radius); cursor: pointer; transition: background .15s; }
+  .run-btn:hover { background: var(--bg2); }
+  .run-btn:active { transform: scale(.99); }
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 1.25rem; }
+  .metric { background: var(--bg2); border-radius: var(--radius); padding: .85rem 1rem; }
+  .metric .mlabel { font-size: 12px; color: var(--text2); margin-bottom: 4px; }
+  .metric .mval { font-size: 20px; font-weight: 500; }
+  .mval.good { color: var(--success-text); }
+  .mval.warn { color: var(--warn-text); }
+  .mval.bad { color: var(--danger-text); }
+  .tab-row { display: flex; gap: 4px; border-bottom: 0.5px solid var(--border); margin-bottom: 1rem; flex-wrap: wrap; }
+  .tab { padding: 7px 14px; font-size: 13px; cursor: pointer; color: var(--text2); border: none; border-bottom: 2px solid transparent; margin-bottom: -1px; background: transparent; }
+  .tab.active { color: var(--text); border-bottom-color: var(--text); font-weight: 500; }
+  .panel { display: none; } .panel.active { display: block; }
+  .legend { display: flex; gap: 16px; margin-top: 10px; font-size: 12px; color: var(--text2); flex-wrap: wrap; }
+  .legend span { display: flex; align-items: center; gap: 4px; }
+  .lswatch { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+  .insight { background: var(--bg2); border-radius: var(--radius); padding: .75rem 1rem; font-size: 13px; color: var(--text2); margin-bottom: .75rem; line-height: 1.6; }
+  .insight strong { color: var(--text); font-weight: 500; }
+  .drill-controls { display: flex; align-items: center; gap: 10px; margin-bottom: 1rem; flex-wrap: wrap; }
+  .drill-controls label { font-size: 13px; color: var(--text2); }
+  .drill-controls select { width: auto; height: 32px; font-size: 13px; padding: 0 8px; }
+  .drill-btn { height: 32px; padding: 0 14px; font-size: 13px; cursor: pointer; background: transparent; border: 0.5px solid var(--border2); border-radius: var(--radius); color: var(--text); }
+  .drill-btn:hover { background: var(--bg2); }
+  .run-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; margin-bottom: 1rem; }
+  .rs-card { background: var(--bg2); border-radius: var(--radius); padding: .65rem .85rem; }
+  .rs-label { font-size: 11px; color: var(--text3); margin-bottom: 3px; }
+  .rs-val { font-size: 16px; font-weight: 500; color: var(--text); }
+  .log-wrap { overflow-x: auto; }
+  .log-table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; min-width: 700px; }
+  .log-table th { text-align: left; font-size: 11px; color: var(--text3); font-weight: 500; padding: 5px 8px 8px; border-bottom: 0.5px solid var(--border2); white-space: nowrap; }
+  .log-table td { padding: 7px 8px; border-bottom: 0.5px solid var(--border); color: var(--text); vertical-align: middle; }
+  .log-table tr:last-child td { border-bottom: none; font-weight: 500; background: var(--bg2); }
+  .log-table tr.hit-row td { background: var(--success-bg); }
+  .badge { display: inline-block; font-size: 11px; padding: 2px 7px; border-radius: 99px; font-weight: 500; white-space: nowrap; }
+  .b-hit  { background: #E1F5EE; color: #085041; }
+  .b-norm { background: var(--bg2); color: var(--text2); border: 0.5px solid var(--border); }
+  .b-exc  { background: #FAEEDA; color: #633806; }
+  @media (prefers-color-scheme: dark) { .b-hit { background: #085041; color: #9FE1CB; } .b-exc { background: #633806; color: #FAC775; } }
+  .ev-pos { color: #1D9E75; font-size: 11px; }
+  .ev-neg { color: #E24B4A; font-size: 11px; }
+  #resultsArea { display: none; }
+
+  /* Tier highlight controls */
+  .tier-hl { display: flex; align-items: center; gap: 5px; height: 36px; }
+  .tier-color-btn { width: 22px; height: 22px; border-radius: 4px; border: 0.5px solid var(--border2); cursor: pointer; padding: 0; flex-shrink: 0; position: relative; overflow: hidden; }
+  .tier-color-btn input[type=color] { position: absolute; inset: -4px; width: calc(100% + 8px); height: calc(100% + 8px); opacity: 0; cursor: pointer; }
+  .tier-hl-toggle { height: 22px; padding: 0 7px; font-size: 11px; font-weight: 500; border-radius: 4px; border: 0.5px solid var(--border2); background: transparent; color: var(--text3); cursor: pointer; white-space: nowrap; transition: background .12s, color .12s, border-color .12s; }
+  .tier-hl-toggle.on { color: var(--bg); border-color: transparent; }
+  .fee-th { display: grid; grid-template-columns: 2fr 90px 80px 1fr 34px; gap: 8px; margin-bottom: 6px; }
+  .fee-th span { font-size: 11px; color: var(--text3); font-weight: 500; }
+  .fee-row { display: grid; grid-template-columns: 2fr 90px 80px 1fr 34px; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .toggle-wrap { display: flex; height: 36px; border: 0.5px solid var(--border2); border-radius: var(--radius); overflow: hidden; }
+  .toggle-wrap button { flex: 1; border: none; background: transparent; font-size: 13px; cursor: pointer; color: var(--text2); transition: background .12s, color .12s; }
+  .toggle-wrap button.active { background: var(--text); color: var(--bg); font-weight: 500; }
+  .fee-applies { display: flex; height: 36px; border: 0.5px solid var(--border2); border-radius: var(--radius); overflow: hidden; }
+  .fee-applies button { flex: 1; border: none; background: transparent; font-size: 12px; cursor: pointer; color: var(--text2); transition: background .12s, color .12s; white-space: nowrap; padding: 0 6px; }
+  .fee-applies button.active { background: var(--text); color: var(--bg); font-weight: 500; }
+  .fees-summary { display: flex; gap: 16px; margin-top: 10px; flex-wrap: wrap; }
+  .fee-pill { font-size: 12px; background: var(--bg2); border-radius: 99px; padding: 3px 10px; color: var(--text2); }
+  .fee-pill strong { color: var(--text); font-weight: 500; }
+
+  /* Comparison panel */
+  .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 1rem; }
+  .compare-col { background: var(--bg2); border-radius: var(--radius-lg); padding: 1rem; }
+  .compare-col-title { font-size: 12px; font-weight: 600; margin-bottom: .75rem; display: flex; align-items: center; gap: 6px; }
+  .compare-col-title .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .compare-metric { display: flex; justify-content: space-between; align-items: baseline; padding: 5px 0; border-bottom: 0.5px solid var(--border); font-size: 13px; }
+  .compare-metric:last-child { border-bottom: none; }
+  .compare-metric .cm-label { color: var(--text2); }
+  .compare-metric .cm-val { font-weight: 500; }
+  .compare-winner { font-size: 12px; font-weight: 500; padding: 3px 10px; border-radius: 99px; background: #E1F5EE; color: #085041; }
+  @media (prefers-color-scheme: dark) { .compare-winner { background: #085041; color: #9FE1CB; } }
+  .compare-verdict { background: var(--bg2); border-radius: var(--radius); padding: .85rem 1rem; font-size: 13px; color: var(--text2); line-height: 1.6; margin-top: .75rem; }
+  .compare-verdict strong { color: var(--text); font-weight: 500; }
+  .compare-chart-wrap { position: relative; width: 100%; height: 240px; margin-bottom: .5rem; }
+
+  /* Modal */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1000; align-items: flex-start; justify-content: center; padding: 40px 16px; overflow-y: auto; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--bg); border-radius: var(--radius-lg); max-width: 680px; width: 100%; padding: 0; box-shadow: 0 20px 60px rgba(0,0,0,0.25); }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.5rem; border-bottom: 0.5px solid var(--border); }
+  .modal-header h2 { font-size: 16px; font-weight: 500; }
+  .modal-close { width: 30px; height: 30px; border: 0.5px solid var(--border2); border-radius: var(--radius); background: transparent; color: var(--text2); cursor: pointer; font-size: 18px; line-height: 1; display: flex; align-items: center; justify-content: center; }
+  .modal-close:hover { background: var(--bg2); }
+  .modal-body { padding: 1.25rem 1.5rem; max-height: 70vh; overflow-y: auto; }
+  .modal-section { margin-bottom: 1.5rem; }
+  .modal-section h3 { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text2); margin-bottom: .75rem; }
+  .modal-section p { font-size: 14px; color: var(--text2); line-height: 1.65; margin-bottom: .6rem; }
+  .modal-section p strong { color: var(--text); font-weight: 500; }
+  .modal-steps { counter-reset: steps; list-style: none; }
+  .modal-steps li { counter-increment: steps; display: flex; gap: 12px; margin-bottom: .65rem; font-size: 14px; color: var(--text2); line-height: 1.55; }
+  .modal-steps li::before { content: counter(steps); display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; min-width: 22px; background: var(--bg3); border-radius: 50%; font-size: 11px; font-weight: 600; color: var(--text); margin-top: 1px; }
+  .modal-steps li strong { color: var(--text); font-weight: 500; }
+  .limitation-list { list-style: none; }
+  .limitation-list li { font-size: 14px; color: var(--text2); line-height: 1.55; margin-bottom: .5rem; padding-left: 18px; position: relative; }
+  .limitation-list li::before { content: '–'; position: absolute; left: 0; color: var(--text3); }
+
+  @media (max-width: 600px) {
+    .row3, .row4 { grid-template-columns: 1fr 1fr; }
+    .th, .tg, .totals-row { grid-template-columns: 1.5fr 1fr 1fr 60px 30px; }
+    .th span:nth-child(4), .th span:nth-child(5) { display: none; }
+    .tg > input:nth-child(4), .tg > input:nth-child(5) { display: none; }
+    .totals-row > .tcell:nth-child(4), .totals-row > .tcell:nth-child(5) { display: none; }
+    .fee-th, .fee-row { grid-template-columns: 1.5fr 80px 70px 34px; }
+    .fee-th span:nth-child(4), .fee-row > .fee-applies { display: none; }
+    .compare-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div id="pw-gate" style="display:flex;position:fixed;inset:0;z-index:9999;background:var(--bg3);align-items:center;justify-content:center;padding:1rem">
+  <div style="background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:2rem;width:100%;max-width:320px;text-align:center">
+    <div style="font-size:15px;font-weight:500;margin-bottom:.35rem">Tower Auction Simulator</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:1.25rem">Enter password to continue</div>
+    <input id="pw-input" type="password" placeholder="Password" autofocus
+      style="width:100%;height:40px;padding:0 12px;font-size:14px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);outline:none;margin-bottom:.65rem"
+      onkeydown="if(event.key==='Enter')checkPw()"/>
+    <div id="pw-err" style="font-size:12px;color:#e24b4a;min-height:18px;margin-bottom:.5rem"></div>
+    <button onclick="checkPw()"
+      style="width:100%;height:38px;font-size:14px;font-weight:500;cursor:pointer;background:var(--text);color:var(--bg);border:none;border-radius:var(--radius)">
+      Continue
+    </button>
+  </div>
+</div>
+<script>
+function checkPw(){
+  const val = document.getElementById('pw-input').value;
+  if(val === 'Minx'){
+    document.getElementById('pw-gate').style.display = 'none';
+  } else {
+    document.getElementById('pw-err').textContent = 'Incorrect password';
+    document.getElementById('pw-input').value = '';
+    document.getElementById('pw-input').focus();
+  }
+}
+</script>
+<div class="page">
+  <div class="page-header">
+    <div class="page-header-left">
+      <h1>Tower auction simulator</h1>
+      <p class="subtitle">Build your card tiers, set pricing, run Monte Carlo simulations, then drill into any individual run card by card.</p>
+    </div>
+    <button class="how-to-btn" onclick="openModal()">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="7" cy="7" r="6.25" stroke="currentColor" stroke-width="1.25"/>
+        <path d="M7 9.5V7M7 4.5h.007" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/>
+      </svg>
+      How to use
+    </button>
+  </div>
+
+  <div class="card">
+    <div class="sec-title">Card tiers</div>
+    <div class="th">
+      <span>Tier name</span><span>Value / card</span><span>Qty</span><span>Tier total</span><span>% of total</span><span>Highlight</span><span></span>
+    </div>
+    <div id="tiersContainer"></div>
+    <div class="totals-row">
+      <div class="tcell tlabel">Totals</div>
+      <div class="tcell" id="tot-avgval">—</div>
+      <div class="tcell" id="tot-qty">0</div>
+      <div class="tcell" id="tot-value">—</div>
+      <div class="tcell" id="tot-pct">100%</div>
+      <div></div>
+      <div></div>
+    </div>
+    <button class="add-btn" onclick="addTier()">+ add tier</button>
+  </div>
+
+  <div class="card">
+    <div class="sec-title">Tower settings <span>— auto-populated from tiers above</span></div>
+    <div class="row3">
+      <div class="field"><div class="label">Total cards</div><input type="number" id="totalCards" readonly/></div>
+      <div class="field"><div class="label">Total retail value</div><input type="number" id="retailValue" readonly/></div>
+      <div class="field"><div class="label">Avg card value</div><input type="number" id="avgCardVal" readonly/></div>
+    </div>
+    <div class="row3">
+      <div class="field"><div class="label">Acquisition cost <span style="font-weight:400;color:var(--text3)">(total)</span></div><input type="number" id="acqCost" value="20.00" min="0" step="0.01"/></div>
+      <div class="field"><div class="label">General sale price <span style="font-weight:400;color:var(--text3)">(per item)</span></div><input type="number" id="salePrice" value="35.00" min="0" step="0.01"/><div class="hint">price per card in a general sale</div></div>
+    </div>
+
+    <hr class="divider"/>
+    <div class="sec-title" style="margin-bottom:.6rem">Fees <span>— applied per sale. Add platform fees, payment processing, etc.</span></div>
+    <div class="fee-th">
+      <span>Fee name</span><span>Type</span><span>Amount</span><span>Applies to</span><span></span>
+    </div>
+    <div id="feesContainer"></div>
+    <div class="fees-summary" id="feesSummary"></div>
+    <button class="add-btn" style="margin-top:10px" onclick="addFee()">+ add fee</button>
+  </div>
+
+  <div class="card">
+    <div class="sec-title">Auction model</div>
+    <div class="row4">
+      <div class="field"><div class="label">Simulations (n)</div><input type="number" id="nSims" value="1000" min="100" max="10000" step="100"/></div>
+      <div class="field">
+        <div class="label">Bidder rationality %</div>
+        <input type="number" id="rationality" value="80" min="10" max="100" step="5"/>
+        <div class="hint">% of EV bidders will pay</div>
+      </div>
+      <div class="field">
+        <div class="label">Bid variance %</div>
+        <input type="number" id="variance" value="20" min="0" max="60" step="5"/>
+        <div class="hint">random noise per bid</div>
+      </div>
+      <div class="field">
+        <div class="label">Excitement multiplier</div>
+        <input type="number" id="excitement" value="1.00" min="1.0" max="2.0" step="0.05"/>
+        <div class="hint">big hit boosts next bid</div>
+      </div>
+    </div>
+    <button class="run-btn" onclick="runSimulation()">Run simulation</button>
+  </div>
+
+  <div id="resultsArea">
+    <div class="card">
+      <div class="sec-title">Simulation results</div>
+      <div class="metrics" id="simMetrics"></div>
+      <div class="tab-row">
+        <button class="tab active" onclick="switchTab('dist')">Revenue distribution</button>
+        <button class="tab" onclick="switchTab('ev')">EV curve</button>
+        <button class="tab" onclick="switchTab('drill')">Run drill-down</button>
+        <button class="tab" onclick="switchTab('compare')">Auction vs sale</button>
+        <button class="tab" onclick="switchTab('insights')">Insights</button>
+      </div>
+
+      <div id="panel-dist" class="panel active">
+        <div style="position:relative;width:100%;height:260px">
+          <canvas id="distChart" role="img" aria-label="Histogram of simulated total revenue across all runs">Revenue distribution histogram</canvas>
+        </div>
+        <div class="legend" id="distLegend"></div>
+      </div>
+
+      <div id="panel-ev" class="panel">
+        <p style="font-size:12px;color:var(--text2);margin-bottom:.75rem">Running EV of remaining cards as each position is revealed (median simulation). Large drops indicate a high-value hit was revealed.</p>
+        <div style="position:relative;width:100%;height:240px">
+          <canvas id="evChart" role="img" aria-label="Line chart of expected value of remaining cards as each card is revealed">EV curve</canvas>
+        </div>
+        <div class="legend" style="margin-top:10px">
+          <span><span class="lswatch" style="background:#378ADD"></span>EV of remaining cards</span>
+          <span><span class="lswatch" style="background:rgba(186,117,23,0.6)"></span>Average card value</span>
+        </div>
+      </div>
+
+      <div id="panel-drill" class="panel">
+        <div class="drill-controls">
+          <label>Select run:</label>
+          <select id="drillSelect" onchange="renderDrill()"></select>
+          <button class="drill-btn" onclick="randomDrill()">Random run</button>
+        </div>
+        <div id="drillSummary" class="run-summary"></div>
+        <div id="drillLegend" class="legend" style="margin-bottom:.75rem"></div>
+        <div class="log-wrap">
+          <table class="log-table">
+            <thead><tr>
+              <th style="width:36px">#</th>
+              <th style="width:120px">Card revealed</th>
+              <th style="width:65px">Tier</th>
+              <th style="width:80px">Card value</th>
+              <th style="width:80px">EV before</th>
+              <th style="width:80px">EV after</th>
+              <th style="width:75px">EV shift</th>
+              <th style="width:80px">Bid price</th>
+              <th style="width:90px">Running total</th>
+              <th style="width:75px">Status</th>
+            </tr></thead>
+            <tbody id="drillBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="panel-compare" class="panel">
+        <p style="font-size:12px;color:var(--text2);margin-bottom:1rem">Comparing auction revenue (after fees) vs selling all cards individually at target sale price (after fees). General sale assumes you sell every card — no unsold inventory.</p>
+        <div class="compare-chart-wrap">
+          <canvas id="compareChart" role="img" aria-label="Comparison chart of auction vs general sale revenue distributions"></canvas>
+        </div>
+        <div class="legend" style="margin-bottom:1rem">
+          <span><span class="lswatch" style="background:rgba(55,138,221,0.7)"></span>Auction (net of fees)</span>
+          <span><span class="lswatch" style="background:rgba(139,92,246,0.7)"></span>General sale at target price (net of fees)</span>
+        </div>
+        <div class="compare-grid" id="compareGrid"></div>
+        <div class="compare-verdict" id="compareVerdict"></div>
+      </div>
+
+      <div id="panel-insights" class="panel">
+        <div id="insightsContent"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- How To Modal -->
+<div class="modal-overlay" id="howToModal" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>How to use the Tower Auction Simulator</h2>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-section">
+        <h3>What this tool does</h3>
+        <p>This simulator models the auction dynamics of a trading card tower or repack. It runs Monte Carlo simulations to estimate total revenue across thousands of randomised reveal orders — showing you the range of possible outcomes, not just a single guess.</p>
+        <p>Cards are revealed one at a time. As each card is revealed, bidders recalculate the expected value (EV) of what remains. Big reveals create excitement; duds suppress subsequent bids. The order of reveals matters as much as the composition of the pool.</p>
+      </div>
+
+      <div class="modal-section">
+        <h3>Step-by-step</h3>
+        <ol class="modal-steps">
+          <li><strong>Build your card tiers.</strong> Add each tier (commons, rares, hits, etc.) with a value per card and quantity. The totals row updates live.</li>
+          <li><strong>Set tower settings.</strong> Enter your acquisition cost and target sale price. Total cards, retail value and average card value are auto-populated from your tiers.</li>
+          <li><strong>Add fees (optional).</strong> Add platform fees, payment processing costs, etc. Set each fee as a % or fixed $ amount, and choose whether it applies to the auction, the general sale, or both.</li>
+          <li><strong>Configure the auction model.</strong> Adjust bidder rationality, bid variance and excitement multiplier to match your audience. Defaults are reasonable starting points.</li>
+          <li><strong>Run the simulation.</strong> Click Run simulation. Results appear below with four views: revenue distribution, EV curve, run drill-down, auction vs sale comparison, and insights.</li>
+          <li><strong>Compare auction vs general sale.</strong> The Auction vs Sale tab shows what you'd earn if you sold every card individually at your target price, versus the simulated auction outcomes — both net of applicable fees.</li>
+        </ol>
+      </div>
+
+      <div class="modal-section">
+        <h3>Auction model parameters</h3>
+        <p><strong>Bidder rationality %</strong> — how close to EV a typical bidder pays. At 80%, a bidder seeing an EV of $1.00 will bid around $0.80. Lower for cautious audiences, raise for competitive regulars.</p>
+        <p><strong>Bid variance %</strong> — random noise applied per bid to simulate human unpredictability. Higher values widen the distribution of outcomes.</p>
+        <p><strong>Excitement multiplier</strong> — when a hit is revealed, subsequent bids are multiplied by this factor (capped at 2.5×). The effect decays gradually. Set to 1.0 to disable.</p>
+      </div>
+
+      <div class="modal-section">
+        <h3>Fees</h3>
+        <p>Each fee can be a <strong>percentage</strong> (e.g. 5% platform commission applied to each sale) or a <strong>fixed amount</strong> (e.g. $0.30 per transaction). Set whether the fee applies to the auction, the general sale, or both. Fees are deducted from gross revenue when calculating net results.</p>
+      </div>
+
+      <div class="modal-section">
+        <h3>Key metrics</h3>
+        <p><strong>Negative ROI rate</strong> — % of simulations where you lost money (revenue below acquisition cost).</p>
+        <p><strong>10th percentile</strong> — your realistic worst-case: 90% of runs beat this number.</p>
+        <p><strong>Value capture rate</strong> — revenue ÷ total retail card value. How much of retail value bidders actually paid.</p>
+        <p><strong>Safe floor</strong> — the 10th percentile revenue. Use this as your conservative planning number.</p>
+      </div>
+
+      <div class="modal-section">
+        <h3>Limitations</h3>
+        <ul class="limitation-list">
+          <li>TBD how to exclude fixed tower fees for repeat buyers (e.g. shipping costs).</li>
+          <li>The model assumes all cards sell at auction. Real auctions may have unsold cards or passes.</li>
+          <li>Bidder behaviour is modelled as a simple rationality × EV formula. Real bidding involves social dynamics, platform-specific behaviour and collector psychology not captured here.</li>
+          <li>The excitement multiplier decays at a fixed rate — actual crowd excitement may spike or fade differently.</li>
+          <li>General sale comparison assumes 100% sell-through at the target price. Real sell-through rates vary.</li>
+          <li>Fees are applied uniformly per sale — tiered or subscription-based fee structures are not modelled.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+let tiers = [
+  {name:'Base commons', value:0.10, qty:60, hlOn:false, hlColor:'#e6f1fb'},
+  {name:'Uncommons',    value:0.50, qty:25, hlOn:false, hlColor:'#faeeda'},
+  {name:'Rares',        value:2.00, qty:12, hlOn:false, hlColor:'#f0e6fb'},
+  {name:'Hits / autos', value:15.00, qty:3, hlOn:true,  hlColor:'#e1f5ee'},
+];
+
+let fees = [];
+let distChartInst = null, evChartInst = null, compareChartInst = null, allRunLogs = [];
+let lastSimResults = null;
+
+function sym(){ return '$'; }
+function fmt(n){ return sym() + parseFloat(n).toFixed(2); }
+function pct(n){ return n.toFixed(1) + '%'; }
+function getTotalQty(){ return tiers.reduce((s,t) => s + t.qty, 0); }
+function getTotalValue(){ return tiers.reduce((s,t) => s + t.qty * t.value, 0); }
+
+// --- FEES ---
+function addFee(){
+  fees.push({name:'Platform fee', type:'pct', amount:5, applies:'both'});
+  renderFees();
+}
+function removeFee(i){ fees.splice(i,1); renderFees(); }
+function updateFee(i, field, val){
+  if(field === 'name') fees[i].name = val;
+  else if(field === 'amount') fees[i].amount = parseFloat(val) || 0;
+  else fees[i][field] = val;
+  renderFeesSummary();
+}
+function toggleFeeType(i, type){
+  fees[i].type = type;
+  renderFees();
+}
+function toggleFeeApplies(i, applies){
+  fees[i].applies = applies;
+  renderFees();
+}
+
+function calcFeeForSale(salePrice, scope){
+  // scope: 'tower' or 'sale'
+  let total = 0;
+  fees.forEach(f => {
+    if(f.applies === 'both' || f.applies === scope){
+      if(f.type === 'pct') total += salePrice * (f.amount / 100);
+      else total += f.amount;
+    }
+  });
+  return total;
+}
+
+function renderFees(){
+  document.getElementById('feesContainer').innerHTML = fees.map((f,i) => `
+    <div class="fee-row">
+      <input type="text" value="${f.name}" oninput="updateFee(${i},'name',this.value)" placeholder="Fee name"/>
+      <div class="toggle-wrap">
+        <button class="${f.type==='pct'?'active':''}" onclick="toggleFeeType(${i},'pct')">%</button>
+        <button class="${f.type==='fixed'?'active':''}" onclick="toggleFeeType(${i},'fixed')">${sym()}</button>
+      </div>
+      <input type="number" value="${f.amount}" oninput="updateFee(${i},'amount',this.value)" min="0" step="${f.type==='pct'?'0.1':'0.01'}"/>
+      <div class="fee-applies">
+        <button class="${f.applies==='tower'?'active':''}" onclick="toggleFeeApplies(${i},'tower')">Tower</button>
+        <button class="${f.applies==='sale'?'active':''}" onclick="toggleFeeApplies(${i},'sale')">Sale</button>
+        <button class="${f.applies==='both'?'active':''}" onclick="toggleFeeApplies(${i},'both')">Both</button>
+      </div>
+      <button class="del" onclick="removeFee(${i})">×</button>
+    </div>`).join('');
+  renderFeesSummary();
+}
+
+function renderFeesSummary(){
+  const qty = getTotalQty();
+  if(!fees.length || !qty){ document.getElementById('feesSummary').innerHTML=''; return; }
+  const samplePrice = parseFloat(document.getElementById('salePrice').value) || 35;
+  const auctionFee = calcFeeForSale(samplePrice, 'tower');
+  const saleFee    = calcFeeForSale(samplePrice, 'sale');
+  const totalAuctionFees = auctionFee * qty;
+  const totalSaleFees    = saleFee * qty;
+  document.getElementById('feesSummary').innerHTML = `
+    <div class="fee-pill">Tower fees per card: <strong>${sym()}${auctionFee.toFixed(3)}</strong></div>
+    <div class="fee-pill">Est. total tower fees: <strong>${fmt(totalAuctionFees)}</strong></div>
+    <div class="fee-pill">Est. total sale fees: <strong>${fmt(totalSaleFees)}</strong></div>`;
+}
+
+// --- TIERS ---
+function syncAll(){
+  const qty = getTotalQty(), val = getTotalValue(), s = sym();
+  tiers.forEach((t,i) => {
+    const el = document.getElementById('tier-ttl-'+i), ep = document.getElementById('tier-pct-'+i);
+    if(el) el.value = (t.qty * t.value).toFixed(2);
+    if(ep) ep.value = qty > 0 ? ((t.qty/qty)*100).toFixed(1)+'%' : '—';
+  });
+  document.getElementById('tot-qty').textContent    = qty;
+  document.getElementById('tot-value').textContent  = s + val.toFixed(2);
+  document.getElementById('tot-avgval').textContent = qty > 0 ? s+(val/qty).toFixed(3) : '—';
+  document.getElementById('tot-pct').textContent    = '100%';
+  document.getElementById('totalCards').value  = qty;
+  document.getElementById('retailValue').value = val.toFixed(2);
+  document.getElementById('avgCardVal').value  = qty > 0 ? (val/qty).toFixed(3) : '0.000';
+  renderFeesSummary();
+}
+
+function addTier(){ tiers.push({name:'New tier', value:1.00, qty:0, hlOn:false, hlColor:'#e6f1fb'}); renderTiers(); }
+function removeTier(i){ tiers.splice(i,1); renderTiers(); }
+function updateTier(i, field, val){
+  if(field === 'name') tiers[i].name = val;
+  else if(field === 'hlOn') tiers[i].hlOn = val;
+  else if(field === 'hlColor') tiers[i].hlColor = val;
+  else tiers[i][field] = parseFloat(val) || 0;
+  syncAll();
+  if(field === 'hlOn' || field === 'hlColor') renderTiers();
+}
+function renderTiers(){
+  document.getElementById('tiersContainer').innerHTML = tiers.map((t,i) => {
+    const btnStyle = t.hlOn
+      ? `background:${t.hlColor};border-color:${t.hlColor};`
+      : '';
+    const toggleLabel = t.hlOn ? 'On' : 'Off';
+    return `<div class="tg">
+      <input type="text"   value="${t.name}"  oninput="updateTier(${i},'name',this.value)" placeholder="Tier name"/>
+      <input type="number" value="${t.value}" oninput="updateTier(${i},'value',this.value)" min="0" step="0.01"/>
+      <input type="number" value="${t.qty}"   oninput="updateTier(${i},'qty',this.value)"   min="0" step="1"/>
+      <input type="number" id="tier-ttl-${i}" readonly/>
+      <input type="text"   id="tier-pct-${i}" readonly/>
+      <div class="tier-hl">
+        <button class="tier-color-btn" style="background:${t.hlColor}" title="Pick highlight colour" onclick="void(0)">
+          <input type="color" value="${t.hlColor}" oninput="updateTier(${i},'hlColor',this.value)"/>
+        </button>
+        <button class="tier-hl-toggle ${t.hlOn?'on':''}" style="${btnStyle}" onclick="updateTier(${i},'hlOn',${!t.hlOn})">${toggleLabel}</button>
+      </div>
+      <button class="del" onclick="removeTier(${i})">×</button>
+    </div>`;
+  }).join('');
+  syncAll();
+}
+
+// --- SIMULATION ---
+function buildDeck(){
+  const d = [];
+  tiers.forEach((t,ti) => {
+    for(let j=0; j<t.qty; j++) d.push({value:t.value, tierIdx:ti, tierName:t.name, hlOn:t.hlOn, hlColor:t.hlColor});
+  });
+  return d;
+}
+function shuffle(arr){
+  const a = [...arr];
+  for(let i=a.length-1; i>0; i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+
+function simulateRun(deck, rationality, variance, excitement){
+  const cards = shuffle(deck);
+  const n = cards.length;
+  let remVal = cards.reduce((s,c) => s+c.value, 0);
+  let totalBid = 0, exciteMult = 1.0, runningTotal = 0;
+  const evCurve = [], log = [];
+  const avgCard = getTotalValue() / getTotalQty();
+  for(let i=0; i<n; i++){
+    const evBefore = remVal / (n - i);
+    evCurve.push(evBefore);
+    const baseBid = evBefore * (rationality/100) * exciteMult;
+    const noise   = baseBid * (variance/100) * (Math.random()*2 - 1);
+    const bid     = Math.max(0, baseBid + noise);
+    // Apply tower fees per card sale
+    const fee     = calcFeeForSale(bid, 'tower');
+    const netBid  = Math.max(0, bid - fee);
+    totalBid     += netBid;
+    runningTotal += netBid;
+    remVal       -= cards[i].value;
+    const evAfter = i < n-1 ? remVal/(n-i-1) : 0;
+    const isHit   = cards[i].value >= avgCard * 4;
+    exciteMult = isHit ? Math.min(exciteMult * excitement, 2.5) : Math.max(1.0, exciteMult * 0.95);
+    log.push({ pos:i+1, card:cards[i], evBefore, evAfter, bid:netBid, grossBid:bid, runningTotal, isHit, exciteMult:parseFloat(exciteMult.toFixed(3)) });
+  }
+  return { revenue: totalBid, evCurve, log };
+}
+
+function calcGeneralSaleRevenue(){
+  // target is price per card; total = (price - fees) * qty
+  const pricePerCard = parseFloat(document.getElementById('salePrice').value) || 0;
+  const qty          = getTotalQty();
+  if(!qty) return 0;
+  const feePerCard = calcFeeForSale(pricePerCard, 'sale');
+  return Math.max(0, (pricePerCard - feePerCard) * qty);
+}
+
+function runSimulation(){
+  const deck = buildDeck();
+  if(!deck.length){ alert('Add some card tiers first.'); return; }
+  const n           = parseInt(document.getElementById('nSims').value) || 1000;
+  const rationality = parseFloat(document.getElementById('rationality').value) || 80;
+  const variance    = parseFloat(document.getElementById('variance').value) || 20;
+  const excitement  = parseFloat(document.getElementById('excitement').value) || 1.00;
+  const acq            = parseFloat(document.getElementById('acqCost').value) || 0;
+
+  const results = [], allEV = []; allRunLogs = [];
+  for(let i=0; i<n; i++){
+    const r = simulateRun(deck, rationality, variance, excitement);
+    results.push(r.revenue); allEV.push(r.evCurve); allRunLogs.push(r.log);
+  }
+  results.sort((a,b) => a-b);
+
+  const generalSaleNet = calcGeneralSaleRevenue();
+  lastSimResults = { results, n, acq, generalSaleNet };
+
+  const target    = generalSaleNet; // auction "hits target" means beating the equivalent general sale total
+
+  const mean      = results.reduce((s,v)=>s+v,0) / n;
+  const median    = results[Math.floor(n/2)];
+  const p10       = results[Math.floor(n*0.10)];
+  const p90       = results[Math.floor(n*0.90)];
+  const negROI    = results.filter(r=>r<acq).length / n * 100;
+  const hitTarget = results.filter(r=>r>=target).length / n * 100;
+  const profit    = mean - acq;
+  const mc = (v,g,w) => v>=g?'good':v>=w?'warn':'bad';
+
+  document.getElementById('simMetrics').innerHTML = `
+    <div class="metric"><div class="mlabel">Mean revenue (net)</div><div class="mval ${mc(mean,target,acq)}">${fmt(mean)}</div></div>
+    <div class="metric"><div class="mlabel">Median revenue (net)</div><div class="mval ${mc(median,target,acq)}">${fmt(median)}</div></div>
+    <div class="metric"><div class="mlabel">Negative ROI rate</div><div class="mval ${negROI<10?'good':negROI<30?'warn':'bad'}">${pct(negROI)}</div></div>
+    <div class="metric"><div class="mlabel">Beats general sale</div><div class="mval ${hitTarget>70?'good':hitTarget>40?'warn':'bad'}">${pct(hitTarget)}</div></div>
+    <div class="metric"><div class="mlabel">10th percentile</div><div class="mval">${fmt(p10)}</div></div>
+    <div class="metric"><div class="mlabel">90th percentile</div><div class="mval">${fmt(p90)}</div></div>
+    <div class="metric"><div class="mlabel">Mean profit</div><div class="mval ${profit>=0?'good':'bad'}">${fmt(profit)}</div></div>
+    <div class="metric"><div class="mlabel">Mean ROI</div><div class="mval ${profit>=0?'good':'bad'}">${acq>0?pct((profit/acq)*100):'—'}</div></div>`;
+
+  const bins=30, minR=results[0], maxR=results[results.length-1], step=(maxR-minR)/bins;
+  const binCounts=new Array(bins).fill(0), binLabels=[];
+  results.forEach(r => { binCounts[Math.min(Math.floor((r-minR)/step), bins-1)]++; });
+  for(let i=0; i<bins; i++) binLabels.push(fmt(minR + step*i));
+  const binColors = binCounts.map((_,i) => {
+    const v = minR + step*i;
+    return v < acq ? 'rgba(226,75,74,0.75)' : v >= target ? 'rgba(29,158,117,0.75)' : 'rgba(55,138,221,0.75)';
+  });
+
+  if(distChartInst) distChartInst.destroy();
+  distChartInst = new Chart(document.getElementById('distChart'), {
+    type: 'bar',
+    data: { labels: binLabels, datasets: [{ data: binCounts, backgroundColor: binColors, borderWidth:0, borderRadius:2 }] },
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{callbacks:{title:d=>'~'+d[0].label, label:d=>d.raw+' runs'}} },
+      scales:{ x:{ticks:{maxTicksLimit:6,font:{size:11}},grid:{display:false}}, y:{ticks:{font:{size:11}},grid:{color:'rgba(128,128,128,0.1)'}} }
+    }
+  });
+  document.getElementById('distLegend').innerHTML = `
+    <span style="display:flex;align-items:center;gap:4px"><span class="lswatch" style="background:rgba(226,75,74,0.75)"></span>Below cost (${pct(negROI)})</span>
+    <span style="display:flex;align-items:center;gap:4px"><span class="lswatch" style="background:rgba(55,138,221,0.75)"></span>Above cost, below target</span>
+    <span style="display:flex;align-items:center;gap:4px"><span class="lswatch" style="background:rgba(29,158,117,0.75)"></span>Beats general sale (${pct(hitTarget)})</span>`;
+
+  const medEV = allEV[Math.floor(n/2)];
+  const avgC  = getTotalValue() / getTotalQty();
+  if(evChartInst) evChartInst.destroy();
+  evChartInst = new Chart(document.getElementById('evChart'), {
+    type: 'line',
+    data: { labels: medEV.map((_,i)=>'Card '+(i+1)), datasets: [
+      { label:'EV remaining',   data:medEV.map(v=>parseFloat(v.toFixed(3))), borderColor:'#378ADD', borderWidth:2, pointRadius:0, tension:.3, fill:false },
+      { label:'Avg card value', data:medEV.map(()=>parseFloat(avgC.toFixed(3))), borderColor:'rgba(186,117,23,0.6)', borderWidth:1.5, borderDash:[4,4], pointRadius:0, fill:false }
+    ]},
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{callbacks:{label:d=>fmt(d.raw)}} },
+      scales:{ x:{ticks:{maxTicksLimit:8,font:{size:11}},grid:{display:false}}, y:{ticks:{callback:v=>fmt(v),font:{size:11}},grid:{color:'rgba(128,128,128,0.1)'}} }
+    }
+  });
+
+  const sel = document.getElementById('drillSelect');
+  sel.innerHTML = allRunLogs.map((_,i) => `<option value="${i}">Run ${i+1}</option>`).join('');
+  renderDrill();
+  renderCompare();
+
+  const retailVal   = getTotalValue();
+  const captureRate = mean / retailVal * 100;
+  document.getElementById('insightsContent').innerHTML = `
+    <div class="insight"><strong>Value capture rate:</strong> Bidders paid an average of <strong>${pct(captureRate)}</strong> of total retail card value (${fmt(mean)} net of ${fmt(retailVal)} retail). ${captureRate>100?'Capturing above retail — strong auction dynamics.':captureRate>70?'Healthy capture rate.':'Significant discount to retail; consider adjusting rationality or tier composition.'}</div>
+    <div class="insight"><strong>Risk profile:</strong> In ${pct(negROI)} of simulations the tower sold below acquisition cost of ${fmt(acq)}. ${negROI<5?'Very low downside risk.':negROI<20?'Moderate risk — most runs profitable.':'High risk — consider raising sale price or reducing acquisition cost.'}</div>
+    <div class="insight"><strong>Excitement effect:</strong> With a ${excitement}× multiplier after high-value reveals, hits drive above-average bidding on subsequent cards. Use the drill-down tab to see this play out card by card.</div>
+    <div class="insight"><strong>Beats general sale:</strong> The auction exceeds the general sale equivalent (${fmt(generalSaleNet)}) in <strong>${pct(hitTarget)}</strong> of runs. ${hitTarget>80?'Auction is the dominant strategy with this mix.':hitTarget>50?'Auction edges out the general sale more often than not.':'General sale is more reliable — consider adjusting tier mix or rationality.'}</div>
+    <div class="insight"><strong>Safe floor estimate:</strong> In 90% of simulations you earn at least <strong>${fmt(p10)}</strong>. Use this as your worst-case planning number.</div>
+    ${fees.length ? `<div class="insight"><strong>Fees impact:</strong> Fees are applied per sale. Tower fees reduce each bid; sale fees reduce the general sale total. Review the Auction vs Sale tab for a net comparison.</div>` : ''}`;
+
+  document.getElementById('resultsArea').style.display = 'block';
+  switchTab('dist');
+}
+
+// --- COMPARE TAB ---
+function renderCompare(){
+  if(!lastSimResults) return;
+  const { results, n, acq, generalSaleNet } = lastSimResults;
+  const mean   = results.reduce((s,v)=>s+v,0) / n;
+  const median = results[Math.floor(n/2)];
+  const p10    = results[Math.floor(n*0.10)];
+  const p90    = results[Math.floor(n*0.90)];
+  const auctionProfit = mean - acq;
+  const saleProfit    = generalSaleNet - acq;
+  const auctionWins   = results.filter(r => r > generalSaleNet).length / n * 100;
+
+  // Comparison chart — overlapping histograms
+  const bins = 30;
+  const allVals = [...results, generalSaleNet];
+  const minV = Math.min(...allVals) * 0.95, maxV = Math.max(...allVals) * 1.05;
+  const step = (maxV - minV) / bins;
+  const auctionBins = new Array(bins).fill(0);
+  results.forEach(r => { auctionBins[Math.min(Math.floor((r-minV)/step), bins-1)]++; });
+  const labels = Array.from({length:bins}, (_,i) => fmt(minV + step*i));
+
+  if(compareChartInst) compareChartInst.destroy();
+  compareChartInst = new Chart(document.getElementById('compareChart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label:'Auction (net)', data: auctionBins, backgroundColor:'rgba(55,138,221,0.55)', borderWidth:0, borderRadius:2 },
+        { label:'General sale (net)', data: labels.map((_,i) => {
+            const binStart = minV + step*i, binEnd = binStart + step;
+            return generalSaleNet >= binStart && generalSaleNet < binEnd ? n : 0;
+          }), backgroundColor:'rgba(139,92,246,0.8)', borderWidth:0, borderRadius:2 }
+      ]
+    },
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{callbacks:{title:d=>'~'+d[0].label, label:d=>d.dataset.label+': '+d.raw+(d.datasetIndex===0?' runs':'')}} },
+      scales:{
+        x:{ticks:{maxTicksLimit:6,font:{size:11}},grid:{display:false}},
+        y:{ticks:{font:{size:11}},grid:{color:'rgba(128,128,128,0.1)'}}
+      }
+    }
+  });
+
+  const auctionWinner = mean > generalSaleNet;
+  document.getElementById('compareGrid').innerHTML = `
+    <div class="compare-col">
+      <div class="compare-col-title">
+        <span class="dot" style="background:var(--auction-color)"></span>
+        Tower auction (net of fees)
+        ${auctionWinner ? '<span class="compare-winner">higher avg</span>' : ''}
+      </div>
+      <div class="compare-metric"><span class="cm-label">Mean net revenue</span><span class="cm-val">${fmt(mean)}</span></div>
+      <div class="compare-metric"><span class="cm-label">Median net revenue</span><span class="cm-val">${fmt(median)}</span></div>
+      <div class="compare-metric"><span class="cm-label">Mean profit vs acq. cost</span><span class="cm-val" style="color:${auctionProfit>=0?'var(--success-text)':'var(--danger-text)'}">${fmt(auctionProfit)}</span></div>
+      <div class="compare-metric"><span class="cm-label">10th–90th percentile</span><span class="cm-val">${fmt(p10)} – ${fmt(p90)}</span></div>
+      <div class="compare-metric"><span class="cm-label">Beats general sale</span><span class="cm-val">${pct(auctionWins)} of runs</span></div>
+    </div>
+    <div class="compare-col">
+      <div class="compare-col-title">
+        <span class="dot" style="background:var(--sale-color)"></span>
+        General sale at target price (net of fees)
+        ${!auctionWinner ? '<span class="compare-winner">higher</span>' : ''}
+      </div>
+      <div class="compare-metric"><span class="cm-label">Fixed net revenue</span><span class="cm-val">${fmt(generalSaleNet)}</span></div>
+      <div class="compare-metric"><span class="cm-label">Profit vs acq. cost</span><span class="cm-val" style="color:${saleProfit>=0?'var(--success-text)':'var(--danger-text)'}">${fmt(saleProfit)}</span></div>
+      <div class="compare-metric"><span class="cm-label">Variance</span><span class="cm-val" style="color:var(--text3)">None — fixed outcome</span></div>
+      <div class="compare-metric"><span class="cm-label">Auction beats this</span><span class="cm-val">${pct(auctionWins)} of runs</span></div>
+      <div class="compare-metric"><span class="cm-label">Assumptions</span><span class="cm-val" style="font-size:11px;color:var(--text3)">100% sell-through</span></div>
+    </div>`;
+
+  const diff = mean - generalSaleNet;
+  const verdict = auctionWinner
+    ? `On average, the auction nets <strong>${fmt(Math.abs(diff))}</strong> more than a flat general sale at your target price. However, the auction introduces variance — in <strong>${pct(100-auctionWins)}</strong> of simulations the general sale would have been more profitable. ${auctionWins > 80 ? 'Auction is the dominant strategy with this tier mix.' : auctionWins > 50 ? 'Auction edges out the general sale on average, but a general sale offers more predictability.' : 'The general sale is actually more reliable — consider whether your target price is realistic for auction conditions.'}`
+    : `A flat general sale at your target price nets <strong>${fmt(Math.abs(diff))}</strong> more than the average auction outcome. The auction only beats a general sale in <strong>${pct(auctionWins)}</strong> of simulations. Consider whether lower rationality or a weaker tier mix is dragging down auction performance, or whether your target price is conservative.`;
+
+  document.getElementById('compareVerdict').innerHTML = `<strong>Summary:</strong> ${verdict}`;
+}
+
+// --- DRILL ---
+function renderDrill(){
+  const idx = parseInt(document.getElementById('drillSelect').value);
+  const log = allRunLogs[idx];
+  if(!log) return;
+  const acq    = parseFloat(document.getElementById('acqCost').value) || 0;
+  const target = parseFloat(document.getElementById('salePrice').value) || 0;
+  const totalRev    = log[log.length-1].runningTotal;
+  const hits        = log.filter(r => r.isHit).length;
+  const highestBid  = Math.max(...log.map(r => r.bid));
+  const highestCard = log.reduce((best,r) => r.card.value > best.card.value ? r : best, log[0]);
+
+  document.getElementById('drillSummary').innerHTML = `
+    <div class="rs-card"><div class="rs-label">Total revenue (net)</div><div class="rs-val" style="color:${totalRev>=target?'#1D9E75':totalRev>=acq?'var(--text)':'#E24B4A'}">${fmt(totalRev)}</div></div>
+    <div class="rs-card"><div class="rs-label">vs acquisition cost</div><div class="rs-val" style="color:${totalRev>=acq?'#1D9E75':'#E24B4A'}">${totalRev>=acq?'+':''}${fmt(totalRev-acq)}</div></div>
+    <div class="rs-card"><div class="rs-label">Cards auctioned</div><div class="rs-val">${log.length}</div></div>
+    <div class="rs-card"><div class="rs-label">Hits pulled</div><div class="rs-val">${hits}</div></div>
+    <div class="rs-card"><div class="rs-label">Highest bid (net)</div><div class="rs-val">${fmt(highestBid)}</div></div>
+    <div class="rs-card"><div class="rs-label">Highest card</div><div class="rs-val">${fmt(highestCard.card.value)}</div></div>`;
+
+  const hlTiers = tiers.filter(t => t.hlOn);
+  document.getElementById('drillLegend').innerHTML = hlTiers.length
+    ? hlTiers.map(t => `<span><span class="lswatch" style="background:${t.hlColor};border-radius:3px"></span>${t.name}</span>`).join('')
+    : '<span style="color:var(--text3);font-size:12px">No tier highlights set — configure in Card tiers above</span>';
+
+  document.getElementById('drillBody').innerHTML = log.map(r => {
+    const evDelta   = r.evAfter - r.evBefore;
+    const deltaHtml = r.pos < log.length
+      ? `<span class="${evDelta>=0?'ev-pos':'ev-neg'}">${evDelta>=0?'+':''}${fmt(evDelta)}</span>`
+      : `<span style="color:var(--text3);font-size:11px">—</span>`;
+    const statusBadge = r.isHit
+      ? '<span class="badge b-hit">hit</span>'
+      : r.exciteMult > 1.05
+        ? '<span class="badge b-exc">excited</span>'
+        : '<span class="badge b-norm">standard</span>';
+    const rowBg = r.card.hlOn ? `background:${r.card.hlColor}20` : '';
+    const leftBorder = r.card.hlOn ? `border-left:3px solid ${r.card.hlColor};` : 'border-left:3px solid transparent;';
+    return `<tr style="${rowBg}">
+      <td style="color:var(--text3);${leftBorder}">${r.pos}</td>
+      <td style="font-weight:${r.card.hlOn?500:400}">${r.card.tierName}</td>
+      <td><span class="badge b-norm" style="${r.card.hlOn?`background:${r.card.hlColor}30;border-color:${r.card.hlColor};color:inherit`:''}">${r.card.tierIdx+1}</span></td>
+      <td style="${r.card.hlOn?'font-weight:600':''}">${fmt(r.card.value)}</td>
+      <td>${fmt(r.evBefore)}</td>
+      <td>${r.pos < log.length ? fmt(r.evAfter) : '<span style="color:var(--text3);font-size:11px">—</span>'}</td>
+      <td>${deltaHtml}</td>
+      <td style="font-weight:500">${fmt(r.bid)}</td>
+      <td>${fmt(r.runningTotal)}</td>
+      <td>${statusBadge}</td>
+    </tr>`;
+  }).join('') + `<tr>
+    <td colspan="7" style="color:var(--text2);font-size:12px">Totals</td>
+    <td style="font-weight:500">${fmt(log[log.length-1].runningTotal)}</td>
+    <td style="font-weight:500">${fmt(log[log.length-1].runningTotal)}</td>
+    <td></td>
+  </tr>`;
+}
+
+function randomDrill(){
+  const sel = document.getElementById('drillSelect');
+  sel.value = Math.floor(Math.random() * allRunLogs.length);
+  renderDrill();
+}
+
+function switchTab(id){
+  const ids = ['dist','ev','drill','compare','insights'];
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ids[i]===id));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  if(id === 'compare') renderCompare();
+}
+
+// --- MODAL ---
+function openModal(){ document.getElementById('howToModal').classList.add('open'); }
+function closeModal(){ document.getElementById('howToModal').classList.remove('open'); }
+function closeModalOutside(e){ if(e.target === document.getElementById('howToModal')) closeModal(); }
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
+
+// --- INIT ---
+document.getElementById('acqCost').addEventListener('input', syncAll);
+document.getElementById('salePrice').addEventListener('input', syncAll);
+renderTiers();
+renderFees();
+</script>
+</body>
+</html>
