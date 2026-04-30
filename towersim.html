@@ -14,7 +14,6 @@
     --success-bg: #e1f5ee;
     --warn-text: #ba7517; --danger-text: #e24b4a; --success-text: #1d9e75;
     --radius: 8px; --radius-lg: 12px;
-    --auction-color: #378ADD; --sale-color: #8B5CF6;
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -93,7 +92,6 @@
   .log-table th { text-align: left; font-size: 11px; color: var(--text3); font-weight: 500; padding: 5px 8px 8px; border-bottom: 0.5px solid var(--border2); white-space: nowrap; }
   .log-table td { padding: 7px 8px; border-bottom: 0.5px solid var(--border); color: var(--text); vertical-align: middle; }
   .log-table tr:last-child td { border-bottom: none; font-weight: 500; background: var(--bg2); }
-  .log-table tr.hit-row td { background: var(--success-bg); }
   .badge { display: inline-block; font-size: 11px; padding: 2px 7px; border-radius: 99px; font-weight: 500; white-space: nowrap; }
   .b-hit  { background: #E1F5EE; color: #085041; }
   .b-norm { background: var(--bg2); color: var(--text2); border: 0.5px solid var(--border); }
@@ -190,11 +188,34 @@
   .share-copy-btn { height: 34px; padding: 0 14px; font-size: 12px; font-weight: 500; cursor: pointer; background: transparent; border: 0.5px solid var(--border2); border-radius: var(--radius); color: var(--text); white-space: nowrap; }
   .share-copy-btn:hover { background: var(--bg2); }
   .share-copy-btn.copied { color: var(--success-text); border-color: currentColor; }
-  .scenario-loaded-banner { display: none; background: var(--info-bg); border: 0.5px solid var(--info-border); color: var(--info-text); border-radius: var(--radius); padding: .6rem 1rem; font-size: 13px; margin-bottom: 1.25rem; display: none; align-items: center; justify-content: space-between; gap: 12px; }
+  .scenario-loaded-banner { background: var(--info-bg); border: 0.5px solid var(--info-border); color: var(--info-text); border-radius: var(--radius); padding: .6rem 1rem; font-size: 13px; margin-bottom: 1.25rem; display: none; align-items: center; justify-content: space-between; gap: 12px; }
   .scenario-loaded-banner.visible { display: flex; }
   .scenario-loaded-banner button { background: transparent; border: none; cursor: pointer; font-size: 16px; color: inherit; opacity: .7; padding: 0; line-height: 1; }
 
-  @media (max-width: 600px) {
+  /* Actual auction log */
+  .actual-log-table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; min-width: 640px; }
+  .actual-log-table th { text-align: left; font-size: 11px; color: var(--text3); font-weight: 500; padding: 5px 8px 8px; border-bottom: 0.5px solid var(--border2); white-space: nowrap; }
+  .actual-log-table td { padding: 5px 6px; border-bottom: 0.5px solid var(--border); vertical-align: middle; }
+  .actual-log-table tr:last-child td { border-bottom: none; }
+  .actual-log-table input[type=number] { height: 30px; font-size: 13px; padding: 0 8px; }
+  .actual-log-table select { height: 30px; font-size: 13px; padding: 0 6px; }
+  .actual-log-table .del { width: 26px; height: 26px; font-size: 14px; }
+  .respin-toggle { display: flex; height: 30px; border: 0.5px solid var(--border2); border-radius: var(--radius); overflow: hidden; width: 80px; }
+  .respin-toggle button { flex: 1; border: none; background: transparent; font-size: 12px; cursor: pointer; color: var(--text2); transition: background .12s, color .12s; }
+  .respin-toggle button.active { background: var(--text); color: var(--bg); font-weight: 500; }
+  .actual-totals { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px,1fr)); gap: 10px; margin: 1rem 0; }
+  .actual-vs { background: var(--bg2); border-radius: var(--radius-lg); padding: 1rem 1.25rem; margin-top: 1rem; }
+  .actual-vs-title { font-size: 12px; font-weight: 500; color: var(--text2); text-transform: uppercase; letter-spacing: .06em; margin-bottom: .85rem; }
+  .actual-vs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .actual-vs-col { background: var(--bg); border-radius: var(--radius); padding: .85rem 1rem; }
+  .actual-vs-col-title { font-size: 12px; font-weight: 600; margin-bottom: .65rem; display: flex; align-items: center; gap: 6px; }
+  .actual-vs-metric { display: flex; justify-content: space-between; align-items: baseline; padding: 4px 0; border-bottom: 0.5px solid var(--border); font-size: 13px; }
+  .actual-vs-metric:last-child { border-bottom: none; }
+  .actual-vs-metric .avm-label { color: var(--text2); }
+  .actual-vs-metric .avm-val { font-weight: 500; }
+  .actual-log-drill { margin-top: 1rem; }
+  .actual-log-drill-title { font-size: 12px; font-weight: 500; color: var(--text2); text-transform: uppercase; letter-spacing: .06em; margin-bottom: .65rem; }
+  @media (max-width: 600px) { .actual-vs-grid { grid-template-columns: 1fr; } }
     .row3, .row4 { grid-template-columns: 1fr 1fr; }
     .th, .tg, .totals-row { grid-template-columns: 1.5fr 1fr 1fr 60px 30px; }
     .th span:nth-child(4), .th span:nth-child(5) { display: none; }
@@ -264,6 +285,7 @@ function checkPw(){
   </div>
 
   <div class="card">
+    <div class="sec-title">Card tiers</div>
     <div class="th">
       <span>Tier name</span><span>Value / card</span><span>Qty</span><span>Tier total</span><span>% of total</span><span>Highlight</span><span></span>
     </div>
@@ -342,7 +364,7 @@ function checkPw(){
         <div class="hint" style="margin-top:auto;padding-bottom:4px">Re-spin uses bid variance for noise</div>
       </div>
     </div>
-    <button class="run-btn" onclick="runSimulation()">Run simulation</button>
+    <button class="run-btn" id="runBtn" onclick="runSimulation()">Run simulation</button>
   </div>
 
   <div id="resultsArea">
@@ -422,7 +444,38 @@ function checkPw(){
   </div>
 </div>
 
-<!-- Scenario Manager Modal -->
+<!-- Actual Auction Log -->
+<div class="page" style="padding-top:0">
+  <div class="card" id="actualLogCard">
+    <div class="sec-title">Actual auction log <span>— enter your real results to compare against the simulation</span></div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:1rem;line-height:1.55">Record each card as it was auctioned. Select the tier the winner received, enter the gross bid, and mark whether a re-spin was taken. Running totals and EV are calculated automatically.</p>
+
+    <div class="log-wrap">
+      <table class="actual-log-table">
+        <thead><tr>
+          <th style="width:32px">#</th>
+          <th style="width:160px">Tier received</th>
+          <th style="width:100px">Gross bid</th>
+          <th style="width:88px">Re-spin?</th>
+          <th id="actualRespinTierHeader" style="width:160px;display:none">Tier (after spin)</th>
+          <th style="width:80px">Card value</th>
+          <th style="width:80px">EV before</th>
+          <th style="width:90px">Running total</th>
+          <th style="width:28px"></th>
+        </tr></thead>
+        <tbody id="actualLogBody"></tbody>
+      </table>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:.85rem;flex-wrap:wrap;align-items:center">
+      <button class="add-btn" onclick="addActualRow()">+ add card</button>
+      <button class="add-btn" onclick="clearActualLog()" style="border-color:rgba(226,75,74,0.4);color:var(--danger-text)">Clear all</button>
+    </div>
+
+    <div class="actual-totals" id="actualTotals"></div>
+    <div id="actualVsSimulation"></div>
+  </div>
+</div>
 <div class="scenario-modal-overlay" id="scenarioModal" onclick="closeScenarioModalOutside(event)">
   <div class="scenario-modal">
     <div class="scenario-modal-header">
@@ -530,7 +583,7 @@ function checkPw(){
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js" defer></script>
 <script>
 // --- SUPABASE CONFIG ---
 const SB_URL = 'https://jisozambxgufhgwwdmjz.supabase.co';
@@ -550,10 +603,9 @@ let tiers = [
 
 let fees = [];
 let distChartInst = null, evChartInst = null, compareChartInst = null, allRunLogs = [];
-let lastSimResults = null;
 
-function sym(){ return '$'; }
-function fmt(n){ return sym() + parseFloat(n).toFixed(2); }
+const SYM = '$';
+function fmt(n){ return SYM + parseFloat(n).toFixed(2); }
 function pct(n){ return n.toFixed(1) + '%'; }
 function getTotalQty(){ return tiers.reduce((s,t) => s + t.qty, 0); }
 function getTotalValue(){ return tiers.reduce((s,t) => s + t.qty * t.value, 0); }
@@ -597,7 +649,7 @@ function renderFees(){
       <input type="text" value="${f.name}" oninput="updateFee(${i},'name',this.value)" placeholder="Fee name"/>
       <div class="toggle-wrap">
         <button class="${f.type==='pct'?'active':''}" onclick="toggleFeeType(${i},'pct')">%</button>
-        <button class="${f.type==='fixed'?'active':''}" onclick="toggleFeeType(${i},'fixed')">${sym()}</button>
+        <button class="${f.type==='fixed'?'active':''}" onclick="toggleFeeType(${i},'fixed')">${SYM}</button>
       </div>
       <input type="number" value="${f.amount}" oninput="updateFee(${i},'amount',this.value)" min="0" step="${f.type==='pct'?'0.1':'0.01'}"/>
       <div class="fee-applies">
@@ -619,22 +671,22 @@ function renderFeesSummary(){
   const totalAuctionFees = auctionFee * qty;
   const totalSaleFees    = saleFee * qty;
   document.getElementById('feesSummary').innerHTML = `
-    <div class="fee-pill">Tower fees per card: <strong>${sym()}${auctionFee.toFixed(3)}</strong></div>
+    <div class="fee-pill">Tower fees per card: <strong>${SYM}${auctionFee.toFixed(3)}</strong></div>
     <div class="fee-pill">Est. total tower fees: <strong>${fmt(totalAuctionFees)}</strong></div>
     <div class="fee-pill">Est. total sale fees: <strong>${fmt(totalSaleFees)}</strong></div>`;
 }
 
 // --- TIERS ---
 function syncAll(){
-  const qty = getTotalQty(), val = getTotalValue(), s = sym();
+  const qty = getTotalQty(), val = getTotalValue();
   tiers.forEach((t,i) => {
     const el = document.getElementById('tier-ttl-'+i), ep = document.getElementById('tier-pct-'+i);
     if(el) el.value = (t.qty * t.value).toFixed(2);
     if(ep) ep.value = qty > 0 ? ((t.qty/qty)*100).toFixed(1)+'%' : '—';
   });
   document.getElementById('tot-qty').textContent    = qty;
-  document.getElementById('tot-value').textContent  = s + val.toFixed(2);
-  document.getElementById('tot-avgval').textContent = qty > 0 ? s+(val/qty).toFixed(3) : '—';
+  document.getElementById('tot-value').textContent  = SYM + val.toFixed(2);
+  document.getElementById('tot-avgval').textContent = qty > 0 ? SYM+(val/qty).toFixed(3) : '—';
   document.getElementById('tot-pct').textContent    = '100%';
   document.getElementById('totalCards').value  = qty;
   document.getElementById('retailValue').value = val.toFixed(2);
@@ -674,6 +726,7 @@ function renderTiers(){
     </div>`;
   }).join('');
   syncAll();
+  if(actualLog.length) renderActualLog();
 }
 
 // --- SIMULATION ---
@@ -775,26 +828,52 @@ function calcGeneralSaleRevenue(){
 function runSimulation(){
   const deck = buildDeck();
   if(!deck.length){ alert('Add some card tiers first.'); return; }
-  const n           = parseInt(document.getElementById('nSims').value) || 1000;
-  const rationality = parseFloat(document.getElementById('rationality').value) || 80;
-  const variance    = parseFloat(document.getElementById('variance').value) || 20;
-  const excitement       = parseFloat(document.getElementById('excitement').value) || 1.00;
-  const spinThreshold    = parseFloat(document.getElementById('spinThreshold').value) || 0;
-  const respinMult       = parseFloat(document.getElementById('respinMult').value) || 1.0;
-  const respinRationality= parseFloat(document.getElementById('respinRationality').value) || 70;
-  const acq              = parseFloat(document.getElementById('acqCost').value) || 0;
 
-  const results = [], allEV = []; allRunLogs = [];
+  // --- Input validation ---
+  const errors = [];
+  tiers.forEach((t, i) => {
+    if(!t.name.trim()) errors.push(`Tier ${i+1}: name cannot be empty.`);
+    if(t.value < 0)    errors.push(`Tier ${i+1} (${t.name}): value cannot be negative.`);
+    if(t.qty < 0)      errors.push(`Tier ${i+1} (${t.name}): quantity cannot be negative.`);
+    if(!Number.isInteger(t.qty)) errors.push(`Tier ${i+1} (${t.name}): quantity must be a whole number.`);
+  });
+  const acq = parseFloat(document.getElementById('acqCost').value) || 0;
+  if(acq < 0) errors.push('Acquisition cost cannot be negative.');
+  const saleP = parseFloat(document.getElementById('salePrice').value) || 0;
+  if(saleP < 0) errors.push('General sale price cannot be negative.');
+  if(errors.length){ alert('Please fix the following:\n\n' + errors.join('\n')); return; }
+
+  const btn = document.getElementById('runBtn');
+  btn.textContent = 'Running…';
+  btn.disabled = true;
+
+  // Defer to next frame so the button state renders before the sync simulation loop
+  setTimeout(() => {
+    const n                = parseInt(document.getElementById('nSims').value) || 1000;
+    const rationality      = parseFloat(document.getElementById('rationality').value) || 80;
+    const variance         = parseFloat(document.getElementById('variance').value) || 20;
+    const excitement       = parseFloat(document.getElementById('excitement').value) || 1.00;
+    const spinThreshold    = parseFloat(document.getElementById('spinThreshold').value) || 0;
+    const respinMult       = parseFloat(document.getElementById('respinMult').value) || 1.0;
+    const respinRationality= parseFloat(document.getElementById('respinRationality').value) || 70;
+    const acq              = parseFloat(document.getElementById('acqCost').value) || 0;
+
+  const results = []; allRunLogs = [];
+  let medianEV = null;
   for(let i=0; i<n; i++){
     const r = simulateRun(deck, rationality, variance, excitement, spinThreshold, respinMult, respinRationality);
-    results.push(r.revenue); allEV.push(r.evCurve); allRunLogs.push(r.log);
+    results.push(r.revenue);
+    allRunLogs.push(r.log);
+    // Store EV curve only for the run that ends up being the median (approximate: store middle run)
+    if(i === Math.floor(n/2)) medianEV = r.evCurve;
   }
   results.sort((a,b) => a-b);
+  // After sort, grab the actual median run's EV curve
+  medianEV = allRunLogs[Math.floor(n/2)].map(entry => entry.evBefore);
 
   const generalSaleNet = calcGeneralSaleRevenue();
-  lastSimResults = { results, n, acq, generalSaleNet };
-
-  const target    = generalSaleNet; // auction "hits target" means beating the equivalent general sale total
+  simCache = { results, n, acq, generalSaleNet };
+  const target    = generalSaleNet;
 
   const mean      = results.reduce((s,v)=>s+v,0) / n;
   const median    = results[Math.floor(n/2)];
@@ -853,14 +932,13 @@ function runSimulation(){
     <span style="display:flex;align-items:center;gap:4px"><span class="lswatch" style="background:rgba(55,138,221,0.75)"></span>Above cost, below target</span>
     <span style="display:flex;align-items:center;gap:4px"><span class="lswatch" style="background:rgba(29,158,117,0.75)"></span>Beats general sale (${pct(hitTarget)})</span>`;
 
-  const medEV = allEV[Math.floor(n/2)];
-  const avgC  = getTotalValue() / getTotalQty();
+  const avgC = getTotalValue() / getTotalQty();
   if(evChartInst) evChartInst.destroy();
   evChartInst = new Chart(document.getElementById('evChart'), {
     type: 'line',
-    data: { labels: medEV.map((_,i)=>'Card '+(i+1)), datasets: [
-      { label:'EV remaining',   data:medEV.map(v=>parseFloat(v.toFixed(3))), borderColor:'#378ADD', borderWidth:2, pointRadius:0, tension:.3, fill:false },
-      { label:'Avg card value', data:medEV.map(()=>parseFloat(avgC.toFixed(3))), borderColor:'rgba(186,117,23,0.6)', borderWidth:1.5, borderDash:[4,4], pointRadius:0, fill:false }
+    data: { labels: medianEV.map((_,i)=>'Card '+(i+1)), datasets: [
+      { label:'EV remaining',   data:medianEV.map(v=>parseFloat(v.toFixed(3))), borderColor:'#378ADD', borderWidth:2, pointRadius:0, tension:.3, fill:false },
+      { label:'Avg card value', data:medianEV.map(()=>parseFloat(avgC.toFixed(3))), borderColor:'rgba(186,117,23,0.6)', borderWidth:1.5, borderDash:[4,4], pointRadius:0, fill:false }
     ]},
     options: { responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{display:false}, tooltip:{callbacks:{label:d=>fmt(d.raw)}} },
@@ -886,12 +964,26 @@ function runSimulation(){
 
   document.getElementById('resultsArea').style.display = 'block';
   switchTab('dist');
+  if(actualLog.length) renderActualLog(); // refresh vs-simulation panel
+
+  // Update page title to reflect active scenario or tower composition
+  const titleScenario = currentScenarioName || null;
+  const titleTiers = tiers.filter(t=>t.qty>0).map(t=>t.name).join(', ');
+  document.title = titleScenario
+    ? `${titleScenario} — Tower Simulator`
+    : `${getTotalQty()} cards — Tower Simulator`;
+
+  btn.textContent = 'Run simulation';
+  btn.disabled = false;
+  }, 0);
 }
 
 // --- COMPARE TAB ---
+let simCache = null;
+
 function renderCompare(){
-  if(!lastSimResults) return;
-  const { results, n, acq, generalSaleNet } = lastSimResults;
+  if(!simCache) return;
+  const { results, n, acq, generalSaleNet } = simCache;
   const mean   = results.reduce((s,v)=>s+v,0) / n;
   const median = results[Math.floor(n/2)];
   const p10    = results[Math.floor(n*0.10)];
@@ -935,7 +1027,7 @@ function renderCompare(){
   document.getElementById('compareGrid').innerHTML = `
     <div class="compare-col">
       <div class="compare-col-title">
-        <span class="dot" style="background:var(--auction-color)"></span>
+        <span class="dot" style="background:#378ADD"></span>
         Tower auction (net of fees)
         ${auctionWinner ? '<span class="compare-winner">higher avg</span>' : ''}
       </div>
@@ -947,7 +1039,7 @@ function renderCompare(){
     </div>
     <div class="compare-col">
       <div class="compare-col-title">
-        <span class="dot" style="background:var(--sale-color)"></span>
+        <span class="dot" style="background:#8B5CF6"></span>
         General sale at target price (net of fees)
         ${!auctionWinner ? '<span class="compare-winner">higher</span>' : ''}
       </div>
@@ -1107,11 +1199,6 @@ function applyScenario(data){
   syncAll();
 }
 
-function setScenarioListLoading(msg){
-  document.getElementById('scenarioList').innerHTML =
-    `<div class="scenario-empty">${msg}</div>`;
-}
-
 async function getSavedScenarios(){
   const res = await fetch(
     `${SB_URL}/rest/v1/tower_scenarios?select=id,name,saved_by,created_at&order=created_at.desc`,
@@ -1121,6 +1208,8 @@ async function getSavedScenarios(){
   return res.json();
 }
 
+const MAX_SCENARIOS = 100000;
+
 async function saveScenario(){
   const name = document.getElementById('scenarioNameInput').value.trim();
   const savedBy = document.getElementById('scenarioSavedBy').value.trim();
@@ -1129,6 +1218,17 @@ async function saveScenario(){
   const btn = document.querySelector('.scenario-save-btn');
   btn.textContent = 'Saving…'; btn.disabled = true;
   try {
+    // Check count before saving
+    const countRes = await fetch(`${SB_URL}/rest/v1/tower_scenarios?select=id`, {
+      headers: { ...SB_HEADERS, 'Prefer': 'count=exact' }
+    });
+    const count = parseInt(countRes.headers.get('content-range')?.split('/')[1] || '0');
+    if(count >= MAX_SCENARIOS){
+      alert(`The scenario limit of ${MAX_SCENARIOS.toLocaleString()} has been reached. Please delete some scenarios before saving new ones.`);
+      return;
+    }
+    // Persist name for next time
+    localStorage.setItem('towerSimSavedBy', savedBy);
     const res = await fetch(`${SB_URL}/rest/v1/tower_scenarios`, {
       method: 'POST',
       headers: { ...SB_HEADERS, 'Prefer': 'return=representation' },
@@ -1138,6 +1238,7 @@ async function saveScenario(){
     const [saved] = await res.json();
     document.getElementById('scenarioNameInput').value = '';
     setActiveScenario(saved.id, saved.name);
+    document.title = `${saved.name} — Tower Simulator`;
     await renderScenarioList(saved.id);
   } catch(e){
     alert('Could not save scenario. Check your connection and try again.');
@@ -1167,7 +1268,7 @@ async function updateScenario(){
 }
 
 async function loadScenario(id){
-  setScenarioListLoading('Loading…');
+  document.getElementById('scenarioList').innerHTML = '<div class="scenario-empty">Loading…</div>';
   try {
     const res = await fetch(
       `${SB_URL}/rest/v1/tower_scenarios?id=eq.${id}&select=*`,
@@ -1177,7 +1278,8 @@ async function loadScenario(id){
     const [entry] = await res.json();
     applyScenario(entry.data);
     setActiveScenario(entry.id, entry.name);
-    showShareBoxForId(entry.id, entry.name);
+    document.title = `${entry.name} — Tower Simulator`;
+    showShareBoxForId(entry.id);
     closeScenarioModal();
   } catch(e){
     alert('Could not load scenario.');
@@ -1220,7 +1322,7 @@ async function renderScenarioList(highlightId){
           <div style="display:flex;gap:8px;align-items:center;margin-top:2px">${byTag}<span class="scenario-item-date">${dateStr}</span></div>
         </div>
         <div class="scenario-item-actions">
-          <button class="sc-btn" onclick="shareScenarioById('${e.id}')">Share</button>
+          <button class="sc-btn" onclick="showShareBoxForId('${e.id}')">Share</button>
           <button class="sc-btn load" onclick="loadScenario('${e.id}')">Load</button>
           <button class="sc-btn del" onclick="deleteScenario('${e.id}')">×</button>
         </div>
@@ -1231,11 +1333,7 @@ async function renderScenarioList(highlightId){
   }
 }
 
-async function shareScenarioById(id){
-  showShareBoxForId(id, null);
-}
-
-function showShareBoxForId(id, name){
+function showShareBoxForId(id){
   const url = location.href.split('#')[0] + '#load=' + id;
   document.getElementById('shareUrlInput').value = url;
   document.getElementById('shareBox').style.display = '';
@@ -1251,14 +1349,14 @@ function copyShareUrl(){
     btn.textContent = 'Copied!';
     btn.classList.add('copied');
     setTimeout(() => { btn.textContent = 'Copy link'; btn.classList.remove('copied'); }, 2000);
-  }).catch(() => {
-    input.select();
-    document.execCommand('copy');
   });
 }
 
 async function openScenarioModal(){
   document.getElementById('shareBox').style.display = 'none';
+  // Restore persisted name
+  const savedBy = localStorage.getItem('towerSimSavedBy');
+  if(savedBy) document.getElementById('scenarioSavedBy').value = savedBy;
   // Restore active scenario banner if one is loaded
   if(currentScenarioId){
     document.getElementById('activeScenarioName').textContent = currentScenarioName;
@@ -1295,6 +1393,7 @@ async function tryLoadFromHash(){
     if(!entry) throw new Error('Not found');
     applyScenario(entry.data);
     setActiveScenario(entry.id, entry.name);
+    document.title = `${entry.name} — Tower Simulator`;
     const banner = document.getElementById('sharedBanner');
     document.getElementById('sharedBannerText').textContent =
       entry.name ? `Scenario loaded: "${entry.name}"` : 'Scenario loaded from shared link.';
@@ -1304,11 +1403,196 @@ async function tryLoadFromHash(){
   }
 }
 
+// --- ACTUAL AUCTION LOG ---
+let actualLog = []; // [{tierIdx, grossBid, respinTaken, respinTierIdx}]
+
+function addActualRow(){
+  actualLog.push({ tierIdx: 0, grossBid: 0, respinTaken: false, respinTierIdx: 0 });
+  renderActualLog();
+}
+
+function clearActualLog(){
+  if(actualLog.length && !confirm('Clear all actual auction entries?')) return;
+  actualLog = [];
+  renderActualLog();
+}
+
+function updateActualRow(i, field, val){
+  if(field === 'grossBid')      actualLog[i].grossBid = parseFloat(val) || 0;
+  else if(field === 'tierIdx')  actualLog[i].tierIdx  = parseInt(val);
+  else if(field === 'respinTierIdx') actualLog[i].respinTierIdx = parseInt(val);
+  else if(field === 'respin')   actualLog[i].respinTaken = val;
+  renderActualLog();
+}
+
+function removeActualRow(i){
+  actualLog.splice(i, 1);
+  renderActualLog();
+}
+
+function buildTierOptions(selectedIdx){
+  return tiers.map((t, i) =>
+    `<option value="${i}" ${i === selectedIdx ? 'selected' : ''}>${t.name}</option>`
+  ).join('');
+}
+
+function renderActualLog(){
+  if(!tiers.length){ return; }
+
+  // Check if any respin was taken — show/hide the respin tier column
+  const anyRespin = actualLog.some(r => r.respinTaken);
+  document.getElementById('actualRespinTierHeader').style.display = anyRespin ? '' : 'none';
+
+  // Calculate EV and running totals from the actual log
+  // Build a deck count remaining, starting from full deck
+  const deckCounts = tiers.map(t => t.qty); // mutable counts
+  let runningTotal = 0;
+
+  const rows = actualLog.map((row, i) => {
+    const tier = tiers[row.tierIdx] || tiers[0];
+    const totalRemaining = deckCounts.reduce((s, c) => s + c, 0);
+    const totalRemValue  = deckCounts.reduce((s, c, ti) => s + c * tiers[ti].value, 0);
+    const evBefore = totalRemaining > 0 ? totalRemValue / totalRemaining : 0;
+
+    // Deduct card from deck — if respin taken, deduct respin card, return first
+    if(row.respinTaken){
+      const respinTier = tiers[row.respinTierIdx] || tiers[0];
+      // Deduct the kept card (respinTier)
+      if(deckCounts[row.respinTierIdx] > 0) deckCounts[row.respinTierIdx]--;
+      // First card (tier) goes back — net: deduct respinTier, keep tierIdx in pool
+      // (first card was drawn and returned, so no net change on tierIdx)
+    } else {
+      if(deckCounts[row.tierIdx] > 0) deckCounts[row.tierIdx]--;
+    }
+
+    const keptTier = row.respinTaken ? (tiers[row.respinTierIdx] || tiers[0]) : tier;
+    const fee = calcFeeForSale(row.grossBid, 'tower');
+    const netBid = Math.max(0, row.grossBid - fee);
+    runningTotal += netBid;
+
+    const totalRem2 = deckCounts.reduce((s, c) => s + c, 0);
+    const totalVal2 = deckCounts.reduce((s, c, ti) => s + c * tiers[ti].value, 0);
+    const evAfter = totalRem2 > 0 ? totalVal2 / totalRem2 : 0;
+
+    const avgCard = getTotalValue() / getTotalQty();
+    const isHit = keptTier.value >= avgCard * 4;
+    const hlOn = keptTier.hlOn;
+    const rowBg = hlOn ? `background:${keptTier.hlColor}20` : '';
+    const leftBorder = hlOn ? `border-left:3px solid ${keptTier.hlColor};` : 'border-left:3px solid transparent;';
+    const respinCell = anyRespin
+      ? `<td>${row.respinTaken
+          ? `<select onchange="updateActualRow(${i},'respinTierIdx',this.value)">${buildTierOptions(row.respinTierIdx)}</select>`
+          : `<span style="color:var(--text3);font-size:12px">—</span>`
+        }</td>`
+      : '';
+    let badge;
+    if(row.respinTaken) badge = `<span class="badge b-2nd-took">re-spun ✓</span>`;
+    else if(isHit)      badge = `<span class="badge b-hit">hit</span>`;
+    else                badge = `<span class="badge b-norm">standard</span>`;
+
+    return `<tr style="${rowBg}">
+      <td style="color:var(--text3);font-size:12px;${leftBorder}">${i+1}</td>
+      <td><select onchange="updateActualRow(${i},'tierIdx',this.value)">${buildTierOptions(row.tierIdx)}</select></td>
+      <td><input type="number" value="${row.grossBid}" min="0" step="0.01" oninput="updateActualRow(${i},'grossBid',this.value)"/></td>
+      <td><div class="respin-toggle">
+        <button class="${!row.respinTaken?'active':''}" onclick="updateActualRow(${i},'respin',false)">No</button>
+        <button class="${row.respinTaken?'active':''}" onclick="updateActualRow(${i},'respin',true)">Yes</button>
+      </div></td>
+      ${respinCell}
+      <td style="${isHit?'font-weight:600':''}${hlOn?';color:inherit':''}">${fmt(keptTier.value)}</td>
+      <td>${fmt(evBefore)}</td>
+      <td style="font-weight:500">${fmt(runningTotal)}</td>
+      <td><button class="del" onclick="removeActualRow(${i})">×</button></td>
+    </tr>`;
+  });
+
+  document.getElementById('actualLogBody').innerHTML = rows.join('') || `<tr><td colspan="9" style="text-align:center;color:var(--text3);padding:1.25rem;font-size:13px">No entries yet — click "+ add card" to start logging.</td></tr>`;
+
+  renderActualTotals(runningTotal);
+  renderActualVsSimulation(runningTotal);
+}
+
+function renderActualTotals(runningTotal){
+  if(!actualLog.length){
+    document.getElementById('actualTotals').innerHTML = '';
+    return;
+  }
+  const acq = parseFloat(document.getElementById('acqCost').value) || 0;
+  const profit = runningTotal - acq;
+  const avgCard = getTotalValue() / getTotalQty();
+  const hits = actualLog.filter(r => {
+    const t = r.respinTaken ? tiers[r.respinTierIdx] : tiers[r.tierIdx];
+    return t && t.value >= avgCard * 4;
+  }).length;
+  const respins = actualLog.filter(r => r.respinTaken).length;
+  const highestBid = actualLog.length ? Math.max(...actualLog.map(r => r.grossBid)) : 0;
+
+  document.getElementById('actualTotals').innerHTML = `
+    <div class="rs-card"><div class="rs-label">Total revenue (net)</div><div class="rs-val" style="color:${runningTotal>=acq?'#1D9E75':'#E24B4A'}">${fmt(runningTotal)}</div></div>
+    <div class="rs-card"><div class="rs-label">Profit vs acq. cost</div><div class="rs-val" style="color:${profit>=0?'#1D9E75':'#E24B4A'}">${profit>=0?'+':''}${fmt(profit)}</div></div>
+    <div class="rs-card"><div class="rs-label">Cards logged</div><div class="rs-val">${actualLog.length} / ${getTotalQty()}</div></div>
+    <div class="rs-card"><div class="rs-label">Hits pulled</div><div class="rs-val">${hits}</div></div>
+    <div class="rs-card"><div class="rs-label">Highest gross bid</div><div class="rs-val">${fmt(highestBid)}</div></div>
+    ${respins > 0 ? `<div class="rs-card"><div class="rs-label">Re-spins taken</div><div class="rs-val">${respins}</div></div>` : ''}`;
+}
+
+function renderActualVsSimulation(runningTotal){
+  const el = document.getElementById('actualVsSimulation');
+  if(!simCache || !actualLog.length){ el.innerHTML = ''; return; }
+
+  const { results, n, acq } = simCache;
+  const mean   = results.reduce((s,v) => s+v, 0) / n;
+  const median = results[Math.floor(n/2)];
+  const p10    = results[Math.floor(n*0.10)];
+  const p90    = results[Math.floor(n*0.90)];
+
+  // Where does actual sit in the distribution?
+  const pctileRank = results.filter(r => r <= runningTotal).length / n * 100;
+  const vsMedian   = runningTotal - median;
+  const vsMean     = runningTotal - mean;
+  const isComplete = actualLog.length >= getTotalQty();
+  const completionNote = isComplete
+    ? ''
+    : `<p style="font-size:12px;color:var(--warn-text);margin-bottom:.75rem">⚠ Log is incomplete — ${actualLog.length} of ${getTotalQty()} cards entered. Comparison will be more meaningful once all cards are logged.</p>`;
+
+  const rankColour = pctileRank >= 75 ? 'var(--success-text)' : pctileRank >= 40 ? 'var(--text)' : 'var(--danger-text)';
+
+  el.innerHTML = `
+    <div class="actual-vs">
+      <div class="actual-vs-title">Actual vs simulation</div>
+      ${completionNote}
+      <div class="actual-vs-grid">
+        <div class="actual-vs-col">
+          <div class="actual-vs-col-title"><span class="dot" style="width:8px;height:8px;border-radius:50%;background:#E24B4A;flex-shrink:0;display:inline-block"></span>Actual auction</div>
+          <div class="actual-vs-metric"><span class="avm-label">Net revenue</span><span class="avm-val">${fmt(runningTotal)}</span></div>
+          <div class="actual-vs-metric"><span class="avm-label">vs simulated mean</span><span class="avm-val" style="color:${vsMean>=0?'var(--success-text)':'var(--danger-text)'}">${vsMean>=0?'+':''}${fmt(vsMean)}</span></div>
+          <div class="actual-vs-metric"><span class="avm-label">vs simulated median</span><span class="avm-val" style="color:${vsMedian>=0?'var(--success-text)':'var(--danger-text)'}">${vsMedian>=0?'+':''}${fmt(vsMedian)}</span></div>
+          <div class="actual-vs-metric"><span class="avm-label">Percentile rank</span><span class="avm-val" style="color:${rankColour}">${pct(pctileRank)}</span></div>
+        </div>
+        <div class="actual-vs-col">
+          <div class="actual-vs-col-title"><span class="dot" style="width:8px;height:8px;border-radius:50%;background:#378ADD;flex-shrink:0;display:inline-block"></span>Simulation (${n.toLocaleString()} runs)</div>
+          <div class="actual-vs-metric"><span class="avm-label">Mean net revenue</span><span class="avm-val">${fmt(mean)}</span></div>
+          <div class="actual-vs-metric"><span class="avm-label">Median net revenue</span><span class="avm-val">${fmt(median)}</span></div>
+          <div class="actual-vs-metric"><span class="avm-label">10th percentile</span><span class="avm-val">${fmt(p10)}</span></div>
+          <div class="actual-vs-metric"><span class="avm-label">90th percentile</span><span class="avm-val">${fmt(p90)}</span></div>
+        </div>
+      </div>
+      <div class="compare-verdict" style="margin-top:.85rem">
+        <strong>Reading:</strong> Your actual auction ${isComplete ? 'finished' : 'is tracking'} at <strong>${fmt(runningTotal)}</strong> — 
+        ${pctileRank >= 50
+          ? `above ${pct(pctileRank)} of simulated runs. ${pctileRank >= 90 ? 'Exceptional result — top 10% outcome.' : pctileRank >= 75 ? 'Strong result — top quartile.' : 'Slightly above the median.'}`
+          : `below ${pct(100-pctileRank)} of simulated runs. ${pctileRank <= 10 ? 'Tough result — bottom 10% outcome.' : pctileRank <= 25 ? 'Below expectations — bottom quartile.' : 'Slightly below the median.'}`
+        }
+      </div>
+    </div>`;
+}
+
 // --- INIT ---
 document.getElementById('acqCost').addEventListener('input', syncAll);
 document.getElementById('salePrice').addEventListener('input', syncAll);
 renderTiers();
 renderFees();
+renderActualLog();
 tryLoadFromHash();
 </script>
 </body>
