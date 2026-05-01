@@ -192,6 +192,15 @@
   .scenario-loaded-banner.visible { display: flex; }
   .scenario-loaded-banner button { background: transparent; border: none; cursor: pointer; font-size: 16px; color: inherit; opacity: .7; padding: 0; line-height: 1; }
 
+  .tier-inventory { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem; }
+  .tier-inv-pill { display: flex; align-items: center; gap: 7px; background: var(--bg2); border-radius: var(--radius); padding: .35rem .75rem; font-size: 13px; border: 0.5px solid var(--border); }
+  .tier-inv-pill.depleted { opacity: .45; }
+  .tier-inv-pill.warn { border-color: rgba(226,75,74,0.4); background: #fcebeb; color: var(--danger-text); }
+  .tier-inv-swatch { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+  .tier-inv-name { font-weight: 500; }
+  .tier-inv-count { color: var(--text2); font-size: 12px; }
+  .tier-inv-count strong { color: var(--text); }
+
   /* Actual auction log */
   .actual-log-table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; min-width: 640px; }
   .actual-log-table th { text-align: left; font-size: 11px; color: var(--text3); font-weight: 500; padding: 5px 8px 8px; border-bottom: 0.5px solid var(--border2); white-space: nowrap; }
@@ -448,7 +457,19 @@ function checkPw(){
 <div class="page" style="padding-top:0">
   <div class="card" id="actualLogCard">
     <div class="sec-title">Actual auction log <span>— enter your real results to compare against the simulation</span></div>
+
+    <!-- Save / load bar -->
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:1rem;padding-bottom:1rem;border-bottom:0.5px solid var(--border)">
+      <input type="text" id="auctionLogName" placeholder="Name this log…" maxlength="60"
+        autocomplete="off" style="height:32px;padding:0 10px;font-size:13px;background:var(--bg);color:var(--text);border:0.5px solid var(--border2);border-radius:var(--radius);outline:none;flex:1;min-width:160px"
+        onkeydown="if(event.key==='Enter')saveAuctionLog()"/>
+      <button class="add-btn" id="saveLogBtn" onclick="saveAuctionLog()">Save log</button>
+      <button class="add-btn" onclick="openLogModal()">Load log</button>
+      <div id="activeLogBadge" style="display:none;font-size:12px;color:var(--info-text);background:var(--info-bg);border:0.5px solid var(--info-border);border-radius:var(--radius);padding:3px 10px;white-space:nowrap"></div>
+    </div>
     <p style="font-size:13px;color:var(--text2);margin-bottom:1rem;line-height:1.55">Record each card as it was auctioned. Select the tier the winner received, enter the gross bid, and mark whether a re-spin was taken. Running totals and EV are calculated automatically.</p>
+
+    <div class="tier-inventory" id="tierInventory"></div>
 
     <div class="log-wrap">
       <table class="actual-log-table">
@@ -469,13 +490,40 @@ function checkPw(){
 
     <div style="display:flex;gap:10px;margin-top:.85rem;flex-wrap:wrap;align-items:center">
       <button class="add-btn" onclick="addActualRow()">+ add card</button>
+      <button class="add-btn" onclick="document.getElementById('csvFileInput').click()">↑ import CSV</button>
+      <input type="file" id="csvFileInput" accept=".csv,text/csv" style="display:none" onchange="handleCSVUpload(event)"/>
       <button class="add-btn" onclick="clearActualLog()" style="border-color:rgba(226,75,74,0.4);color:var(--danger-text)">Clear all</button>
+      <a id="csvTemplateLink" href="#" onclick="downloadCSVTemplate(event)" style="font-size:12px;color:var(--text3);text-decoration:underline;margin-left:4px">download template</a>
     </div>
 
     <div class="actual-totals" id="actualTotals"></div>
     <div id="actualVsSimulation"></div>
   </div>
 </div>
+<!-- Load Auction Log Modal -->
+<div class="scenario-modal-overlay" id="logModal" onclick="if(event.target===this)closeLogModal()">
+  <div class="scenario-modal">
+    <div class="scenario-modal-header">
+      <h2>Auction logs</h2>
+      <button class="modal-close" onclick="closeLogModal()">×</button>
+    </div>
+    <div class="scenario-modal-body">
+      <div class="scenario-list" id="logList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- CSV Import Modal -->
+<div class="scenario-modal-overlay" id="csvImportModal" onclick="if(event.target===this)closeCsvModal()">
+  <div class="scenario-modal" style="max-width:640px">
+    <div class="scenario-modal-header">
+      <h2>Import CSV</h2>
+      <button class="modal-close" onclick="closeCsvModal()">×</button>
+    </div>
+    <div class="scenario-modal-body" id="csvModalBody"></div>
+  </div>
+</div>
+
 <div class="scenario-modal-overlay" id="scenarioModal" onclick="closeScenarioModalOutside(event)">
   <div class="scenario-modal">
     <div class="scenario-modal-header">
@@ -1436,8 +1484,32 @@ function buildTierOptions(selectedIdx){
   ).join('');
 }
 
+function renderTierInventory(deckCounts){
+  const el = document.getElementById('tierInventory');
+  if(!tiers.length){ el.innerHTML = ''; return; }
+  el.innerHTML = tiers.map((t, i) => {
+    const total     = t.qty;
+    const remaining = deckCounts[i];
+    const used      = total - remaining;
+    const depleted  = remaining === 0;
+    const over      = remaining < 0;
+    const swatch    = t.hlOn
+      ? `<span class="tier-inv-swatch" style="background:${t.hlColor}"></span>`
+      : `<span class="tier-inv-swatch" style="background:var(--border2)"></span>`;
+    return `<div class="tier-inv-pill${depleted ? ' depleted' : ''}${over ? ' warn' : ''}">
+      ${swatch}
+      <span class="tier-inv-name">${t.name}</span>
+      <span class="tier-inv-count"><strong>${remaining}</strong> / ${total} remaining</span>
+      ${over ? `<span style="font-size:11px;font-weight:600">⚠ over</span>` : ''}
+    </div>`;
+  }).join('');
+}
+
 function renderActualLog(){
-  if(!tiers.length){ return; }
+  if(!tiers.length){
+    renderTierInventory(tiers.map(() => 0));
+    return;
+  }
 
   // Check if any respin was taken — show/hide the respin tier column
   const anyRespin = actualLog.some(r => r.respinTaken);
@@ -1447,6 +1519,15 @@ function renderActualLog(){
   // Build a deck count remaining, starting from full deck
   const deckCounts = tiers.map(t => t.qty); // mutable counts
   let runningTotal = 0;
+
+  // If no entries yet, render inventory with full counts immediately
+  if(!actualLog.length){
+    renderTierInventory(deckCounts);
+    document.getElementById('actualLogBody').innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--text3);padding:1.25rem;font-size:13px">No entries yet — click "+ add card" to start logging.</td></tr>`;
+    document.getElementById('actualTotals').innerHTML = '';
+    document.getElementById('actualVsSimulation').innerHTML = '';
+    return;
+  }
 
   const rows = actualLog.map((row, i) => {
     const tier = tiers[row.tierIdx] || tiers[0];
@@ -1493,7 +1574,9 @@ function renderActualLog(){
     return `<tr style="${rowBg}">
       <td style="color:var(--text3);font-size:12px;${leftBorder}">${i+1}</td>
       <td><select onchange="updateActualRow(${i},'tierIdx',this.value)">${buildTierOptions(row.tierIdx)}</select></td>
-      <td><input type="number" value="${row.grossBid}" min="0" step="0.01" oninput="updateActualRow(${i},'grossBid',this.value)"/></td>
+      <td><input type="number" value="${row.grossBid || ''}" min="0" step="0.01" placeholder="0.00"
+        onchange="updateActualRow(${i},'grossBid',this.value)"
+        onblur="updateActualRow(${i},'grossBid',this.value)"/></td>
       <td><div class="respin-toggle">
         <button class="${!row.respinTaken?'active':''}" onclick="updateActualRow(${i},'respin',false)">No</button>
         <button class="${row.respinTaken?'active':''}" onclick="updateActualRow(${i},'respin',true)">Yes</button>
@@ -1508,6 +1591,7 @@ function renderActualLog(){
 
   document.getElementById('actualLogBody').innerHTML = rows.join('') || `<tr><td colspan="9" style="text-align:center;color:var(--text3);padding:1.25rem;font-size:13px">No entries yet — click "+ add card" to start logging.</td></tr>`;
 
+  renderTierInventory(deckCounts);
   renderActualTotals(runningTotal);
   renderActualVsSimulation(runningTotal);
 }
@@ -1585,6 +1669,309 @@ function renderActualVsSimulation(runningTotal){
         }
       </div>
     </div>`;
+}
+
+// --- AUCTION LOG SAVE / LOAD ---
+let currentLogId   = null;
+let currentLogName = null;
+
+function setActiveLog(id, name){
+  currentLogId   = id;
+  currentLogName = name;
+  const badge = document.getElementById('activeLogBadge');
+  if(id){
+    badge.textContent = `● ${name}`;
+    badge.style.display = '';
+    document.getElementById('auctionLogName').value = name;
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+async function saveAuctionLog(){
+  const name = document.getElementById('auctionLogName').value.trim();
+  if(!name){ document.getElementById('auctionLogName').focus(); return; }
+  if(!actualLog.length){ alert('Nothing to save — add some entries first.'); return; }
+
+  const btn = document.getElementById('saveLogBtn');
+  btn.textContent = 'Saving…'; btn.disabled = true;
+
+  try {
+    let saved;
+    if(currentLogId){
+      // Update existing
+      const res = await fetch(`${SB_URL}/rest/v1/tower_auction_logs?id=eq.${currentLogId}`, {
+        method: 'PATCH',
+        headers: { ...SB_HEADERS, 'Prefer': 'return=representation' },
+        body: JSON.stringify({ name, log: actualLog })
+      });
+      if(!res.ok) throw new Error();
+      [saved] = await res.json();
+    } else {
+      // Check count limit
+      const countRes = await fetch(`${SB_URL}/rest/v1/tower_auction_logs?select=id`, {
+        headers: { ...SB_HEADERS, 'Prefer': 'count=exact' }
+      });
+      const count = parseInt(countRes.headers.get('content-range')?.split('/')[1] || '0');
+      if(count >= MAX_SCENARIOS){
+        alert(`The log limit of ${MAX_SCENARIOS.toLocaleString()} has been reached.`);
+        return;
+      }
+      const res = await fetch(`${SB_URL}/rest/v1/tower_auction_logs`, {
+        method: 'POST',
+        headers: { ...SB_HEADERS, 'Prefer': 'return=representation' },
+        body: JSON.stringify({ name, log: actualLog })
+      });
+      if(!res.ok) throw new Error();
+      [saved] = await res.json();
+    }
+    setActiveLog(saved.id, saved.name);
+    btn.textContent = 'Saved ✓';
+    setTimeout(() => { btn.textContent = 'Save log'; btn.disabled = false; }, 1500);
+  } catch(e){
+    alert('Could not save log. Check your connection and try again.');
+    btn.textContent = 'Save log'; btn.disabled = false;
+  }
+}
+
+async function openLogModal(){
+  document.getElementById('logModal').classList.add('open');
+  await renderLogList();
+}
+function closeLogModal(){ document.getElementById('logModal').classList.remove('open'); }
+
+async function renderLogList(){
+  const el = document.getElementById('logList');
+  el.innerHTML = '<div class="scenario-empty">Loading…</div>';
+  try {
+    const res = await fetch(
+      `${SB_URL}/rest/v1/tower_auction_logs?select=id,name,created_at&order=created_at.desc`,
+      { headers: SB_HEADERS }
+    );
+    if(!res.ok) throw new Error();
+    const list = await res.json();
+    if(!list.length){
+      el.innerHTML = '<div class="scenario-empty">No saved logs yet.</div>';
+      return;
+    }
+    el.innerHTML = list.map(e => {
+      const d = new Date(e.created_at);
+      const dateStr = d.toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'2-digit'});
+      const isActive = e.id === currentLogId;
+      const hl = isActive ? 'outline:1.5px solid var(--info-border);' : '';
+      return `<div class="scenario-item" style="${hl}">
+        <div style="flex:1;min-width:0">
+          <div class="scenario-item-name">${e.name}${isActive?' <span style="font-size:10px;color:var(--info-text);font-weight:500">● active</span>':''}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">${dateStr}</div>
+        </div>
+        <div class="scenario-item-actions">
+          <button class="sc-btn load" onclick="loadAuctionLog('${e.id}')">Load</button>
+          <button class="sc-btn del" onclick="deleteAuctionLog('${e.id}')">×</button>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e){
+    el.innerHTML = '<div class="scenario-empty" style="color:var(--danger-text)">Could not connect to database.</div>';
+  }
+}
+
+async function loadAuctionLog(id){
+  try {
+    const res = await fetch(
+      `${SB_URL}/rest/v1/tower_auction_logs?id=eq.${id}&select=*`,
+      { headers: SB_HEADERS }
+    );
+    if(!res.ok) throw new Error();
+    const [entry] = await res.json();
+    actualLog = entry.log || [];
+    setActiveLog(entry.id, entry.name);
+    renderActualLog();
+    closeLogModal();
+  } catch(e){
+    alert('Could not load log.');
+  }
+}
+
+async function deleteAuctionLog(id){
+  if(!confirm('Delete this log? This cannot be undone.')) return;
+  try {
+    await fetch(`${SB_URL}/rest/v1/tower_auction_logs?id=eq.${id}`, {
+      method: 'DELETE', headers: SB_HEADERS
+    });
+    if(currentLogId === id) setActiveLog(null, null);
+  } catch(e){ /* best effort */ }
+  await renderLogList();
+}
+
+// --- CSV IMPORT ---
+function downloadCSVTemplate(e){
+  e.preventDefault();
+  const headers = 'tier,gross_bid,respin,respin_tier';
+  const examples = tiers.length
+    ? tiers.slice(0,2).map((t,i) => `${t.name},${(5 + i*3).toFixed(2)},no,`).join('\n')
+      + (tiers.length > 1 ? `\n${tiers[0].name},8.00,yes,${tiers[1].name}` : '')
+    : 'Common,5.00,no,\nRare,12.00,yes,Common';
+  const csv = headers + '\n' + examples;
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = 'auction-log-template.csv';
+  a.click(); URL.revokeObjectURL(url);
+}
+
+function handleCSVUpload(event){
+  const file = event.target.files[0];
+  event.target.value = ''; // reset so same file can be re-uploaded
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => parseAndPreviewCSV(e.target.result);
+  reader.readAsText(file);
+}
+
+function parseCSVLine(line){
+  // Handle quoted fields
+  const result = [];
+  let current = '', inQuotes = false;
+  for(let i = 0; i < line.length; i++){
+    const ch = line[i];
+    if(ch === '"'){ inQuotes = !inQuotes; }
+    else if(ch === ',' && !inQuotes){ result.push(current.trim()); current = ''; }
+    else { current += ch; }
+  }
+  result.push(current.trim());
+  return result;
+}
+
+function parseAndPreviewCSV(text){
+  const lines = text.split(/\r?\n/).filter(l => l.trim());
+  if(!lines.length){ showCsvError('File is empty.'); return; }
+
+  // Parse header row
+  const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase().replace(/\s+/g,'_'));
+  const tierCol        = headers.findIndex(h => ['tier','tier_received','card_tier','name'].includes(h));
+  const bidCol         = headers.findIndex(h => ['gross_bid','bid','amount','price','gross'].includes(h));
+  const respinCol      = headers.findIndex(h => ['respin','re_spin','respin_taken','re-spin'].includes(h));
+  const respinTierCol  = headers.findIndex(h => ['respin_tier','re_spin_tier','tier_after_spin','respin_tier_received'].includes(h));
+
+  const missing = [];
+  if(tierCol < 0)  missing.push('"tier"');
+  if(bidCol < 0)   missing.push('"gross_bid"');
+  if(missing.length){ showCsvError(`Could not find required columns: ${missing.join(', ')}.\n\nColumns found: ${headers.join(', ')}\n\nDownload the template to see the expected format.`); return; }
+
+  // Build tier lookup (case-insensitive)
+  const tierLookup = {};
+  tiers.forEach((t, i) => { tierLookup[t.name.toLowerCase().trim()] = i; });
+
+  const parsed = [], errors = [];
+  for(let i = 1; i < lines.length; i++){
+    const cols   = parseCSVLine(lines[i]);
+    const rowNum = i + 1;
+    if(cols.every(c => !c)) continue; // skip blank rows
+
+    const tierName  = (cols[tierCol] || '').trim();
+    const bidRaw    = (cols[bidCol]  || '').replace(/[^0-9.\-]/g,'');
+    const respinRaw = respinCol >= 0 ? (cols[respinCol] || '').trim().toLowerCase() : '';
+    const respinTierName = respinTierCol >= 0 ? (cols[respinTierCol] || '').trim() : '';
+
+    const tierIdx = tierLookup[tierName.toLowerCase()];
+    const grossBid = parseFloat(bidRaw);
+    const respinTaken = ['yes','y','true','1'].includes(respinRaw);
+
+    if(tierIdx === undefined) errors.push(`Row ${rowNum}: unrecognised tier "${tierName}". Valid tiers: ${tiers.map(t=>t.name).join(', ')}`);
+    if(isNaN(grossBid))       errors.push(`Row ${rowNum}: invalid bid value "${cols[bidCol]}"`);
+
+    let respinTierIdx = 0;
+    if(respinTaken && respinTierCol >= 0 && respinTierName){
+      respinTierIdx = tierLookup[respinTierName.toLowerCase()];
+      if(respinTierIdx === undefined){
+        errors.push(`Row ${rowNum}: unrecognised re-spin tier "${respinTierName}"`);
+        respinTierIdx = 0;
+      }
+    }
+
+    if(tierIdx !== undefined && !isNaN(grossBid)){
+      parsed.push({ tierIdx, grossBid, respinTaken, respinTierIdx: respinTierIdx || 0 });
+    }
+  }
+
+  showCsvPreview(parsed, errors, lines.length - 1);
+}
+
+function showCsvError(msg){
+  document.getElementById('csvModalBody').innerHTML = `
+    <div style="color:var(--danger-text);background:#fcebeb;border:0.5px solid rgba(226,75,74,0.3);border-radius:var(--radius);padding:.85rem 1rem;font-size:13px;white-space:pre-wrap;line-height:1.6">${msg}</div>
+    <div style="margin-top:1rem;display:flex;gap:8px">
+      <button class="scenario-save-btn" onclick="closeCsvModal()">Close</button>
+    </div>`;
+  document.getElementById('csvImportModal').classList.add('open');
+}
+
+function showCsvPreview(parsed, errors, totalDataRows){
+  const hasErrors = errors.length > 0;
+  const canImport = parsed.length > 0;
+
+  const errorBlock = hasErrors ? `
+    <div style="margin-bottom:1rem;background:#fcebeb;border:0.5px solid rgba(226,75,74,0.3);border-radius:var(--radius);padding:.75rem 1rem">
+      <div style="font-size:12px;font-weight:600;color:var(--danger-text);margin-bottom:.4rem">${errors.length} row${errors.length>1?'s':''} could not be imported:</div>
+      <div style="font-size:12px;color:var(--danger-text);line-height:1.7">${errors.join('<br>')}</div>
+    </div>` : '';
+
+  const previewRows = parsed.slice(0, 5).map((r, i) => {
+    const tier = tiers[r.tierIdx];
+    const respinTier = tiers[r.respinTierIdx];
+    return `<tr>
+      <td style="padding:5px 8px;font-size:13px;color:var(--text3)">${i+1}</td>
+      <td style="padding:5px 8px;font-size:13px">${tier.name}</td>
+      <td style="padding:5px 8px;font-size:13px">${fmt(r.grossBid)}</td>
+      <td style="padding:5px 8px;font-size:13px">${r.respinTaken ? `Yes → ${respinTier.name}` : 'No'}</td>
+    </tr>`;
+  }).join('');
+
+  const moreRows = parsed.length > 5
+    ? `<tr><td colspan="4" style="padding:5px 8px;font-size:12px;color:var(--text3)">…and ${parsed.length - 5} more rows</td></tr>`
+    : '';
+
+  const appendNote = actualLog.length > 0
+    ? `<p style="font-size:12px;color:var(--warn-text);margin-bottom:.75rem">⚠ You have ${actualLog.length} existing entr${actualLog.length>1?'ies':'y'}. Choose to append or replace below.</p>`
+    : '';
+
+  document.getElementById('csvModalBody').innerHTML = `
+    ${errorBlock}
+    <p style="font-size:13px;color:var(--text2);margin-bottom:.85rem">${canImport ? `<strong>${parsed.length}</strong> of <strong>${totalDataRows}</strong> rows ready to import.` : 'No valid rows found.'}</p>
+    ${appendNote}
+    ${canImport ? `
+    <div style="overflow-x:auto;margin-bottom:1rem">
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead><tr>
+          <th style="text-align:left;font-size:11px;color:var(--text3);padding:4px 8px;border-bottom:0.5px solid var(--border2)">#</th>
+          <th style="text-align:left;font-size:11px;color:var(--text3);padding:4px 8px;border-bottom:0.5px solid var(--border2)">Tier</th>
+          <th style="text-align:left;font-size:11px;color:var(--text3);padding:4px 8px;border-bottom:0.5px solid var(--border2)">Gross bid</th>
+          <th style="text-align:left;font-size:11px;color:var(--text3);padding:4px 8px;border-bottom:0.5px solid var(--border2)">Re-spin</th>
+        </tr></thead>
+        <tbody>${previewRows}${moreRows}</tbody>
+      </table>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      ${actualLog.length > 0 ? `<button class="scenario-save-btn" style="background:var(--bg);color:var(--text);border:0.5px solid var(--border2)" onclick="importCSV(${JSON.stringify(parsed).replace(/"/g,'&quot;')}, true)">Append to existing</button>` : ''}
+      <button class="scenario-save-btn" onclick="importCSV(${JSON.stringify(parsed).replace(/"/g,'&quot;')}, false)">${actualLog.length > 0 ? 'Replace existing' : 'Import'}</button>
+      <button class="sc-btn" onclick="closeCsvModal()">Cancel</button>
+    </div>` : `<div style="display:flex;gap:8px"><button class="scenario-save-btn" onclick="closeCsvModal()">Close</button></div>`}`;
+
+  document.getElementById('csvImportModal').classList.add('open');
+}
+
+function importCSV(parsed, append){
+  if(append){
+    actualLog = actualLog.concat(parsed);
+  } else {
+    actualLog = parsed;
+  }
+  renderActualLog();
+  closeCsvModal();
+}
+
+function closeCsvModal(){
+  document.getElementById('csvImportModal').classList.remove('open');
 }
 
 // --- INIT ---
