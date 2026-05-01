@@ -1,5 +1,8 @@
-<!-- Really Good Trades | v1.0.29.04.28 -->
-<!-- ⚠ REMINDER: Update version number above AND in the footer when making changes. Format: v1.0.YYYYMMDD -->
+<!-- Really Good Trades | v1.0.30.05.01 -->
+<!-- ⚠ VERSIONING RULE: Every change to this file MUST update the version number — bug fix, feature, copy tweak, anything.
+     Claude is responsible for bumping this on every edit. Format: v1.0.[incrementing-2-digit-build].[MM].[DD]
+     Update BOTH: this comment (line 1) AND the footer version span further down.
+     Current: v1.0.30.05.01 — next edit → v1.0.31.[MM].[DD] -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -761,7 +764,7 @@
     </div>
   </div>
 
-  <footer>Really Good Trades &mdash; AFL Trading Cards Checklist &mdash; <span style="opacity:0.6;">v1.0.29.04.28</span></footer>
+  <footer>Really Good Trades &mdash; AFL Trading Cards Checklist &mdash; <span style="opacity:0.6;">v1.0.30.05.01</span></footer>
 </div>
 
 <!-- WISHLIST MODAL -->
@@ -2644,27 +2647,45 @@ document.addEventListener('DOMContentLoaded', function() {
     // Step 1: ask Supabase to verify whatever token is in localStorage.
     // If it's stale or the check times out, wipe storage so the listener
     // sees no session and sends the user to the login screen cleanly.
+    // Timeout is 10s — 5s was too aggressive on slow connections / cold Supabase instances.
     let validSession = false;
     try {
       const { data: { session }, error } = await Promise.race([
         _sb.auth.getSession(),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Session check timed out')), 5000))
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Session check timed out')), 10000))
       ]);
-      if (error || !session) {
-        console.warn('No valid session found, clearing storage');
+      if (error) {
+        // Hard error from Supabase — session is genuinely broken, safe to wipe.
+        console.warn('Session check error, clearing storage:', error.message);
+        if (window.Sentry) Sentry.captureMessage('Session check error — clearing storage', {
+          level: 'warning',
+          extra: { supabaseError: error.message, ua: navigator.userAgent }
+        });
+        Object.keys(localStorage).forEach(k => { if (k.startsWith('sb-')) localStorage.removeItem(k); });
+        sessionStorage.clear();
+      } else if (!session) {
+        // No session token present at all — user is genuinely logged out.
+        // Log to Sentry so we can track whether this is a real logout or a transient blank.
+        console.warn('No session found on load');
+        if (window.Sentry) Sentry.captureMessage('Session check — no session on page load', {
+          level: 'info',
+          extra: { hasLocalStorageSbKeys: Object.keys(localStorage).some(k => k.startsWith('sb-')), ua: navigator.userAgent }
+        });
         Object.keys(localStorage).forEach(k => { if (k.startsWith('sb-')) localStorage.removeItem(k); });
         sessionStorage.clear();
       } else {
         validSession = true;
       }
     } catch(e) {
-      console.warn('Session validation timed out, clearing storage:', e.message);
-      if (window.Sentry) Sentry.captureMessage('Session check timed out', {
+      // Timeout — Supabase didn't respond in 10s.
+      // Do NOT wipe storage here: the session may still be valid, Supabase was just slow.
+      // Let onAuthStateChange handle it; if the token is truly expired it will fire SIGNED_OUT.
+      console.warn('Session validation timed out:', e.message);
+      if (window.Sentry) Sentry.captureMessage('Session check timed out (10s)', {
         level: 'warning',
         extra: { error: e.message, ua: navigator.userAgent }
       });
-      Object.keys(localStorage).forEach(k => { if (k.startsWith('sb-')) localStorage.removeItem(k); });
-      sessionStorage.clear();
+      // Don't clear storage on timeout — Supabase being slow ≠ invalid session.
     }
 
     // Step 2: NOW register the auth state listener — storage is already clean
