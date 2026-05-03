@@ -53,3 +53,18 @@ Workflow:
 - One file per set: `sets/[setname].js`
 - Must use `registerSet()` — match the pattern in existing set files
 - Never create set files in claude.ai chat
+
+## Preview before pushing to main
+
+### Set files (sets/*.js)
+- Open `index.html` directly in Chrome from File Explorer
+- Check the set displays correctly
+- Then commit and push to main
+
+### HTML / auth changes (index.html, admin.html, profile.html)
+1. `git checkout -b preview-[description]`
+2. Commit changes and push the branch
+3. Netlify generates a preview URL: `preview-[description]--your-site.netlify.app`
+4. Test against real Supabase environment
+5. Merge to main when happy
+- Branch deploys are enabled in netlify.toml and Netlify dashboard
