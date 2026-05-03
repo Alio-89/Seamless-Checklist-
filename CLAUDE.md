@@ -38,3 +38,18 @@ git push
 - Supabase client is `_sb` throughout
 - `emergencyLogout()` is the nuclear option — only call it on 
   genuine auth failure, never on network timeouts
+
+## Adding new card sets
+
+Always do this via Claude Code (not claude.ai chat) for consistency.
+
+Workflow:
+1. Open Claude Code in the repo root
+2. Paste raw set data and say "convert this into a set file matching 
+   the existing format in sets/"
+3. Claude Code reads existing sets/ files to match format exactly
+4. Review the generated file, then commit and push
+
+- One file per set: `sets/[setname].js`
+- Must use `registerSet()` — match the pattern in existing set files
+- Never create set files in claude.ai chat
