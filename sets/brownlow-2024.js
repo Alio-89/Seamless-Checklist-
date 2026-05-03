@@ -1,0 +1,98 @@
+﻿// ---- Brownlow 2024 ----
+(function() {
+  const s = document.createElement('style');
+  s.textContent = `
+  .b-b24-bsc { background: #92400e; }
+  .b-b24-bsp { background: #0369a1; }
+  `;
+  document.head.appendChild(s);
+})();
+
+registerSet("brownlow-2024", {
+  label:   "Brownlow 2024",
+  year:    "2024",
+  series:  "Brownlow",
+  subsets: [
+    "Brownlow Signature Card",
+    "Brownlow Prospect",
+  ],
+  badge: {
+    "Brownlow Signature Card": "b-b24-bsc",
+    "Brownlow Prospect": "b-b24-bsp",
+  },
+  label_short: {
+    "Brownlow Signature Card": "Signature",
+    "Brownlow Prospect": "Prospect",
+  }
+});
+
+var CARDS_BROWNLOW_2024 = [
+  ['BSC1','Brian Gleeson','Brownlow Signature Card','St Kilda'],
+  ['BSC2','Neil Roberts','Brownlow Signature Card','St Kilda'],
+  ['BSC3','Bob Skilton','Brownlow Signature Card','Sth. Melbourne'],
+  ['BSC4','Verdun Howell','Brownlow Signature Card','St Kilda'],
+  ['BSC5','John Schultz','Brownlow Signature Card','Footscray'],
+  ['BSC6','Alistair Lord','Brownlow Signature Card','Geelong Cats'],
+  ['BSC7','Gordon Collis','Brownlow Signature Card','Carlton'],
+  ['BSC8','Noel Teasdale','Brownlow Signature Card','North Melbourne'],
+  ['BSC9','Ian Stewart','Brownlow Signature Card','St Kilda'],
+  ['BSC10','Ross Smith','Brownlow Signature Card','St Kilda'],
+  ['BSC11','Kevin Murray','Brownlow Signature Card','Fitzroy'],
+  ['BSC12','Peter Bedford','Brownlow Signature Card','Sth. Melbourne'],
+  ['BSC13','Keith Greig','Brownlow Signature Card','North Melbourne'],
+  ['BSC14','Gary Dempsey','Brownlow Signature Card','Footscray'],
+  ['BSC15','Graham Moss','Brownlow Signature Card','Essendon'],
+  ['BSC16','Graham Teasdale','Brownlow Signature Card','Sth. Melbourne'],
+  ['BSC17','Malcolm Blight','Brownlow Signature Card','North Melbourne'],
+  ['BSC18','Peter Moore','Brownlow Signature Card','Collingwood'],
+  ['BSC19','Kelvin Templeton','Brownlow Signature Card','Footscray'],
+  ['BSC20','Bernie Quinlan','Brownlow Signature Card','Fitzroy'],
+  ['BSC21','Brian Wilson','Brownlow Signature Card','Melbourne'],
+  ['BSC22','Ross Glendinning','Brownlow Signature Card','North Melbourne'],
+  ['BSC23','Brad Hardie','Brownlow Signature Card','Footscray'],
+  ['BSC24','Robert Dipierdomenico','Brownlow Signature Card','Hawthorn'],
+  ['BSC25','Greg Williams','Brownlow Signature Card','Sydney Swans'],
+  ['BSC26','Tony Lockett','Brownlow Signature Card','St Kilda'],
+  ['BSC27','John Platten','Brownlow Signature Card','Hawthorn'],
+  ['BSC28','Gerard Healy','Brownlow Signature Card','Sydney Swans'],
+  ['BSC29','Tony Liberatore','Brownlow Signature Card','Footscray'],
+  ['BSC30','Gavin Wanganeen','Brownlow Signature Card','Essendon'],
+  ['BSC31','Paul Kelly','Brownlow Signature Card','Sydney Swans'],
+  ['BSC32','Michael Voss','Brownlow Signature Card','Brisbane Lions'],
+  ['BSC33','James Hird','Brownlow Signature Card','Essendon'],
+  ['BSC34','Robert Harvey','Brownlow Signature Card','St Kilda'],
+  ['BSC35','Shane Crawford','Brownlow Signature Card','Hawthorn'],
+  ['BSC36','Shane Woewodin','Brownlow Signature Card','Melbourne'],
+  ['BSC37','Jason Akermanis','Brownlow Signature Card','Brisbane Lions'],
+  ['BSC38','Simon Black','Brownlow Signature Card','Brisbane Lions'],
+  ['BSC39','Mark Ricciuto','Brownlow Signature Card','Adelaide Crows'],
+  ['BSC40','Nathan Buckley','Brownlow Signature Card','Collingwood'],
+  ['BSC41','Chris Judd','Brownlow Signature Card','West Coast Eagles'],
+  ['BSC42','Ben Cousins','Brownlow Signature Card','West Coast Eagles'],
+  ['BSC43','James Bartel','Brownlow Signature Card','Geelong Cats'],
+  ['BSC44','Adam Cooney','Brownlow Signature Card','Western Bulldogs'],
+  ['BSC45','Gary (jnr) Ablett','Brownlow Signature Card','Geelong Cats'],
+  ['BSC46','Dane Swan','Brownlow Signature Card','Collingwood'],
+  ['BSC47','Trent Cotchin','Brownlow Signature Card','Richmond'],
+  ['BSC48','Sam Mitchell','Brownlow Signature Card','Hawthorn'],
+  ['BSC49','Matt Priddis','Brownlow Signature Card','West Coast Eagles'],
+  ['BSP-JD','Jordan Dawson','Brownlow Prospect','Adelaide Crows'],
+  ['BSP-WA','Will Ashcroft','Brownlow Prospect','Brisbane Lions'],
+  ['BSP-SW','Samuel Walsh','Brownlow Prospect','Carlton'],
+  ['BSP-ND','Nick Daicos','Brownlow Prospect','Collingwood'],
+  ['BSP-ZM','Zach Merrett','Brownlow Prospect','Essendon'],
+  ['BSP-CS','Caleb Serong','Brownlow Prospect','Fremantle'],
+  ['BSP-MH','Max Holmes','Brownlow Prospect','Geelong Cats'],
+  ['BSP-TG','Tom Green','Brownlow Prospect','GWS GIANTS'],
+  ['BSP-NA','Noah Anderson','Brownlow Prospect','Gold Coast SUNS'],
+  ['BSP-JN','Jai Newcombe','Brownlow Prospect','Hawthorn'],
+  ['BSP-CP','Christian Petracca','Brownlow Prospect','Melbourne'],
+  ['BSP-LDU','Luke Davies-Uniacke','Brownlow Prospect','North Melbourne'],
+  ['BSP-ZB','Zak Butters','Brownlow Prospect','Port Adelaide'],
+  ['BSP-TT','Tim Taranto','Brownlow Prospect','Richmond'],
+  ['BSP-JS','Jack Sinclair','Brownlow Prospect','St Kilda'],
+  ['BSP-EG','Errol Gulden','Brownlow Prospect','Sydney Swans'],
+  ['BSP-TK','Tim Kelly','Brownlow Prospect','West Coast Eagles'],
+  ['BSP-MB','Marcus Bontempelli','Brownlow Prospect','Western Bulldogs'],
+];
+
