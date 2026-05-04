@@ -5,6 +5,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="/favicon.ico">
 <title>RGT Admin</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -239,6 +240,9 @@ if (sessionStorage.getItem('rgt_admin') === '1') {
 }
 
 // ---- HELPERS ----
+function escHtml(str) {
+  return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 function fmt(n) { return (n === null || n === undefined) ? '—' : n.toLocaleString(); }
 
 function timeAgo(iso) {
@@ -370,8 +374,8 @@ function renderUsers(users) {
 
   tbody.innerHTML = sorted.map((u, i) => {
     const name  = u.username
-      ? u.username
-      : '<span style="color:var(--text-muted);font-style:italic;">' + (u.user_email || 'Unknown') + '</span>';
+      ? escHtml(u.username)
+      : '<span style="color:var(--text-muted);font-style:italic;">' + escHtml(u.user_email || 'Unknown') + '</span>';
     return '<tr>' +
       '<td><span class="rank">' + (i+1) + '</span></td>' +
       '<td>' + name + '</td>' +
@@ -430,8 +434,8 @@ function renderTradePairs(users) {
   const medals = ['🥇','🥈','🥉'];
   tbody.innerHTML = pairs.slice(0, 10).map((p, i) =>
     '<tr>' +
-      '<td>' + (medals[i]||'') + ' ' + p.nameA + '</td>' +
-      '<td>' + p.nameB + '</td>' +
+      '<td>' + (medals[i]||'') + ' ' + escHtml(p.nameA) + '</td>' +
+      '<td>' + escHtml(p.nameB) + '</td>' +
       '<td class="num"><span class="pill green">' + p.aHasB + '</span></td>' +
       '<td class="num"><span class="pill blue">'  + p.bHasA + '</span></td>' +
       '<td class="strong-num">' + p.total + '</td>' +
@@ -452,9 +456,9 @@ function renderBugs(bugs, fetchError) {
   tbody.innerHTML = bugs.map(b =>
     '<tr>' +
       '<td class="muted" style="white-space:nowrap;">' + timeAgo(b.submitted_at) + '</td>' +
-      '<td class="muted">' + (b.user_email || '—') + '</td>' +
+      '<td class="muted">' + escHtml(b.user_email || '—') + '</td>' +
       '<td>' + bugTypePill(b.type) + '</td>' +
-      '<td style="font-family:\'Arial\',sans-serif;font-size:0.82rem;max-width:400px;">' + (b.description || '—') + '</td>' +
+      '<td style="font-family:\'Arial\',sans-serif;font-size:0.82rem;max-width:400px;">' + escHtml(b.description || '—') + '</td>' +
     '</tr>'
   ).join('');
 }

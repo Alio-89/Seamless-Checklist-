@@ -8,6 +8,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="/favicon.ico">
 <title>Really Good Trades</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script
@@ -1868,6 +1869,9 @@ function resetAll(){
   if(!confirm('Reset all checkboxes? This cannot be undone.'))return;
   owned.clear();wanted.clear();render();
 }
+function escHtml(str) {
+  return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 function showToast(msg){
   const t=document.getElementById('toast');
   t.textContent=msg;t.classList.add('show');
@@ -2016,7 +2020,7 @@ async function runTradeFinder() {
       html += `<div class="trade-summary-row">
         <div class="trade-summary-header" onclick="toggleTradeRow(${idx})">
           <span class="tsm-medal">${medals[idx]}</span>
-          <span class="tsm-name"><a href="profile.html?user=${user.userId}" style="color:inherit;text-decoration:none;border-bottom:1px dotted var(--border-strong);" onmouseover="this.style.borderBottomColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderBottomColor='var(--border-strong)';this.style.color='inherit'">${user.displayName}</a></span>
+          <span class="tsm-name"><a href="profile.html?user=${user.userId}" style="color:inherit;text-decoration:none;border-bottom:1px dotted var(--border-strong);" onmouseover="this.style.borderBottomColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderBottomColor='var(--border-strong)';this.style.color='inherit'">${escHtml(user.displayName)}</a></span>
           <span class="tsm-pills">${wantPill}${havePill}</span>
           <span class="tsm-arrow" id="trade-arrow-${idx}">&#9658;</span>
         </div>
@@ -2107,7 +2111,7 @@ async function runWishlists(){
 
       html += `<div class="wishlist-user-block">
         <div class="wishlist-user-name">
-          <span><a href="profile.html?user=${user.user_id}" style="color:inherit;text-decoration:none;border-bottom:1px dotted var(--border-strong);" onmouseover="this.style.borderBottomColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderBottomColor='var(--border-strong)';this.style.color='inherit'">${displayName}</a></span>
+          <span><a href="profile.html?user=${user.user_id}" style="color:inherit;text-decoration:none;border-bottom:1px dotted var(--border-strong);" onmouseover="this.style.borderBottomColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderBottomColor='var(--border-strong)';this.style.color='inherit'">${escHtml(displayName)}</a></span>
           <span class="wl-count">${total} card${total===1?'':'s'}</span>
         </div>
         <div class="wishlist-pills">
