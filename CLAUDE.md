@@ -6,12 +6,11 @@ Single-file static site. Main files: `index.html`, `profile.html`,
 `admin.html`, `sets/*.js`. Deployed via Netlify from GitHub. 
 Supabase for auth/data.
 
-## Versioning — mandatory on every edit
+## Versioning — automated
 
 - Format: `v1.0.[build].[MM].[DD]`
-- Build increments by 1 each change (31 → 32 etc.)
-- Update BOTH: line 1 comment AND the footer `<span>` in index.html
-- Current: v1.0.31.05.01
+- A PostToolUse hook in `.claude/settings.json` auto-bumps the version in `index.html` after every file edit in this project — do NOT bump it manually
+- Current: v1.0.33.05.04
 
 ## After every change, provide
 

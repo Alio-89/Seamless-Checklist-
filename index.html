@@ -1,8 +1,8 @@
-<!-- Really Good Trades | v1.0.31.05.01 -->
+<!-- Really Good Trades | v1.0.33.05.04 -->
 <!-- ⚠ VERSIONING RULE: Every change to this file MUST update the version number — bug fix, feature, copy tweak, anything.
      Claude is responsible for bumping this on every edit. Format: v1.0.[incrementing-2-digit-build].[MM].[DD]
      Update BOTH: this comment (line 1) AND the footer version span further down.
-     Current: v1.0.31.05.01 — next edit → v1.0.32.[MM].[DD] -->
+     Current: v1.0.33.05.04 — next edit → v1.0.34.[MM].[DD] -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -21,7 +21,7 @@
     --text: #1a1814; --text-muted: #7a7268; --accent: #1D7A4F;
     --checked-bg: #f0faf5; --header-bg: #1a1814;
 
-    /* TABLE COLUMNS — edit widths here, they cascade to all breakpoints */
+    /* TABLE COLUMNS â€” edit widths here, they cascade to all breakpoints */
     --col-badge: 36px;   /* subset badge dot */
     --col-num:   80px;   /* card number      */
     --col-own:   80px;   /* own checkbox     */
@@ -403,7 +403,7 @@
     /* HEADER */
     header { padding: 0.9rem 1rem 0.7rem; }
 
-    /* USER BAR — stack into two rows on small screens */
+    /* USER BAR â€” stack into two rows on small screens */
     .user-bar {
       flex-wrap: wrap;
       gap: 0.4rem 0.6rem;
@@ -422,7 +422,7 @@
     .user-bar button { padding: 4px 10px; font-size: 0.72rem; }
     .user-bar .save-btn { padding: 4px 12px; }
 
-    /* CONTROLS — full width selects stacked */
+    /* CONTROLS â€” full width selects stacked */
     .controls { gap: 0.4rem; padding: 0.5rem 0.75rem; }
     .controls select {
       flex: 1 1 calc(50% - 0.2rem);
@@ -435,7 +435,7 @@
     .controls input[type="text"] { font-size: 0.85rem; }
     .btn { padding: 0.48rem 0.65rem; font-size: 0.75rem; flex-shrink: 0; }
 
-    /* TABLE — tighten padding and shrink columns */
+    /* TABLE â€” tighten padding and shrink columns */
     .table-wrap { padding: 0 0.5rem; margin-top: 0.5rem; }
     table { border-radius: 8px; }
 
@@ -453,7 +453,7 @@
     tr.team-header td   { padding: 0.4rem 0.5rem; font-size: 0.75rem; }
     .show-all-btn { font-size: 0.65rem; padding: 1px 5px; margin-left: 6px; }
 
-    /* MODALS — full screen on mobile */
+    /* MODALS â€” full screen on mobile */
     .modal-card { padding: 1.25rem; max-width: 100%; border-radius: 10px; }
     .player-modal-card {
       max-width: 100%;
@@ -468,7 +468,7 @@
     .player-modal-footer { padding: 0.65rem 1rem; }
     .player-modal-header h3 { font-size: 1.05rem; }
 
-    /* PLAYER SUGGESTIONS — full width */
+    /* PLAYER SUGGESTIONS â€” full width */
     .player-suggestions { left: 0; right: 0; }
     .player-suggestion-item { padding: 0.6rem 0.85rem; font-size: 0.88rem; }
 
@@ -484,7 +484,7 @@
     .hide-mobile { display: none; }
   }
 
-  /* Extra small — iPhone SE (375px) */
+  /* Extra small â€” iPhone SE (375px) */
   @media (max-width: 390px) {
     .user-bar button#my-account-btn { max-width: 110px; }
     :root { --col-badge: 30px; }
@@ -591,7 +591,7 @@
     <button class="save-btn" id="save-btn" onclick="manualSave()">Save list</button>
     <button class="bug-btn" onclick="openBugReport()">&#9888;<span class="hide-mobile"> Report a bug</span></button>
     <button onclick="doLogout()">Log out</button>
-    <button id="force-logout-btn" onclick="emergencyLogout()" style="display:none;background:#c0392b;border:1px solid #a93226;color:#fff;border-radius:4px;padding:2px 10px;font-size:0.75rem;cursor:pointer;font-family:'Arial',sans-serif;" title="Clear session data and reload">⚠ Stuck? Force logout</button>
+    <button id="force-logout-btn" onclick="emergencyLogout()" style="display:none;background:#c0392b;border:1px solid #a93226;color:#fff;border-radius:4px;padding:2px 10px;font-size:0.75rem;cursor:pointer;font-family:'Arial',sans-serif;" title="Clear session data and reload">âš  Stuck? Force logout</button>
   </div>
   <div id="save-error" style="display:none;background:#c0392b;color:#fff;font-family:'Arial',sans-serif;font-size:0.8rem;padding:0.5rem 1.25rem;text-align:center;"></div>
   <header>
@@ -638,7 +638,7 @@
   </div>
   <div id="coming-soon-panel" style="display:none;max-width:980px;margin:2rem auto;padding:0 1rem;">
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:3rem 2rem;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
-      <div style="font-size:2.5rem;margin-bottom:1rem;">🃏</div>
+      <div style="font-size:2.5rem;margin-bottom:1rem;">ðŸƒ</div>
       <div style="font-family:'Arial',sans-serif;font-size:1.1rem;font-weight:bold;color:var(--text);margin-bottom:0.5rem;" id="coming-soon-title">Coming Soon</div>
       <div style="font-family:'Arial',sans-serif;font-size:0.88rem;color:var(--text-muted);" id="coming-soon-sub">Card data for this release hasn't been added yet. Check back later.</div>
     </div>
@@ -764,7 +764,7 @@
     </div>
   </div>
 
-  <footer>Really Good Trades &mdash; AFL Trading Cards Checklist &mdash; <span style="opacity:0.6;">v1.0.31.05.01</span></footer>
+  <footer>Really Good Trades &mdash; AFL Trading Cards Checklist &mdash; <span style="opacity:0.6;">v1.0.33.05.04</span></footer>
 </div>
 
 <!-- WISHLIST MODAL -->
@@ -837,7 +837,7 @@
       <p style="margin-bottom:0.75rem;"><strong>Browsing</strong><br>
       Click a subset row to expand it by team. Click a team row to see individual cards. Use <em>Show all</em> to skip team grouping.</p>
       <p style="margin-bottom:0.75rem;"><strong>Trade Finder</strong><br>
-      Scroll down and click <em>Find Trades</em> to see which other users have cards you want — and want cards you have.</p>
+      Scroll down and click <em>Find Trades</em> to see which other users have cards you want â€” and want cards you have.</p>
       <p style="margin-bottom:1rem;"><strong>Saving</strong><br>
       Tick your boxes then click <em>Save list</em> to sync to the cloud. Your list is private and linked to your account.</p>
       <div style="border-top:1px solid var(--border);padding-top:1rem;margin-top:0.25rem;">
@@ -937,13 +937,13 @@ const TEAMS_ORDER = [
   "Fremantle", "Geelong Cats", "Gold Coast SUNS", "GWS GIANTS", "Hawthorn",
   "Melbourne", "North Melbourne", "Port Adelaide", "Richmond", "St Kilda",
   "Sydney Swans", "West Coast Eagles", "Western Bulldogs",
-  // Other — historical/defunct clubs
+  // Other â€” historical/defunct clubs
   "Fitzroy",
   ""
 ];
 </script>
 
-<!-- SET DATA — one file per release -->
+<!-- SET DATA â€” one file per release -->
 <script src="sets/seamless-2025.js"></script>
 <script src="sets/footy-stars-2025.js"></script>
 <script src="sets/footy-stars-2026.js"></script>
@@ -969,11 +969,11 @@ const CHANGELOG = {
   '1.0.29': {
     date: 'Apr 28 2025',
     changes: [
-      "What’s New modal — you’ll now see a summary of changes each time the site is updated",
-      'About page updated — removed subsets list, added player search across all sets',
-      'Wishlists capped at 5 on the main page — ‘See All’ button shows the full list in a modal',
-      'Viewing another user’s profile now correctly shows “Viewing [username]” in the top bar',
-      'Admin dashboard now retries data load on blank result — fixes occasional empty page on reload',
+      "Whatâ€™s New modal â€” youâ€™ll now see a summary of changes each time the site is updated",
+      'About page updated â€” removed subsets list, added player search across all sets',
+      'Wishlists capped at 5 on the main page â€” â€˜See Allâ€™ button shows the full list in a modal',
+      'Viewing another userâ€™s profile now correctly shows â€œViewing [username]â€ in the top bar',
+      'Admin dashboard now retries data load on blank result â€” fixes occasional empty page on reload',
       'Fixed random logouts caused by admin page sharing auth storage with the main page',
       'Sentry now captures silent session timeouts and unexpected logouts for diagnosis',
     ]
@@ -1031,9 +1031,9 @@ function checkWhatsNew(){
 
   if(unseen.length === 1){
     const entry = CHANGELOG[unseen[0]];
-    subtitle.textContent = 'Here’s what changed in the latest update (' + entry.date + ')';
+    subtitle.textContent = 'Hereâ€™s what changed in the latest update (' + entry.date + ')';
   } else {
-    subtitle.textContent = 'You’ve missed ' + unseen.length + ' updates — here’s what’s new:';
+    subtitle.textContent = 'Youâ€™ve missed ' + unseen.length + ' updates â€” hereâ€™s whatâ€™s new:';
   }
 
   body.innerHTML = unseen.map(v => {
@@ -1154,7 +1154,7 @@ async function submitBugReport(){
 
 // ---- MULTI-SET STATE ----
 let allCards     = [];   // merged across all sets, each entry: [id, name, subset, team, setId]
-let cards        = [];   // active set's cards (same shape, no setId — for legacy compat)
+let cards        = [];   // active set's cards (same shape, no setId â€” for legacy compat)
 let BADGE        = {};
 let LABEL        = {};
 let SUBSETS_ORDER = [];
@@ -1163,10 +1163,10 @@ let activeSetId  = null;
 // ---- BUILD ALL CARDS ----
 // Two-pass build that merges every set into a flat array tagged with setId.
 //
-// PASS 1 — collect raw card data from each CARDS_<SET> global, skipping
+// PASS 1 â€” collect raw card data from each CARDS_<SET> global, skipping
 //           sentinel rows (['__shared__',...]) that mark shared-pool subsets.
 //
-// PASS 2 — walk every set's subsets list. Where a subset entry is an object
+// PASS 2 â€” walk every set's subsets list. Where a subset entry is an object
 //           { name, sharedPool }, inject the cards from SHARED_POOLS keyed
 //           with the canonical prefix "shared:<poolId>" so that owned/wanted
 //           state is the same regardless of which set the user is viewing.
@@ -1310,7 +1310,7 @@ let wanted = new Set();
 let currentUser = null;
 
 // cardKey: new format is setId:subset:id
-// The old format was subset:num — migration shim handles existing saved data.
+// The old format was subset:num â€” migration shim handles existing saved data.
 // For shared-pool subsets the setId is "shared:<poolId>" so the same card
 // gets the same key regardless of which set the user is viewing it from.
 function cardKey(id, subset, setId) {
@@ -1384,7 +1384,7 @@ async function doLogin(){
   const btn   = document.getElementById('login-btn');
   const err   = document.getElementById('login-error');
   err.classList.remove('show');
-  btn.disabled = true; btn.textContent = 'Logging in…';
+  btn.disabled = true; btn.textContent = 'Logging inâ€¦';
   const {error} = await _sb.auth.signInWithPassword({email, password:pass});
   btn.disabled = false; btn.textContent = 'Log in';
   if(error){ err.textContent = error.message; err.classList.add('show'); }
@@ -1398,9 +1398,9 @@ async function doSignup(){
   err.classList.remove('show');
   if(!email){ err.textContent='Please enter your email.'; err.classList.add('show'); return; }
   if(pass.length < 6){ err.textContent='Password must be at least 6 characters.'; err.classList.add('show'); return; }
-  btn.disabled = true; btn.textContent = 'Checking…';
+  btn.disabled = true; btn.textContent = 'Checkingâ€¦';
   // Just validate - actual signup happens after profile step
-  btn.disabled = false; btn.textContent = 'Next →';
+  btn.disabled = false; btn.textContent = 'Next â†’';
   document.getElementById('signup-step-1').style.display = 'none';
   document.getElementById('signup-step-2').style.display = '';
   document.getElementById('signup-username').focus();
@@ -1417,10 +1417,10 @@ async function doCreateProfile(){
   err.classList.remove('show'); suc.classList.remove('show');
   if(username.length < 3){ err.textContent='Username must be at least 3 characters.'; err.classList.add('show'); return; }
   // Check username uniqueness
-  btn.disabled = true; btn.textContent = 'Checking username…';
+  btn.disabled = true; btn.textContent = 'Checking usernameâ€¦';
   const {data: existing} = await _sb.from('profiles').select('user_id').eq('username', username).maybeSingle();
   if(existing){ err.textContent='That username is already taken. Please choose another.'; err.classList.add('show'); btn.disabled=false; btn.textContent='Create account'; return; }
-  btn.textContent = 'Creating account…';
+  btn.textContent = 'Creating accountâ€¦';
   const {data: authData, error: authErr} = await _sb.auth.signUp({email, password:pass});
   if(authErr){ err.textContent = authErr.message; err.classList.add('show'); btn.disabled=false; btn.textContent='Create account'; return; }
   // Insert profile (if session available immediately, else it'll be created on first login via loadOrCreateProfile)
@@ -1508,7 +1508,7 @@ async function loadUserList(){
     }
   } catch(e) {
     console.error('loadUserList error:', e);
-    // A timeout or network error does NOT mean the session is expired —
+    // A timeout or network error does NOT mean the session is expired â€”
     // it means Supabase was slow. Never log the user out here.
     // Render in offline mode so the app is still usable.
     if (window.Sentry) Sentry.captureMessage('loadUserList failed', {
@@ -1554,9 +1554,9 @@ async function manualSave(){
   }
 }
 
-// All subsets collapsed by default — populated after loadActiveSet()
+// All subsets collapsed by default â€” populated after loadActiveSet()
 let collapsedSubsets = new Set();
-// All teams within each subset collapsed by default — key is "subset||team"
+// All teams within each subset collapsed by default â€” key is "subset||team"
 let collapsedTeams = new Set();
 let showAllSubsets = new Set();
 
@@ -1645,7 +1645,7 @@ function render(){
     comingSoon.style.display = 'block';
     const title = document.getElementById('coming-soon-title');
     const sub   = document.getElementById('coming-soon-sub');
-    title.textContent = `${series} ${year} — Coming Soon`;
+    title.textContent = `${series} ${year} â€” Coming Soon`;
     sub.textContent   = `Card data for ${series} ${year} hasn't been added yet. Check back later.`;
     return;
   }
@@ -1659,8 +1659,9 @@ function render(){
   const tbody=document.getElementById('tbody');
   visibleKeys=[];
 
-  // Group cards by subset then team
+  // Group cards by subset then team; also track original file order for flat view
   const groups = {}; // subset -> team -> [cards]
+  const orderedRows = {}; // subset -> [cards in file order]
   for(const [num,name,subset,team] of cards){
     const key=cardKey(num,subset,activeSetId);
     const isOwned=owned.has(key);
@@ -1674,6 +1675,8 @@ function render(){
     if(!groups[subset]) groups[subset]={};
     if(!groups[subset][team]) groups[subset][team]=[];
     groups[subset][team].push({num,name,subset,team,key,isOwned,isWanted});
+    if(!orderedRows[subset]) orderedRows[subset]=[];
+    orderedRows[subset].push({num,name,subset,team,key,isOwned,isWanted});
   }
 
   const subsetsInView = SUBSETS_ORDER.filter(s => groups[s] && Object.keys(groups[s]).length > 0);
@@ -1688,7 +1691,7 @@ function render(){
 
   for(const subset of subsetsInView){
     const teamGroups = groups[subset];
-    const allRows = Object.values(teamGroups).flat();
+    const allRows = orderedRows[subset] || [];
     const isSubsetCollapsed = collapsedSubsets.has(subset);
     const isShowAll = showAllSubsets.has(subset);
     const subsetOwned  = allRows.filter(r=>r.isOwned).length;
@@ -1722,7 +1725,7 @@ function render(){
       <td class="sh-count" id="swant-${escSubset}"><span class="owned-count">${subsetWanted}</span><span class="sep"> / </span>${subsetTotal}</td>
     </tr>`;
 
-    // Subset info row — shown when expanded and set has subset_info for this subset
+    // Subset info row â€” shown when expanded and set has subset_info for this subset
     if(!isSubsetCollapsed){
       const setMeta = SETS[activeSetId];
       const infoText = setMeta && setMeta.subset_info && setMeta.subset_info[subset];
@@ -1733,7 +1736,7 @@ function render(){
           <td></td>
           <td colspan="4">
             <span class="subset-info-toggle" onclick="toggleSubsetInfo('${escSubset}',event)">
-              <span class="subset-info-icon">${infoOpen ? '▾' : '▸'}</span> More info
+              <span class="subset-info-icon">${infoOpen ? 'â–¾' : 'â–¸'}</span> More info
             </span>
             ${infoOpen ? `<div class="subset-info-body">${infoText}</div>` : ''}
           </td>
@@ -1884,7 +1887,7 @@ function toggleTradeFinder(){
   results.style.display  = tradeFinderOpen ? 'block' : 'none';
 }
 async function loadTradeUsers() {
-  // Called on login — silently pre-loads all user lists
+  // Called on login â€” silently pre-loads all user lists
   try {
     const {data, error} = await _sb
       .from('user_lists')
@@ -1980,7 +1983,7 @@ async function runTradeFinder() {
         </tbody>
       </table>`;
 
-    const medals = ['🥇','🥈','🥉'];
+    const medals = ['ðŸ¥‡','ðŸ¥ˆ','ðŸ¥‰'];
     let html = '<div class="trade-summary-list">';
     top3.forEach((user, idx) => {
       const wantCount = user.theyHaveIWant.length;
@@ -2136,7 +2139,7 @@ function openWishlistModal(idx){
   document.getElementById('wishlist-modal-name').textContent = userData.name + '\'s Wishlist';
   document.getElementById('wishlist-modal-count').textContent = userData.wanted.length + ' card' + (userData.wanted.length===1?'':'s');
 
-  // Group by setId → subset
+  // Group by setId â†’ subset
   const grouped = {};
   for(const k of userData.wanted){
     const m = cardMeta[k];
@@ -2199,7 +2202,7 @@ function resolveSetMeta(setId) {
       if (typeof s === 'object' && s.sharedPool === poolId) {
         // Return a synthetic meta object with the referencing set's badge/label_short
         return {
-          label: 'Shared — ' + pool.subsetName,
+          label: 'Shared â€” ' + pool.subsetName,
           year: meta.year,
           badge: meta.badge || {},
           label_short: meta.label_short || {},
@@ -2242,13 +2245,13 @@ function openPlayerModal(playerName, event) {
 
   const playerEntries = entry.entries;
 
-  // Derive team(s) — a player may appear for multiple teams (e.g. traded)
+  // Derive team(s) â€” a player may appear for multiple teams (e.g. traded)
   const teams = [...new Set(playerEntries.map(c => c.team).filter(Boolean))];
   const ownedCount  = playerEntries.filter(c => owned.has(c.key)).length;
   const wantedCount = playerEntries.filter(c => wanted.has(c.key)).length;
 
   document.getElementById('player-modal-name').textContent = playerName;
-  document.getElementById('player-modal-team').textContent = teams.join(' · ') || '—';
+  document.getElementById('player-modal-team').textContent = teams.join(' Â· ') || 'â€”';
   document.getElementById('player-stat-total').textContent  = playerEntries.length;
   document.getElementById('player-stat-owned').textContent  = ownedCount;
   document.getElementById('player-stat-wanted').textContent = wantedCount;
@@ -2357,7 +2360,7 @@ function closePlayerModal() {
   document.getElementById('player-modal').classList.remove('show');
 }
 
-// Checkbox handlers inside the player modal — update state and refresh counts
+// Checkbox handlers inside the player modal â€” update state and refresh counts
 function toggleOwnModal(key, cb) {
   if (cb.checked) owned.add(key); else owned.delete(key);
   // Refresh the owned stat in the modal header
@@ -2428,7 +2431,7 @@ function updatePlayerSuggestions() {
   const idx = getPlayerIndex();
   const ql = q.toLowerCase();
 
-  // Find matching unique player names — prioritise starts-with, then contains
+  // Find matching unique player names â€” prioritise starts-with, then contains
   const startsWith = [];
   const contains   = [];
   for (const [norm, data] of Object.entries(idx)) {
@@ -2499,7 +2502,7 @@ async function savePromptUsername() {
   const err      = document.getElementById('prompt-error');
   err.classList.remove('show');
   if(username.length < 3){ err.textContent='Username must be at least 3 characters.'; err.classList.add('show'); return; }
-  btn.disabled = true; btn.textContent = 'Saving…';
+  btn.disabled = true; btn.textContent = 'Savingâ€¦';
   const {data: existing} = await _sb.from('profiles').select('user_id').eq('username', username).maybeSingle();
   if(existing){ err.textContent='That username is already taken. Please choose another.'; err.classList.add('show'); btn.disabled=false; btn.textContent='Save & continue'; return; }
   const {error} = await _sb.from('profiles').upsert({ user_id: currentUser.id, username, favourite_team: team||null });
@@ -2509,7 +2512,7 @@ async function savePromptUsername() {
   updateAccountBtn();
   await _sb.from('user_lists').update({ username }).eq('user_id', currentUser.id);
   document.getElementById('username-prompt-overlay').style.display = 'none';
-  showToast('Username saved — welcome, ' + username + '!');
+  showToast('Username saved â€” welcome, ' + username + '!');
 }
 
 // ---- ACCOUNT MODAL ----
@@ -2537,7 +2540,7 @@ async function saveAccountDetails() {
   const suc      = document.getElementById('account-success');
   err.classList.remove('show'); suc.classList.remove('show');
   if(username.length < 3){ err.textContent='Username must be at least 3 characters.'; err.classList.add('show'); return; }
-  btn.disabled = true; btn.textContent = 'Saving…';
+  btn.disabled = true; btn.textContent = 'Savingâ€¦';
   // Check uniqueness (allow keeping own username)
   const currentUsername = currentProfile && currentProfile.username;
   if(username !== currentUsername) {
@@ -2643,13 +2646,13 @@ document.addEventListener('DOMContentLoaded', function() {
   populateSeriesDropdown(defaultYear);
   loadActiveSet();
 
-  // Boot auth — validate session first, THEN register the auth listener.
+  // Boot auth â€” validate session first, THEN register the auth listener.
   // Running these sequentially prevents onAuthStateChange firing with a stale
   // token before we've had a chance to clear it.
   (async () => {
     // Step 1: ask Supabase to verify whatever token is in localStorage.
-    // Timeout is 10s — anything less is too aggressive on slow connections.
-    // IMPORTANT: a timeout does NOT mean the session is invalid — don't wipe storage on timeout.
+    // Timeout is 10s â€” anything less is too aggressive on slow connections.
+    // IMPORTANT: a timeout does NOT mean the session is invalid â€” don't wipe storage on timeout.
     let validSession = false;
     try {
       const { data: { session }, error } = await Promise.race([
@@ -2657,18 +2660,18 @@ document.addEventListener('DOMContentLoaded', function() {
         new Promise((_, reject) => setTimeout(() => reject(new Error('Session check timed out')), 10000))
       ]);
       if (error) {
-        // Hard Supabase error — session genuinely broken, safe to wipe.
+        // Hard Supabase error â€” session genuinely broken, safe to wipe.
         console.warn('Session check error:', error.message);
-        if (window.Sentry) Sentry.captureMessage('Session check error — clearing storage', {
+        if (window.Sentry) Sentry.captureMessage('Session check error â€” clearing storage', {
           level: 'warning',
           extra: { supabaseError: error.message, ua: navigator.userAgent }
         });
         Object.keys(localStorage).forEach(k => { if (k.startsWith('sb-')) localStorage.removeItem(k); });
         sessionStorage.clear();
       } else if (!session) {
-        // No token present — user is genuinely logged out.
+        // No token present â€” user is genuinely logged out.
         console.warn('No session found on load');
-        if (window.Sentry) Sentry.captureMessage('Session check — no session on page load', {
+        if (window.Sentry) Sentry.captureMessage('Session check â€” no session on page load', {
           level: 'info',
           extra: { hasLocalStorageSbKeys: Object.keys(localStorage).some(k => k.startsWith('sb-')), ua: navigator.userAgent }
         });
@@ -2678,7 +2681,7 @@ document.addEventListener('DOMContentLoaded', function() {
         validSession = true;
       }
     } catch(e) {
-      // Timeout — Supabase was slow, NOT a sign the session is invalid.
+      // Timeout â€” Supabase was slow, NOT a sign the session is invalid.
       // Do NOT wipe storage. Let onAuthStateChange handle it when it fires.
       console.warn('Session check timed out:', e.message);
       if (window.Sentry) Sentry.captureMessage('Session check timed out (10s)', {
@@ -2687,7 +2690,7 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
 
-    // Step 2: NOW register the auth state listener — storage is already clean
+    // Step 2: NOW register the auth state listener â€” storage is already clean
     // if the session was invalid, so this will fire with session=null and show login.
     _sb.auth.onAuthStateChange(async (event, session) => {
       try {
@@ -2700,7 +2703,7 @@ document.addEventListener('DOMContentLoaded', function() {
           checkAndPromptUsername();
           checkWhatsNew();
         } else {
-          if (window.Sentry) Sentry.captureMessage('onAuthStateChange — no session', {
+          if (window.Sentry) Sentry.captureMessage('onAuthStateChange â€” no session', {
             level: 'warning',
             extra: { event, ua: navigator.userAgent }
           });
@@ -2712,7 +2715,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
 
-    // Step 3: force logout button fallback — only needed if something still
+    // Step 3: force logout button fallback â€” only needed if something still
     // slips through and the app gets stuck loading
     setTimeout(() => {
       const appVisible = document.getElementById('app-screen').style.display !== 'none';

@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "powershell",
+            "statusMessage": "Bumping version...",
+            "command": "$json = $input | ConvertFrom-Json; $file = $json.tool_input.file_path; if ($file -notlike '*Seamless-Checklist-*' -or $file -like '*index.html') { exit 0 }; $indexPath = 'C:\\Users\\aliow\\Seamless-Checklist-\\index.html'; $content = Get-Content $indexPath -Raw -Encoding UTF8; if ($content -match 'v1\\.0\\.(\\d+)\\.(\\d+)\\.(\\d+)') { $build = [int]$Matches[1] + 1; $mm = (Get-Date).ToString('MM'); $dd = (Get-Date).ToString('dd'); $newVer = \"v1.0.$build.$mm.$dd\"; $content = $content -replace 'v1\\.0\\.\\d+\\.\\d+\\.\\d+', $newVer; [System.IO.File]::WriteAllText($indexPath, $content, [System.Text.UTF8Encoding]::new($false)); $out = [pscustomobject]@{ hookSpecificOutput = [pscustomobject]@{ hookEventName = 'PostToolUse'; additionalContext = \"Version auto-bumped to $newVer in index.html — do not bump it again manually.\" } } | ConvertTo-Json -Compress; Write-Output $out }"
+          }
+        ]
+      }
+    ]
+  }
+}
