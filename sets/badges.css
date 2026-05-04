@@ -1,0 +1,214 @@
+/* Badge colour classes — single source of truth for all set files */
+
+/* Base */
+.b-base  { background: #b0a898; }
+.b-black { background: #3a3a3a; }
+
+/* Seamless 2025 */
+.b-sdp  { background: #e8a020; }
+.b-dp   { background: #4a9fe0; }
+.b-tmp  { background: #a855f7; }
+.b-jp   { background: #22c97a; }
+.b-rs   { background: #ef4444; }
+.b-rsg  { background: #f5c842; }
+.b-as   { background: #6b8cef; }
+.b-ps   { background: #4ade80; }
+.b-psb  { background: #f97316; }
+.b-mp   { background: #22d4d4; }
+
+/* Supremacy 2024 */
+.b-s24-g    { background: #f59e0b; }
+.b-s24-bp   { background: #2563eb; }
+.b-s24-bk   { background: #1e1b4b; }
+.b-s24-ff   { background: #7c3aed; }
+.b-s24-ffs  { background: #6d28d9; }
+.b-s24-fg   { background: #b91c1c; }
+.b-s24-fgs  { background: #991b1b; }
+.b-s24-fgds { background: #7f1d1d; }
+.b-s24-sp   { background: #0284c7; }
+.b-s24-tp   { background: #0369a1; }
+.b-s24-sps  { background: #075985; }
+.b-s24-cg   { background: #374151; }
+.b-s24-cgs  { background: #1f2937; }
+.b-s24-pg   { background: #15803d; }
+.b-s24-pgs  { background: #166534; }
+.b-s24-pgr  { background: #14532d; }
+.b-s24-gg   { background: #c2410c; }
+.b-s24-ggs  { background: #9a3412; }
+.b-s24-ggds { background: #7c2d12; }
+.b-s24-gks  { background: #ea580c; }
+.b-s24-c    { background: #1d4ed8; }
+.b-s24-cr   { background: #1e40af; }
+.b-s24-cs   { background: #1e3a8a; }
+.b-s24-e    { background: #6b7280; }
+.b-s24-es   { background: #4b5563; }
+.b-s24-ppcs { background: #374151; }
+.b-s24-pbds { background: #7e22ce; }
+.b-s24-lscs { background: #312e81; }
+
+/* Supremacy Rookie 2022 */
+.b-sr22-rpg { background: #16a34a; }
+.b-sr22-rpb { background: #2563eb; }
+
+/* Supremacy Rookie 2023 */
+.b-sr23-rpg { background: #16a34a; }
+.b-sr23-rpb { background: #2563eb; }
+.b-sr23-rdc { background: #64748b; }
+
+/* Supremacy Rookie 2024 */
+.b-sr24-rpg { background: #16a34a; }
+.b-sr24-rpb { background: #2563eb; }
+.b-sr24-rdc { background: #64748b; }
+
+/* Supremacy Rookie 2025 */
+.b-sr25-rpg { background: #16a34a; }
+.b-sr25-rpb { background: #2563eb; }
+.b-sr25-rdc { background: #64748b; }
+.b-sr25-rs  { background: #d4a017; }
+
+/* Brilliance 2024 */
+.b-br-ss  { background: #d4a017; }
+.b-br-cc  { background: #1d4ed8; }
+.b-br-pal { background: #94a3b8; }
+
+/* Brilliance 2025 */
+.b-br25-sig { background: #d4a017; }
+.b-br25-sil { background: #94a3b8; }
+.b-br25-cc  { background: #1d4ed8; }
+
+/* Brownlow 2024 */
+.b-b24-bsc { background: #92400e; }
+.b-b24-bsp { background: #0369a1; }
+
+/* Debutants 2025 */
+.b-d25-dp { background: #9333ea; }
+.b-d25-d  { background: #d97706; }
+
+/* Eminence 2025 */
+.b-em-base { background: #c8bfb0; }
+.b-em-bp   { background: #8a7a6a; }
+.b-em-col  { background: #e05c2a; }
+.b-em-ng   { background: #d4a017; }
+.b-em-nb   { background: #2a2a2a; }
+.b-em-gc   { background: #c8960c; }
+.b-em-deb  { background: #3b82f6; }
+.b-em-aa   { background: #16a34a; }
+.b-em-u22  { background: #7c3aed; }
+.b-em-em   { background: #dc2626; }
+.b-em-cls  { background: #0891b2; }
+.b-em-hg   { background: #ca8a04; }
+.b-em-med  { background: #9333ea; }
+.b-em-ds   { background: #059669; }
+.b-em-dsr  { background: #065f46; }
+.b-em-dpsc { background: #b45309; }
+.b-em-dpsg { background: #d97706; }
+.b-em-dpsp { background: #6b7280; }
+.b-em-dts  { background: #be185d; }
+.b-em-dtsr { background: #831843; }
+
+/* Footy Stars 2025 */
+.b-fs25-base { background: #a0968a; }
+.b-fs25-aflw { background: #e879f9; }
+.b-fs25-fh   { background: #f97316; }
+.b-fs25-bo   { background: #38bdf8; }
+.b-fs25-mg   { background: #d4a017; }
+.b-fs25-bm   { background: #dc2626; }
+.b-fs25-er   { background: #ef4444; }
+.b-fs25-eg   { background: #ca8a04; }
+.b-fs25-bpsg { background: #7c3aed; }
+.b-fs25-bppg { background: #6d28d9; }
+.b-fs25-cpsg { background: #0891b2; }
+.b-fs25-cppg { background: #0e7490; }
+.b-fs25-ppsg { background: #16a34a; }
+.b-fs25-npsg { background: #15803d; }
+.b-fs25-rpsg { background: #f59e0b; }
+.b-fs25-rppg { background: #d97706; }
+.b-fs25-iw   { background: #f43f5e; }
+.b-fs25-lb   { background: #c8e0f0; }
+.b-fs25-lt   { background: #60a5fa; }
+.b-fs25-ltg  { background: #b45309; }
+.b-fs25-lkn  { background: #22d3ee; }
+.b-fs25-ld   { background: #4ade80; }
+.b-fs25-ldg  { background: #16a34a; }
+.b-fs25-ldp  { background: #ec4899; }
+.b-fs25-ls   { background: #8b5cf6; }
+.b-fs25-lm   { background: #6366f1; }
+.b-fs25-lms  { background: #4f46e5; }
+.b-fs25-lmsr { background: #4338ca; }
+.b-fs25-lgt  { background: #fbbf24; }
+
+/* Footy Stars 2026 */
+.b-fs-base { background: #a0968a; }
+.b-fs-lb   { background: #c8e0f0; }
+.b-fs-fh   { background: #f97316; }
+.b-fs-adr  { background: #ef4444; }
+.b-fs-mg   { background: #d4a017; }
+.b-fs-oct  { background: #0891b2; }
+.b-fs-rew  { background: #7c3aed; }
+.b-fs-boom { background: #dc2626; }
+.b-fs-mtc  { background: #64748b; }
+.b-fs-mg2  { background: #16a34a; }
+.b-fs-ref  { background: #38bdf8; }
+.b-fs-rwn  { background: #4f46e5; }
+.b-fs-bpg  { background: #ca8a04; }
+.b-fs-bpp  { background: #92400e; }
+.b-fs-cc   { background: #be185d; }
+.b-fs-iw   { background: #f59e0b; }
+.b-fs-gt   { background: #b45309; }
+.b-fs-ap   { background: #ec4899; }
+.b-fs-oeb  { background: #3b82f6; }
+.b-fs-mtd  { background: #8b5cf6; }
+
+/* Footy Stars 2026 Hobby */
+.b-fs26h-base { background: #a0968a; }
+.b-fs26h-aflw { background: #e879f9; }
+.b-fs26h-lb   { background: #c8e0f0; }
+.b-fs26h-ocg  { background: #d4a017; }
+.b-fs26h-mg   { background: #c0c0c0; }
+.b-fs26h-etc  { background: #64748b; }
+.b-fs26h-bl   { background: #dc2626; }
+.b-fs26h-gf   { background: #16a34a; }
+.b-fs26h-mys  { background: #94a3b8; }
+.b-fs26h-ng   { background: #0891b2; }
+.b-fs26h-ry   { background: #b45309; }
+.b-fs26h-bpsp { background: #ca8a04; }
+.b-fs26h-cpsp { background: #f59e0b; }
+.b-fs26h-npsp { background: #6366f1; }
+.b-fs26h-ppsp { background: #7c3aed; }
+.b-fs26h-rpsp { background: #2563eb; }
+.b-fs26h-sb   { background: #e2e8f0; }
+.b-fs26h-sbs  { background: #cbd5e1; }
+.b-fs26h-sbsr { background: #94a3b8; }
+.b-fs26h-iw   { background: #f43f5e; }
+
+/* GEM Football 2023 */
+.b-gem23-base { background: #94a3b8; }
+.b-gem23-sap  { background: #3b82f6; }
+.b-gem23-eme  { background: #16a34a; }
+.b-gem23-rub  { background: #dc2626; }
+.b-gem23-gds  { background: #d4a017; }
+.b-gem23-gdsr { background: #b45309; }
+
+/* Legacy Ultimate 2024 */
+.b-lu24-base  { background: #9ca3af; }
+.b-lu24-hon   { background: #c8960c; }
+.b-lu24-honp  { background: #f59e0b; }
+.b-lu24-u22   { background: #7c3aed; }
+.b-lu24-aa    { background: #16a34a; }
+.b-lu24-sta   { background: #0284c7; }
+.b-lu24-vor   { background: #6d28d9; }
+.b-lu24-fuf   { background: #0891b2; }
+.b-lu24-pro   { background: #475569; }
+.b-lu24-fhof  { background: #b45309; }
+.b-lu24-mw    { background: #dc2626; }
+.b-lu24-inf   { background: #be185d; }
+.b-lu24-leg   { background: #78350f; }
+.b-lu24-hhr   { background: #d97706; }
+.b-lu24-hfi   { background: #1d4ed8; }
+.b-lu24-hfis  { background: #1e40af; }
+.b-lu24-lgs   { background: #064e3b; }
+.b-lu24-dpsc  { background: #92400e; }
+.b-lu24-dpsg  { background: #ca8a04; }
+.b-lu24-dpsp  { background: #6b7280; }
+.b-lu24-300   { background: #991b1b; }
+.b-lu24-ffb   { background: #1e293b; }

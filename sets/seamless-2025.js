@@ -1,22 +1,4 @@
 // ---- Seamless 2025 ----
-(function() {
-  const s = document.createElement('style');
-  s.textContent = `
-  .b-base  { background: #b0a898; }
-  .b-black { background: #3a3a3a; }
-  .b-sdp   { background: #e8a020; }
-  .b-dp    { background: #4a9fe0; }
-  .b-tmp   { background: #a855f7; }
-  .b-jp    { background: #22c97a; }
-  .b-rs    { background: #ef4444; }
-  .b-rsg   { background: #f5c842; }
-  .b-as    { background: #6b8cef; }
-  .b-ps    { background: #4ade80; }
-  .b-psb   { background: #f97316; }
-  .b-mp    { background: #22d4d4; }
-  `;
-  document.head.appendChild(s);
-})();
 
 registerSet("seamless-2025", {
   label:   "Seamless 2025",

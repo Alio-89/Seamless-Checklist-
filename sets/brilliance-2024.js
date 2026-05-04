@@ -1,13 +1,4 @@
 // ---- Brilliance 2024 ----
-(function() {
-  const s = document.createElement('style');
-  s.textContent = `
-  .b-br-ss  { background: #d4a017; }
-  .b-br-cc  { background: #1d4ed8; }
-  .b-br-pal { background: #94a3b8; }
-  `;
-  document.head.appendChild(s);
-})();
 
 registerSet("brilliance-2024", {
   label:   "Brilliance 2024",

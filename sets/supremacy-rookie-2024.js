@@ -1,13 +1,4 @@
 // ---- Supremacy Rookie 2024 ----
-(function() {
-  const s = document.createElement('style');
-  s.textContent = `
-  .b-sr24-rpg { background: #16a34a; }
-  .b-sr24-rpb { background: #2563eb; }
-  .b-sr24-rdc { background: #64748b; }
-  `;
-  document.head.appendChild(s);
-})();
 
 registerSet("supremacy-rookie-2024", {
   label:   "Supremacy Rookie 2024",

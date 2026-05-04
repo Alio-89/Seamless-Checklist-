@@ -1,38 +1,4 @@
 ﻿// ---- Supremacy 2024 ----
-(function() {
-  const s = document.createElement('style');
-  s.textContent = `
-  .b-s24-gg { background: #c2410c; }
-  .b-s24-cs { background: #1e3a8a; }
-  .b-s24-ff { background: #7c3aed; }
-  .b-s24-es { background: #4b5563; }
-  .b-s24-pgs { background: #166534; }
-  .b-s24-g { background: #f59e0b; }
-  .b-s24-tp { background: #0369a1; }
-  .b-s24-ppcs { background: #374151; }
-  .b-s24-cgs { background: #1f2937; }
-  .b-s24-pg { background: #15803d; }
-  .b-s24-sps { background: #075985; }
-  .b-s24-ggds { background: #7c2d12; }
-  .b-s24-cg { background: #374151; }
-  .b-s24-bk { background: #1e1b4b; }
-  .b-s24-bp { background: #2563eb; }
-  .b-s24-fgds { background: #7f1d1d; }
-  .b-s24-ffs { background: #6d28d9; }
-  .b-s24-gks { background: #ea580c; }
-  .b-s24-e { background: #6b7280; }
-  .b-s24-ggs { background: #9a3412; }
-  .b-s24-fg { background: #b91c1c; }
-  .b-s24-cr { background: #1e40af; }
-  .b-s24-lscs { background: #312e81; }
-  .b-s24-pbds { background: #7e22ce; }
-  .b-s24-fgs { background: #991b1b; }
-  .b-s24-c { background: #1d4ed8; }
-  .b-s24-pgr { background: #14532d; }
-  .b-s24-sp { background: #0284c7; }
-  `;
-  document.head.appendChild(s);
-})();
 
 registerSet("supremacy-2024", {
   label:   "Supremacy 2024",

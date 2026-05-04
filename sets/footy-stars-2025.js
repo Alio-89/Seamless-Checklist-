@@ -1,39 +1,4 @@
 // ---- Footy Stars 2025 ----
-(function() {
-  const s = document.createElement('style');
-  s.textContent = `
-  .b-fs25-base { background: #a0968a; }
-  .b-fs25-aflw { background: #e879f9; }
-  .b-fs25-fh   { background: #f97316; }
-  .b-fs25-bo   { background: #38bdf8; }
-  .b-fs25-mg   { background: #d4a017; }
-  .b-fs25-bm   { background: #dc2626; }
-  .b-fs25-er   { background: #ef4444; }
-  .b-fs25-eg   { background: #ca8a04; }
-  .b-fs25-bpsg { background: #7c3aed; }
-  .b-fs25-bppg { background: #6d28d9; }
-  .b-fs25-cpsg { background: #0891b2; }
-  .b-fs25-cppg { background: #0e7490; }
-  .b-fs25-ppsg { background: #16a34a; }
-  .b-fs25-npsg { background: #15803d; }
-  .b-fs25-rpsg { background: #f59e0b; }
-  .b-fs25-rppg { background: #d97706; }
-  .b-fs25-iw   { background: #f43f5e; }
-  .b-fs25-lb   { background: #c8e0f0; }
-  .b-fs25-lt   { background: #60a5fa; }
-  .b-fs25-ltg  { background: #b45309; }
-  .b-fs25-lkn  { background: #22d3ee; }
-  .b-fs25-ld   { background: #4ade80; }
-  .b-fs25-ldg  { background: #16a34a; }
-  .b-fs25-ldp  { background: #ec4899; }
-  .b-fs25-ls   { background: #8b5cf6; }
-  .b-fs25-lm   { background: #6366f1; }
-  .b-fs25-lms  { background: #4f46e5; }
-  .b-fs25-lmsr { background: #4338ca; }
-  .b-fs25-lgt  { background: #fbbf24; }
-  `;
-  document.head.appendChild(s);
-})();
 
 registerSet("footy-stars-2025", {
   label:   "Footy Stars 2025",

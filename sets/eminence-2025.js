@@ -1,30 +1,4 @@
 // ---- Eminence 2025 ----
-(function() {
-  const s = document.createElement('style');
-  s.textContent = `
-  .b-em-base  { background: #c8bfb0; }
-  .b-em-bp    { background: #8a7a6a; }
-  .b-em-col   { background: #e05c2a; }
-  .b-em-ng    { background: #d4a017; }
-  .b-em-nb    { background: #2a2a2a; }
-  .b-em-gc    { background: #c8960c; }
-  .b-em-deb   { background: #3b82f6; }
-  .b-em-aa    { background: #16a34a; }
-  .b-em-u22   { background: #7c3aed; }
-  .b-em-em    { background: #dc2626; }
-  .b-em-cls   { background: #0891b2; }
-  .b-em-hg    { background: #ca8a04; }
-  .b-em-med   { background: #9333ea; }
-  .b-em-ds    { background: #059669; }
-  .b-em-dsr   { background: #065f46; }
-  .b-em-dpsc  { background: #b45309; }
-  .b-em-dpsg  { background: #d97706; }
-  .b-em-dpsp  { background: #6b7280; }
-  .b-em-dts   { background: #be185d; }
-  .b-em-dtsr  { background: #831843; }
-  `;
-  document.head.appendChild(s);
-})();
 
 registerSet("eminence-2025", {
   label:   "Eminence 2025",

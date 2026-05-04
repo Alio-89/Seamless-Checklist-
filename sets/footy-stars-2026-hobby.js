@@ -1,30 +1,4 @@
 // ---- Footy Stars 2026 Hobby ----
-(function() {
-  const s = document.createElement('style');
-  s.textContent = `
-  .b-fs26h-base { background: #a0968a; }
-  .b-fs26h-aflw { background: #e879f9; }
-  .b-fs26h-lb   { background: #c8e0f0; }
-  .b-fs26h-ocg  { background: #d4a017; }
-  .b-fs26h-mg   { background: #c0c0c0; }
-  .b-fs26h-etc  { background: #64748b; }
-  .b-fs26h-bl   { background: #dc2626; }
-  .b-fs26h-gf   { background: #16a34a; }
-  .b-fs26h-mys  { background: #94a3b8; }
-  .b-fs26h-ng   { background: #0891b2; }
-  .b-fs26h-ry   { background: #b45309; }
-  .b-fs26h-bpsp { background: #ca8a04; }
-  .b-fs26h-cpsp { background: #f59e0b; }
-  .b-fs26h-npsp { background: #6366f1; }
-  .b-fs26h-ppsp { background: #7c3aed; }
-  .b-fs26h-rpsp { background: #2563eb; }
-  .b-fs26h-sb   { background: #e2e8f0; }
-  .b-fs26h-sbs  { background: #cbd5e1; }
-  .b-fs26h-sbsr { background: #94a3b8; }
-  .b-fs26h-iw   { background: #f43f5e; }
-  `;
-  document.head.appendChild(s);
-})();
 
 registerSet("footy-stars-2026-hobby", {
   label:   "Footy Stars 2026 Hobby",

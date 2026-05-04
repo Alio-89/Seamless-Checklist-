@@ -1,16 +1,4 @@
 // ---- GEM Football 2023 ----
-(function() {
-  const s = document.createElement('style');
-  s.textContent = `
-  .b-gem23-base  { background: #94a3b8; }
-  .b-gem23-sap   { background: #3b82f6; }
-  .b-gem23-eme   { background: #16a34a; }
-  .b-gem23-rub   { background: #dc2626; }
-  .b-gem23-gds   { background: #d4a017; }
-  .b-gem23-gdsr  { background: #b45309; }
-  `;
-  document.head.appendChild(s);
-})();
 
 registerSet("gem-football-2023", {
   label:   "GEM Football 2023",

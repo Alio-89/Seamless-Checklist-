@@ -1,13 +1,4 @@
 // ---- Brilliance 2025 ----
-(function() {
-  const s = document.createElement('style');
-  s.textContent = `
-  .b-br25-sig { background: #d4a017; }
-  .b-br25-sil { background: #94a3b8; }
-  .b-br25-cc  { background: #1d4ed8; }
-  `;
-  document.head.appendChild(s);
-})();
 
 registerSet("brilliance-2025", {
   label:   "Brilliance 2025",

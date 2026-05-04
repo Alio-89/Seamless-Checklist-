@@ -1,12 +1,4 @@
 // ---- Supremacy Rookie 2022 ----
-(function() {
-  const s = document.createElement('style');
-  s.textContent = `
-  .b-sr22-rpg { background: #16a34a; }
-  .b-sr22-rpb { background: #2563eb; }
-  `;
-  document.head.appendChild(s);
-})();
 
 registerSet("supremacy-rookie-2022", {
   label:   "Supremacy Rookie 2022",

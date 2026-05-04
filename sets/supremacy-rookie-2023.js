@@ -1,13 +1,4 @@
 // ---- Supremacy Rookie 2023 ----
-(function() {
-  const s = document.createElement('style');
-  s.textContent = `
-  .b-sr23-rpg { background: #16a34a; }
-  .b-sr23-rpb { background: #2563eb; }
-  .b-sr23-rdc { background: #64748b; }
-  `;
-  document.head.appendChild(s);
-})();
 
 registerSet("supremacy-rookie-2023", {
   label:   "Supremacy Rookie 2023",

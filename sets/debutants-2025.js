@@ -1,12 +1,4 @@
 ﻿// ---- Debutants 2025 ----
-(function() {
-  const s = document.createElement('style');
-  s.textContent = `
-  .b-d25-dp { background: #9333ea; }
-  .b-d25-d { background: #d97706; }
-  `;
-  document.head.appendChild(s);
-})();
 
 registerSet("debutants-2025", {
   label:   "Debutants 2025",

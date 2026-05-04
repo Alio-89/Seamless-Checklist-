@@ -14,34 +14,6 @@
 //   V40    James Henry (Geelong)         — checklist shows J. Henry
 //   CC21S  duplicate card code           — Tim Watson (Essendon) AND Robert Smith (North Melbourne) both listed; one must be a misprint
 
-(function() {
-  const s = document.createElement('style');
-  s.textContent = `
-  .b-lu24-base  { background: #9ca3af; }
-  .b-lu24-hon   { background: #c8960c; }
-  .b-lu24-honp  { background: #f59e0b; }
-  .b-lu24-u22   { background: #7c3aed; }
-  .b-lu24-aa    { background: #16a34a; }
-  .b-lu24-sta   { background: #0284c7; }
-  .b-lu24-vor   { background: #6d28d9; }
-  .b-lu24-fuf   { background: #0891b2; }
-  .b-lu24-pro   { background: #475569; }
-  .b-lu24-fhof  { background: #b45309; }
-  .b-lu24-mw    { background: #dc2626; }
-  .b-lu24-inf   { background: #be185d; }
-  .b-lu24-leg   { background: #78350f; }
-  .b-lu24-hhr   { background: #d97706; }
-  .b-lu24-hfi   { background: #1d4ed8; }
-  .b-lu24-hfis  { background: #1e40af; }
-  .b-lu24-lgs   { background: #064e3b; }
-  .b-lu24-dpsc  { background: #92400e; }
-  .b-lu24-dpsg  { background: #ca8a04; }
-  .b-lu24-dpsp  { background: #6b7280; }
-  .b-lu24-300   { background: #991b1b; }
-  .b-lu24-ffb   { background: #1e293b; }
-  `;
-  document.head.appendChild(s);
-})();
 
 registerSet('legacy-ultimate-2024', {
   label:  '2024 AFL Legacy Ultimate',

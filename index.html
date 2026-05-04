@@ -1,8 +1,8 @@
-<!-- Really Good Trades | v1.0.33.05.04 -->
+<!-- Really Good Trades | v1.0.34.05.04 -->
 <!-- ⚠ VERSIONING RULE: Every change to this file MUST update the version number — bug fix, feature, copy tweak, anything.
      Claude is responsible for bumping this on every edit. Format: v1.0.[incrementing-2-digit-build].[MM].[DD]
      Update BOTH: this comment (line 1) AND the footer version span further down.
-     Current: v1.0.33.05.04 — next edit → v1.0.34.[MM].[DD] -->
+     Current: v1.0.34.05.04 — next edit → v1.0.34.[MM].[DD] -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -99,7 +99,6 @@
   tbody td.c-own { text-align: center; }
   tbody td.c-want { text-align: center; }
   .badge { display: inline-block; width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; vertical-align: middle; font-size: 0; overflow: hidden; }
-  .b-base  { background: #b0a898; }
   .b-black { background: #3a3a3a; }
   .b-sdp   { background: #e8a020; }
   .b-dp    { background: #4a9fe0; }
@@ -764,7 +763,7 @@
     </div>
   </div>
 
-  <footer>Really Good Trades &mdash; AFL Trading Cards Checklist &mdash; <span style="opacity:0.6;">v1.0.33.05.04</span></footer>
+  <footer>Really Good Trades &mdash; AFL Trading Cards Checklist &mdash; <span style="opacity:0.6;">v1.0.34.05.04</span></footer>
 </div>
 
 <!-- WISHLIST MODAL -->
@@ -942,6 +941,9 @@ const TEAMS_ORDER = [
   ""
 ];
 </script>
+
+<!-- BADGE COLOURS -->
+<link rel=”stylesheet” href=”sets/badges.css”>
 
 <!-- SET DATA â€” one file per release -->
 <script src="sets/seamless-2025.js"></script>
@@ -1265,7 +1267,7 @@ function loadActiveSet() {
     _sharedSubsetMap = {};
   }
 
-  _playerIndex = null; // invalidate player index cache
+  // player index is built from allCards which never changes after boot — no need to invalidate
   populateSubsetDropdown();
 }
 
@@ -1750,13 +1752,12 @@ function render(){
       // Flat view: badge | num | name | own | wishlist
       for(const {num,name,subset:s,team,key,isOwned,isWanted} of allRows){
         visibleKeys.push(key);
-        const ek=key.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-        html+=`<tr class="${isOwned?'owned':''}" id="row-${ek}">
+        html+=`<tr class="${isOwned?'owned':''}" id="row-${key}">
           <td><span class="badge ${bc(s)}"></span></td>
           <td class="c-num">${num}</td>
           <td><span class="player-name-link" onclick="openPlayerModal('${name.replace(/'/g,"\\'")}',event)">${name}</span></td>
-          <td class="c-own"><input type="checkbox" ${isOwned?'checked':''} onchange="toggleOwn('${ek}',this)"></td>
-          <td class="c-want"><input type="checkbox" ${isWanted?'checked':''} onchange="toggleWant('${ek}',this)"></td>
+          <td class="c-own"><input type="checkbox" ${isOwned?'checked':''} data-key="${key}" data-action="own"></td>
+          <td class="c-want"><input type="checkbox" ${isWanted?'checked':''} data-key="${key}" data-action="want"></td>
         </tr>`;
       }
     } else {
@@ -1790,13 +1791,12 @@ function render(){
           // Card rows: badge | num | name | own | wishlist
           for(const {num,name,subset:s,team:t,key,isOwned,isWanted} of teamRows){
             visibleKeys.push(key);
-            const ek=key.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-            html+=`<tr class="${isOwned?'owned':''}" id="row-${ek}">
+            html+=`<tr class="${isOwned?'owned':''}" id="row-${key}">
               <td><span class="badge ${bc(s)}"></span></td>
               <td class="c-num">${num}</td>
               <td><span class="player-name-link" onclick="openPlayerModal('${name.replace(/'/g,"\\'")}',event)">${name}</span></td>
-              <td class="c-own"><input type="checkbox" ${isOwned?'checked':''} onchange="toggleOwn('${ek}',this)"></td>
-              <td class="c-want"><input type="checkbox" ${isWanted?'checked':''} onchange="toggleWant('${ek}',this)"></td>
+              <td class="c-own"><input type="checkbox" ${isOwned?'checked':''} data-key="${key}" data-action="own"></td>
+              <td class="c-want"><input type="checkbox" ${isWanted?'checked':''} data-key="${key}" data-action="want"></td>
             </tr>`;
           }
         }
@@ -2402,11 +2402,12 @@ function refreshPlayerModalStats() {
 
 // ---- SEARCH WITH PLAYER SUGGESTIONS ----
 
+let _searchTimer = null;
 function onSearchInput() {
   const val = document.getElementById('search').value;
   document.getElementById('search-clear').style.display = val ? 'block' : 'none';
-  render();
-  updatePlayerSuggestions();
+  clearTimeout(_searchTimer);
+  _searchTimer = setTimeout(() => { render(); updatePlayerSuggestions(); }, 150);
 }
 
 function clearSearch() {
@@ -2639,6 +2640,14 @@ function showAuth() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+  // Delegated listener for own/want checkboxes — survives innerHTML replacements on render()
+  document.getElementById('tbody').addEventListener('change', function(e) {
+    if (e.target.type !== 'checkbox' || !e.target.dataset.key) return;
+    const key = e.target.dataset.key;
+    if (e.target.dataset.action === 'own') toggleOwn(key, e.target);
+    else if (e.target.dataset.action === 'want') toggleWant(key, e.target);
+  });
+
   // Boot: build all cards, populate dropdowns, load active set
   buildAllCards();
   populateYearDropdown();

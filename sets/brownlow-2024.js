@@ -1,12 +1,4 @@
 ﻿// ---- Brownlow 2024 ----
-(function() {
-  const s = document.createElement('style');
-  s.textContent = `
-  .b-b24-bsc { background: #92400e; }
-  .b-b24-bsp { background: #0369a1; }
-  `;
-  document.head.appendChild(s);
-})();
 
 registerSet("brownlow-2024", {
   label:   "Brownlow 2024",

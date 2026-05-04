@@ -1,30 +1,4 @@
 // ---- Footy Stars 2026 ----
-(function() {
-  const s = document.createElement('style');
-  s.textContent = `
-  .b-fs-base { background: #a0968a; }
-  .b-fs-lb   { background: #c8e0f0; }
-  .b-fs-fh   { background: #f97316; }
-  .b-fs-adr  { background: #ef4444; }
-  .b-fs-mg   { background: #d4a017; }
-  .b-fs-oct  { background: #0891b2; }
-  .b-fs-rew  { background: #7c3aed; }
-  .b-fs-boom { background: #dc2626; }
-  .b-fs-mtc  { background: #64748b; }
-  .b-fs-mg2  { background: #16a34a; }
-  .b-fs-ref  { background: #38bdf8; }
-  .b-fs-rwn  { background: #4f46e5; }
-  .b-fs-bpg  { background: #ca8a04; }
-  .b-fs-bpp  { background: #92400e; }
-  .b-fs-cc   { background: #be185d; }
-  .b-fs-iw   { background: #f59e0b; }
-  .b-fs-gt   { background: #b45309; }
-  .b-fs-ap   { background: #ec4899; }
-  .b-fs-oeb  { background: #3b82f6; }
-  .b-fs-mtd  { background: #8b5cf6; }
-  `;
-  document.head.appendChild(s);
-})();
 
 registerSet("footy-stars-2026", {
   label:   "Footy Stars 2026",

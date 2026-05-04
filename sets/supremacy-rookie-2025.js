@@ -1,14 +1,4 @@
 // ---- Supremacy Rookie 2025 ----
-(function() {
-  const s = document.createElement('style');
-  s.textContent = `
-  .b-sr25-rpg { background: #16a34a; }
-  .b-sr25-rpb { background: #2563eb; }
-  .b-sr25-rdc { background: #64748b; }
-  .b-sr25-rs  { background: #d4a017; }
-  `;
-  document.head.appendChild(s);
-})();
 
 registerSet("supremacy-rookie-2025", {
   label:   "Supremacy Rookie 2025",
