@@ -1,8 +1,8 @@
-<!-- Really Good Trades | v1.0.38.06.01 -->
+<!-- Really Good Trades | v1.0.39.06.01 -->
 <!-- ⚠ VERSIONING RULE: Every change to this file MUST update the version number — bug fix, feature, copy tweak, anything.
      Claude is responsible for bumping this on every edit. Format: v1.0.[incrementing-2-digit-build].[MM].[DD]
      Update BOTH: this comment (line 1) AND the footer version span further down.
-     Current: v1.0.38.06.01 — next edit → v1.0.39.[MM].[DD] -->
+     Current: v1.0.39.06.01 — next edit → v1.0.40.[MM].[DD] -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -823,7 +823,7 @@
     </div>
   </div>
 
-  <footer>Really Good Trades &mdash; AFL Trading Cards Checklist &mdash; <span style="opacity:0.6;">v1.0.38.06.01</span></footer>
+  <footer>Really Good Trades &mdash; AFL Trading Cards Checklist &mdash; <span style="opacity:0.6;">v1.0.39.06.01</span></footer>
 </div>
 
 <!-- WISHLIST MODAL -->
@@ -1964,10 +1964,13 @@ function refreshSubsetCounts(){
     const tradedCount = subsetCards.filter(([n,,s])=>traded.has(cardKey(n,s,activeSetId))).length;
     const wantedCount = subsetCards.filter(([n,,s])=>wanted.has(cardKey(n,s,activeSetId))).length;
     const total = subsetCards.length;
+    // Update only the inner spans, not the td itself — preserves onclick/class
     const cells = row.querySelectorAll('td.sh-count');
-    if(cells[0]) cells[0].innerHTML = `<span class="owned-count">${ownedCount}</span><span class="sep"> / </span>${total}`;
-    if(cells[1]) cells[1].innerHTML = `<span class="owned-count">${tradedCount}</span><span class="sep"> / </span>${total}`;
-    if(cells[2]) cells[2].innerHTML = `<span class="owned-count">${wantedCount}</span><span class="sep"> / </span>${total}`;
+    [ownedCount, tradedCount, wantedCount].forEach((count, i) => {
+      if(!cells[i]) return;
+      const oc = cells[i].querySelector('.owned-count');
+      if(oc) oc.textContent = count;
+    });
   });
   // Update team header counts
   document.querySelectorAll('tr.team-header').forEach(row => {
@@ -1978,11 +1981,12 @@ function refreshSubsetCounts(){
     const ownedCount  = teamCards.filter(([n,,s])=>owned.has(cardKey(n,s,activeSetId))).length;
     const tradedCount = teamCards.filter(([n,,s])=>traded.has(cardKey(n,s,activeSetId))).length;
     const wantedCount = teamCards.filter(([n,,s])=>wanted.has(cardKey(n,s,activeSetId))).length;
-    const total = teamCards.length;
     const cells = row.querySelectorAll('td.sh-count');
-    if(cells[0]) cells[0].innerHTML = `<span class="owned-count">${ownedCount}</span><span class="sep"> / </span>${total}`;
-    if(cells[1]) cells[1].innerHTML = `<span class="owned-count">${tradedCount}</span><span class="sep"> / </span>${total}`;
-    if(cells[2]) cells[2].innerHTML = `<span class="owned-count">${wantedCount}</span><span class="sep"> / </span>${total}`;
+    [ownedCount, tradedCount, wantedCount].forEach((count, i) => {
+      if(!cells[i]) return;
+      const oc = cells[i].querySelector('.owned-count');
+      if(oc) oc.textContent = count;
+    });
   });
 }
 let _checkToggleState = 'check'; // 'check' or 'uncheck'
@@ -2005,16 +2009,25 @@ function resetAll(){
 
 function toggleSubsetAll(subset, action, event){
   event.stopPropagation(); // don't collapse/expand the subset
-  // Get all cards in this subset for the active set
-  const subsetCards = cards.filter(([,,s]) => s === subset);
-  if(subsetCards.length === 0) return;
   const targetSet = action === 'own' ? owned : action === 'trade' ? traded : wanted;
-  // If every card in subset is already in the set, uncheck all; otherwise check all
-  const allChecked = subsetCards.every(([num,,s]) => targetSet.has(cardKey(num, s, activeSetId)));
-  for(const [num,,s] of subsetCards){
-    const key = cardKey(num, s, activeSetId);
+  // Only operate on cards that are currently visible (respects active filters)
+  const subsetVisibleKeys = visibleKeys.filter(k => {
+    // Key format: setId:subset:cardId — check subset segment matches
+    const parts = k.split(':');
+    // parts[0] may be setId (could contain no colon), parts[parts.length-2] is subset
+    // Reconstruct: everything between first and last colon is subset:cardId
+    // Use the rendered row's subset to match
+    const row = document.getElementById('row-' + k);
+    if(!row) return false;
+    // Find the badge in this row and match by subset header
+    const headerRow = row.closest('tbody')?.querySelector(`tr.subset-header .badge.${Array.from(row.querySelector('td span.badge')?.classList||[]).find(c=>c!=='badge')||''}`);
+    // Simpler: match via cardKey — check if this key belongs to the given subset
+    return k.includes(':' + subset + ':');
+  });
+  if(subsetVisibleKeys.length === 0) return;
+  const allChecked = subsetVisibleKeys.every(k => targetSet.has(k));
+  for(const key of subsetVisibleKeys){
     if(allChecked) targetSet.delete(key); else targetSet.add(key);
-    // Sync the visible checkbox if the row is currently rendered
     const row = document.getElementById('row-' + key);
     if(row){
       const cb = row.querySelector(`input[data-action="${action}"]`);
