@@ -1,8 +1,8 @@
-<!-- Really Good Trades | v1.0.39.06.01 -->
+<!-- Really Good Trades | v1.0.40.06.01 -->
 <!-- ⚠ VERSIONING RULE: Every change to this file MUST update the version number — bug fix, feature, copy tweak, anything.
      Claude is responsible for bumping this on every edit. Format: v1.0.[incrementing-2-digit-build].[MM].[DD]
      Update BOTH: this comment (line 1) AND the footer version span further down.
-     Current: v1.0.39.06.01 — next edit → v1.0.40.[MM].[DD] -->
+     Current: v1.0.40.06.01 — next edit → v1.0.41.[MM].[DD] -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -823,7 +823,7 @@
     </div>
   </div>
 
-  <footer>Really Good Trades &mdash; AFL Trading Cards Checklist &mdash; <span style="opacity:0.6;">v1.0.39.06.01</span></footer>
+  <footer>Really Good Trades &mdash; AFL Trading Cards Checklist &mdash; <span style="opacity:0.6;">v1.0.40.06.01</span></footer>
 </div>
 
 <!-- WISHLIST MODAL -->
@@ -1953,22 +1953,19 @@ function toggleTrade(key,cb){
 }
 
 function refreshSubsetCounts(){
-  // Update subset header counts
+  // Update subset header counts — read subset from the sown- cell ID (reliable)
   document.querySelectorAll('tr.subset-header').forEach(row => {
-    const badge = row.querySelector('td:first-child span.badge');
-    if(!badge) return;
-    const labelText = badge.textContent;
-    const subset = Object.keys(LABEL).find(k=>LABEL[k]===labelText) || labelText;
+    const ownCell = row.querySelector('td[id^="sown-"]');
+    if(!ownCell) return;
+    const subset = ownCell.id.replace('sown-', '');
     const subsetCards = cards.filter(([,,s])=>s===subset);
     const ownedCount  = subsetCards.filter(([n,,s])=>owned.has(cardKey(n,s,activeSetId))).length;
     const tradedCount = subsetCards.filter(([n,,s])=>traded.has(cardKey(n,s,activeSetId))).length;
     const wantedCount = subsetCards.filter(([n,,s])=>wanted.has(cardKey(n,s,activeSetId))).length;
-    const total = subsetCards.length;
-    // Update only the inner spans, not the td itself — preserves onclick/class
-    const cells = row.querySelectorAll('td.sh-count');
     [ownedCount, tradedCount, wantedCount].forEach((count, i) => {
-      if(!cells[i]) return;
-      const oc = cells[i].querySelector('.owned-count');
+      const cell = row.querySelectorAll('td.sh-count')[i];
+      if(!cell) return;
+      const oc = cell.querySelector('.owned-count');
       if(oc) oc.textContent = count;
     });
   });
@@ -1977,14 +1974,14 @@ function refreshSubsetCounts(){
     const subset   = row.dataset.subset;
     const teamName = row.dataset.team;
     if(!subset || !teamName) return;
-    const teamCards  = cards.filter(([,,s,t])=>s===subset&&t===teamName);
+    const teamCards   = cards.filter(([,,s,t])=>s===subset&&t===teamName);
     const ownedCount  = teamCards.filter(([n,,s])=>owned.has(cardKey(n,s,activeSetId))).length;
     const tradedCount = teamCards.filter(([n,,s])=>traded.has(cardKey(n,s,activeSetId))).length;
     const wantedCount = teamCards.filter(([n,,s])=>wanted.has(cardKey(n,s,activeSetId))).length;
-    const cells = row.querySelectorAll('td.sh-count');
     [ownedCount, tradedCount, wantedCount].forEach((count, i) => {
-      if(!cells[i]) return;
-      const oc = cells[i].querySelector('.owned-count');
+      const cell = row.querySelectorAll('td.sh-count')[i];
+      if(!cell) return;
+      const oc = cell.querySelector('.owned-count');
       if(oc) oc.textContent = count;
     });
   });
