@@ -1,8 +1,8 @@
-<!-- Really Good Trades | v1.0.36.06.01 -->
+<!-- Really Good Trades | v1.0.37.06.01 -->
 <!-- ⚠ VERSIONING RULE: Every change to this file MUST update the version number — bug fix, feature, copy tweak, anything.
      Claude is responsible for bumping this on every edit. Format: v1.0.[incrementing-2-digit-build].[MM].[DD]
      Update BOTH: this comment (line 1) AND the footer version span further down.
-     Current: v1.0.36.06.01 — next edit → v1.0.37.[MM].[DD] -->
+     Current: v1.0.37.06.01 — next edit → v1.0.38.[MM].[DD] -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -560,6 +560,8 @@
   .export-cb-label:hover { background: #f0faf5; border-color: var(--accent); }
   .export-cb-label input { width: 13px; height: 13px; margin: 0; accent-color: var(--accent); }
   .export-cb-label.checked { background: #f0faf5; border-color: var(--accent); color: var(--accent); font-weight: bold; }
+  .export-cb-label.disabled { opacity: 0.35; cursor: not-allowed; }
+  .export-cb-count { font-size: 0.68rem; color: var(--text-muted); margin-left: 0.3rem; font-weight: normal; }
   @media (max-width: 640px) {
     .export-modal-card { max-width: 100%; border-radius: 12px 12px 0 0; max-height: 92vh; }
     .export-preview-wrap { max-height: 220px; }
@@ -819,7 +821,7 @@
     </div>
   </div>
 
-  <footer>Really Good Trades &mdash; AFL Trading Cards Checklist &mdash; <span style="opacity:0.6;">v1.0.36.06.01</span></footer>
+  <footer>Really Good Trades &mdash; AFL Trading Cards Checklist &mdash; <span style="opacity:0.6;">v1.0.37.06.01</span></footer>
 </div>
 
 <!-- WISHLIST MODAL -->
@@ -2956,6 +2958,48 @@ function _buildExportFilterCheckboxes() {
   _renderCheckboxGroup('export-filter-subsets', allSubsets, _exportFilterSubsets, 'subset');
 }
 
+function _countCardsForFilter(type, value) {
+  // Count how many cards would be included if this value were added to its filter set,
+  // with all other current filters applied. Used to grey out zero-result options.
+  return allCards.filter(([id, name, subset, team, setId]) => {
+    const key = cardKey(id, subset, setId);
+    const inCollection = owned.has(key);
+    const inTrade      = traded.has(key);
+    if (_exportListType === 'collection' && !inCollection) return false;
+    if (_exportListType === 'trade'      && !inTrade)      return false;
+    if (_exportListType === 'both'       && !inCollection && !inTrade) return false;
+    if (_exportScope === 'current') {
+      const isActiveSet    = setId === activeSetId;
+      const isSharedSubset = Object.values(_sharedSubsetMap).includes(setId);
+      if (!isActiveSet && !isSharedSubset) return false;
+    }
+    // Apply OTHER filter dimensions (not the one being tested)
+    if (type !== 'team' && _exportFilterTeams) {
+      if (team && !_exportFilterTeams.has(team)) return false;
+    }
+    if (type !== 'set' && _exportFilterSets) {
+      const meta     = SETS[setId] || {};
+      const setLabel = (meta.year && meta.series) ? meta.year + ' ' + meta.series : setId;
+      if (!_exportFilterSets.has(setLabel)) return false;
+    }
+    if (type !== 'subset' && _exportFilterSubsets) {
+      const subLabel = (LABEL && LABEL[subset]) ? LABEL[subset] : subset;
+      if (!_exportFilterSubsets.has(subLabel)) return false;
+    }
+    // Test THIS dimension
+    if (type === 'team') {
+      return team === value;
+    } else if (type === 'set') {
+      const meta     = SETS[setId] || {};
+      const setLabel = (meta.year && meta.series) ? meta.year + ' ' + meta.series : setId;
+      return setLabel === value;
+    } else {
+      const subLabel = (LABEL && LABEL[subset]) ? LABEL[subset] : subset;
+      return subLabel === value;
+    }
+  }).length;
+}
+
 function _renderCheckboxGroup(containerId, values, selectedSet, type) {
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -2965,8 +3009,14 @@ function _renderCheckboxGroup(containerId, values, selectedSet, type) {
   let html = `<div style="font-family:'Arial',sans-serif;font-size:0.72rem;color:var(--text-muted);margin-bottom:0.3rem;text-transform:uppercase;letter-spacing:0.05em;">${label}</div>`;
   html += values.map(v => {
     const checked = selectedSet.has(v);
-    return `<label class="export-cb-label${checked?' checked':''}" onclick="toggleExportFilter('${type}','${v.replace(/'/g,"\'")}',this)">` +
-           `<input type="checkbox" ${checked?'checked':''} onclick="event.stopPropagation()"> ${v}</label>`;
+    const count   = _countCardsForFilter(type, v);
+    const dead    = !checked && count === 0;
+    const safeV   = v.replace(/'/g, "\'");
+    return `<label class="export-cb-label${checked?' checked':''}${dead?' disabled':''}" ` +
+           `onclick="${dead?'':'toggleExportFilter(\''+type+'\',\''+safeV+'\',this)'}" ` +
+           `title="${count} card${count===1?'':'s'}">` +
+           `<input type="checkbox" ${checked?'checked':''} ${dead?'disabled':''} onclick="event.stopPropagation()"> ` +
+           `${v}<span class="export-cb-count">${count}</span></label>`;
   }).join('');
   container.innerHTML = html;
 }
@@ -2976,9 +3026,8 @@ function toggleExportFilter(type, value, labelEl) {
   const s = map[type];
   if (!s) return;
   if (s.has(value)) s.delete(value); else s.add(value);
-  labelEl.classList.toggle('checked', s.has(value));
-  const cb = labelEl.querySelector('input[type="checkbox"]');
-  if (cb) cb.checked = s.has(value);
+  // Re-render all checkbox groups so counts + disabled states update dynamically
+  _buildExportFilterCheckboxes();
   refreshExportPreview();
 }
 
