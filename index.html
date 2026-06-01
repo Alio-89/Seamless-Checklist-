@@ -1,8 +1,8 @@
-<!-- Really Good Trades | v1.0.34.05.04 -->
+<!-- Really Good Trades | v1.0.40.06.01 -->
 <!-- ⚠ VERSIONING RULE: Every change to this file MUST update the version number — bug fix, feature, copy tweak, anything.
      Claude is responsible for bumping this on every edit. Format: v1.0.[incrementing-2-digit-build].[MM].[DD]
      Update BOTH: this comment (line 1) AND the footer version span further down.
-     Current: v1.0.34.05.04 — next edit → v1.0.34.[MM].[DD] -->
+     Current: v1.0.40.06.01 — next edit → v1.0.41.[MM].[DD] -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -25,8 +25,9 @@
     /* TABLE COLUMNS â€” edit widths here, they cascade to all breakpoints */
     --col-badge: 36px;   /* subset badge dot */
     --col-num:   80px;   /* card number      */
-    --col-own:   80px;   /* own checkbox     */
-    --col-want:  80px;   /* wishlist checkbox */
+    --col-own:   72px;   /* collection checkbox */
+    --col-trade: 72px;   /* for trade checkbox  */
+    --col-want:  72px;   /* wishlist checkbox */
   }
   body { font-family: 'Georgia', serif; background: var(--bg); color: var(--text); min-height: 100vh; -webkit-text-size-adjust: 100%; }
   input, select, button, textarea { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
@@ -86,6 +87,7 @@
   col.c-num    { width: var(--col-num); }
   col.c-name   { width: auto; }
   col.c-own    { width: var(--col-own); }
+  col.c-trade  { width: var(--col-trade); }
   col.c-want   { width: var(--col-want); }
   thead th { position: sticky; top: 0; background: #f0ece6; padding: 0.65rem 1rem; font-family: 'Arial', sans-serif; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); text-align: left; border-bottom: 1px solid var(--border); }
   thead th.c-own-h { text-align: center; }
@@ -98,7 +100,12 @@
   tbody td:first-child { padding-left: 0.5rem; padding-right: 0.25rem; text-align: center; }
   tbody td.c-num { font-family: 'Arial', sans-serif; font-size: 0.8rem; color: var(--text-muted); font-variant-numeric: tabular-nums; padding-left: 0.35rem; padding-right: 0.35rem; }
   tbody td.c-own { text-align: center; }
+  tbody td.c-trade { text-align: center; }
   tbody td.c-want { text-align: center; }
+  tbody tr.traded { background: #fff8ee; }
+  tbody tr.traded:hover { background: #fef0d4; }
+  tbody tr.owned.traded { background: #e8f5f0; }
+  tbody tr.owned.traded:hover { background: #d8eeE4; }
   .badge { display: inline-block; width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; vertical-align: middle; font-size: 0; overflow: hidden; }
   .b-black { background: #3a3a3a; }
   .b-sdp   { background: #e8a020; }
@@ -276,6 +283,8 @@
   .modal-submit:disabled { background: #aaa; cursor: not-allowed; }
   tr.subset-header { cursor: pointer; background: #f0ece6 !important; user-select: none; }
   tr.subset-header:hover { background: #e8e4dc !important; }
+  td.sh-count.clickable { cursor: pointer; border-radius: 4px; transition: background 0.12s; }
+  td.sh-count.clickable:hover { background: #d8f0e6; }
   tr.subset-header td { font-family: 'Arial', sans-serif; font-weight: bold; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text); padding: 0.6rem 1rem; }
   tr.subset-header td.sh-count { text-align: center; font-size: 0.8rem; font-variant-numeric: tabular-nums; overflow: visible; }
   tr.subset-header td.sh-count span.owned-count { color: var(--accent); }
@@ -515,6 +524,53 @@
   /* PROFILE SETUP STEP (post-signup) */
   #profile-setup-form { display:none; }
   .profile-setup-note { font-family:'Arial',sans-serif; font-size:0.82rem; color:var(--text-muted); margin-bottom:1.25rem; line-height:1.5; }
+
+  /* EXPORT MODAL */
+  .export-modal-card { background: var(--surface); border-radius: 12px; width: 100%; max-width: 560px; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+  .export-modal-head { background: #1a1814; color: #f7f5f0; padding: 1.1rem 1.5rem; display: flex; align-items: center; justify-content: space-between; border-radius: 12px 12px 0 0; flex-shrink: 0; }
+  .export-modal-head h3 { font-size: 1rem; font-weight: normal; letter-spacing: 0.1em; text-transform: uppercase; margin: 0; }
+  .export-modal-head button { background: none; border: none; color: #aaa; font-size: 1.2rem; cursor: pointer; line-height: 1; padding: 0; }
+  .export-modal-head button:hover { color: #fff; }
+  .export-modal-body { padding: 1.25rem 1.5rem; flex-shrink: 0; }
+  .export-options { display: flex; gap: 0.75rem; margin-bottom: 1.1rem; flex-wrap: wrap; }
+  .export-option-btn { flex: 1; min-width: 120px; padding: 0.6rem 0.75rem; font-family: 'Arial', sans-serif; font-size: 0.82rem; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--surface); color: var(--text); cursor: pointer; text-align: center; transition: all 0.15s; line-height: 1.35; }
+  .export-option-btn:hover { background: var(--bg); }
+  .export-option-btn.active { border-color: var(--accent); background: #f0faf5; color: var(--accent); font-weight: bold; }
+  .export-option-btn .opt-label { font-weight: bold; display: block; margin-bottom: 0.15rem; }
+  .export-option-btn .opt-desc { font-size: 0.72rem; color: var(--text-muted); display: block; }
+  .export-option-btn.active .opt-desc { color: var(--accent); opacity: 0.75; }
+  .export-filter-row { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1rem; font-family: 'Arial', sans-serif; font-size: 0.82rem; color: var(--text-muted); flex-wrap: wrap; }
+  .export-filter-row label { display: flex; align-items: center; gap: 0.4rem; cursor: pointer; color: var(--text); }
+  .export-filter-row input[type="checkbox"] { width: 15px; height: 15px; margin: 0; }
+  .export-count-badge { background: #f0faf5; border: 1px solid #a8e6c8; color: var(--accent); font-family: 'Arial', sans-serif; font-size: 0.78rem; font-weight: bold; border-radius: 20px; padding: 0.2rem 0.65rem; white-space: nowrap; margin-left: auto; }
+  .export-count-badge.empty { background: #fdf0ee; border-color: #f5c6c0; color: #c0392b; }
+  .export-preview-wrap { flex: 1; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; background: #faf8f4; margin: 0 1.5rem; min-height: 160px; max-height: 340px; }
+  .export-preview { font-family: 'Courier New', monospace; font-size: 0.78rem; line-height: 1.6; color: var(--text); padding: 1rem; white-space: pre-wrap; word-break: break-word; }
+  .export-preview .ep-header { color: var(--text-muted); }
+  .export-preview .ep-set { color: var(--accent); font-weight: bold; }
+  .export-preview .ep-subset { color: var(--text-muted); }
+  .export-preview .ep-empty { color: var(--text-muted); font-style: italic; text-align: center; padding: 2rem 0; display: block; font-family: 'Arial', sans-serif; font-size: 0.85rem; }
+  .export-modal-foot { padding: 1rem 1.5rem; display: flex; gap: 0.6rem; justify-content: flex-end; align-items: center; border-top: 1px solid var(--border); flex-shrink: 0; }
+  .export-copy-btn { background: var(--accent); border: none; color: #fff; border-radius: 6px; padding: 0.55rem 1.25rem; font-family: 'Arial', sans-serif; font-size: 0.85rem; cursor: pointer; font-weight: bold; transition: background 0.15s; }
+  .export-copy-btn:hover { background: #165f3d; }
+  .export-copy-btn:disabled { background: #aaa; cursor: not-allowed; }
+  .export-dl-btn { background: var(--surface); border: 1px solid var(--border-strong); color: var(--text); border-radius: 6px; padding: 0.55rem 1rem; font-family: 'Arial', sans-serif; font-size: 0.85rem; cursor: pointer; transition: background 0.15s; }
+  .export-dl-btn:hover { background: var(--bg); }
+  .export-dl-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .export-checkbox-group { display: flex; flex-wrap: wrap; gap: 0.3rem 0.5rem; }
+  .export-cb-label { display: inline-flex; align-items: center; gap: 0.3rem; font-family: 'Arial', sans-serif; font-size: 0.78rem; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 0.2rem 0.55rem; cursor: pointer; transition: background 0.1s, border-color 0.1s; user-select: none; }
+  .export-cb-label:hover { background: #f0faf5; border-color: var(--accent); }
+  .export-cb-label input { width: 13px; height: 13px; margin: 0; accent-color: var(--accent); }
+  .export-cb-label.checked { background: #f0faf5; border-color: var(--accent); color: var(--accent); font-weight: bold; }
+  .export-cb-label.disabled { opacity: 0.35; cursor: not-allowed; }
+  .export-cb-count { font-size: 0.68rem; color: var(--text-muted); margin-left: 0.3rem; font-weight: normal; }
+  @media (max-width: 640px) {
+    .export-modal-card { max-width: 100%; border-radius: 12px 12px 0 0; max-height: 92vh; }
+    .export-preview-wrap { max-height: 220px; }
+    .export-modal-body { padding: 1rem; }
+    .export-modal-foot { padding: 0.75rem 1rem; }
+    .export-preview-wrap { margin: 0 1rem; }
+  }
 </style>
 </head>
 <body>
@@ -620,8 +676,9 @@
     </select>
     <select id="filter-own" onchange="render()">
       <option value="all">All cards</option>
-      <option value="owned">Owned</option>
-      <option value="missing">Not owned</option>
+      <option value="owned">Collection</option>
+      <option value="traded">For Trade</option>
+      <option value="missing">Not in collection</option>
       <option value="wanted">Wishlist</option>
     </select>
   </div>
@@ -632,6 +689,7 @@
       <div id="player-suggestions" class="player-suggestions" style="display:none;"></div>
     </div>
     <button class="btn" id="check-toggle-btn" onclick="toggleCheckVisible()">Check visible</button>
+    <button class="btn" id="export-btn" onclick="openExportModal()" title="Export your owned cards as a shareable list">&#8679; Export owned</button>
     <button class="btn accent" onclick="resetAll()">Reset all</button>
   </div>
   </div>
@@ -645,15 +703,16 @@
   </div>
   <div class="table-wrap" id="main-table-wrap">
     <table>
-      <colgroup><col class="c-subset"><col id="col-num" class="c-num"><col id="col-name" class="c-name"><col class="c-own"><col class="c-want"></colgroup>
+      <colgroup><col class="c-subset"><col id="col-num" class="c-num"><col id="col-name" class="c-name"><col class="c-own"><col class="c-trade"><col class="c-want"></colgroup>
       <thead><tr>
         <th></th>
         <th id="th-number">Number</th>
         <th id="th-name">Name</th>
-        <th class="c-own-h">Own</th>
+        <th class="c-own-h">Collection</th>
+        <th class="c-own-h">For Trade</th>
         <th class="c-own-h">Wishlist</th>
       </tr></thead>
-      <tbody id="tbody"><tr><td colspan="5"><div class="loading"><div class="loading-spin"></div><br>Loading your list&hellip;</div></td></tr></tbody>
+      <tbody id="tbody"><tr><td colspan="6"><div class="loading"><div class="loading-spin"></div><br>Loading your list&hellip;</div></td></tr></tbody>
     </table>
   </div>
   <div class="table-wrap last" style="margin-top:0.5rem;">
@@ -764,7 +823,7 @@
     </div>
   </div>
 
-  <footer>Really Good Trades &mdash; AFL Trading Cards Checklist &mdash; <span style="opacity:0.6;">v1.0.34.05.04</span></footer>
+  <footer>Really Good Trades &mdash; AFL Trading Cards Checklist &mdash; <span style="opacity:0.6;">v1.0.40.06.01</span></footer>
 </div>
 
 <!-- WISHLIST MODAL -->
@@ -822,6 +881,58 @@
     <div class="modal-actions">
       <button class="modal-cancel" onclick="closeBugReport()">Cancel</button>
       <button class="modal-submit" id="bug-submit-btn" onclick="submitBugReport()">Submit report</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXPORT MODAL -->
+<div class="modal-overlay" id="export-modal" onclick="if(event.target===this)closeExportModal()">
+  <div class="export-modal-card" onclick="event.stopPropagation()">
+    <div class="export-modal-head">
+      <h3>&#8679; Export Owned Cards</h3>
+      <button onclick="closeExportModal()" title="Close">&#x2715;</button>
+    </div>
+    <div class="export-modal-body">
+      <div class="export-options">
+        <button class="export-option-btn active" id="export-scope-current" onclick="setExportScope('current')">
+          <span class="opt-label">Current set</span>
+          <span class="opt-desc">Only the set currently displayed</span>
+        </button>
+        <button class="export-option-btn" id="export-scope-all" onclick="setExportScope('all')">
+          <span class="opt-label">All sets</span>
+          <span class="opt-desc">Every set in your collection</span>
+        </button>
+      </div>
+      <div class="export-options" style="margin-top:-0.25rem;">
+        <button class="export-option-btn active" id="export-list-collection" onclick="setExportList('collection')">
+          <span class="opt-label">Collection</span>
+          <span class="opt-desc">All cards you own</span>
+        </button>
+        <button class="export-option-btn" id="export-list-trade" onclick="setExportList('trade')">
+          <span class="opt-label">For Trade</span>
+          <span class="opt-desc">Cards flagged for trade</span>
+        </button>
+        <button class="export-option-btn" id="export-list-both" onclick="setExportList('both')">
+          <span class="opt-label">Both</span>
+          <span class="opt-desc">Collection &amp; For Trade sections</span>
+        </button>
+      </div>
+      <div style="margin:0.85rem 0 0.4rem;font-family:'Arial',sans-serif;font-size:0.75rem;font-weight:bold;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);">Filter by</div>
+      <div id="export-filter-teams" class="export-checkbox-group"></div>
+      <div id="export-filter-sets" class="export-checkbox-group" style="margin-top:0.4rem;"></div>
+      <div id="export-filter-subsets" class="export-checkbox-group" style="margin-top:0.4rem;"></div>
+      <div class="export-filter-row" style="margin-top:0.75rem;">
+        <span style="font-family:'Arial',sans-serif;font-size:0.8rem;color:var(--text-muted);">Showing:</span>
+        <span class="export-count-badge" id="export-count-badge">0 cards</span>
+      </div>
+    </div>
+    <div class="export-preview-wrap">
+      <div class="export-preview" id="export-preview-content"></div>
+    </div>
+    <div class="export-modal-foot">
+      <button class="modal-cancel" onclick="closeExportModal()">Close</button>
+      <button class="export-dl-btn" id="export-dl-btn" onclick="downloadExportTxt()" title="Download as .txt file">&#8681; Download</button>
+      <button class="export-copy-btn" id="export-copy-btn" onclick="copyExportToClipboard()">&#9166; Copy to clipboard</button>
     </div>
   </div>
 </div>
@@ -1310,6 +1421,7 @@ function populateSubsetDropdown() {
 
 let owned  = new Set();
 let wanted = new Set();
+let traded = new Set();
 let currentUser = null;
 
 // cardKey: new format is setId:subset:id
@@ -1452,7 +1564,7 @@ function initCollapsedTeams(){
 function enterPreview(){
   previewMode = true;
   currentUser = null;
-  owned.clear(); wanted.clear();
+  owned.clear(); wanted.clear(); traded.clear();
   collapsedTeams.clear();
   showAllSubsets.clear();
   loadActiveSet();
@@ -1473,7 +1585,7 @@ async function doLogout(){
   previewMode = false;
   if(currentUser) await _sb.auth.signOut();
   currentUser = null;
-  owned.clear(); wanted.clear();
+  owned.clear(); wanted.clear(); traded.clear();
   document.getElementById('preview-badge').style.display = 'none';
   document.getElementById('save-btn').style.display = '';
   document.getElementById('auth-screen').style.display = 'flex';
@@ -1493,7 +1605,7 @@ async function loadUserList(){
     // Race the DB call against a 8 second timeout
     const fetchPromise = _sb
       .from('user_lists')
-      .select('owned, wanted')
+      .select('owned, wanted, traded')
       .eq('user_id', currentUser.id)
       .maybeSingle();
 
@@ -1506,8 +1618,10 @@ async function loadUserList(){
     if(data){
       owned  = new Set(Array.isArray(data.owned)  ? data.owned  : []);
       wanted = new Set(Array.isArray(data.wanted) ? data.wanted : []);
+      traded = new Set(Array.isArray(data.traded) ? data.traded : []);
       migrateKeys(owned);
       migrateKeys(wanted);
+      migrateKeys(traded);
     }
   } catch(e) {
     console.error('loadUserList error:', e);
@@ -1538,6 +1652,7 @@ async function manualSave(){
       username: (currentProfile && currentProfile.username) || null,
       owned:   [...owned],
       wanted:  [...wanted],
+      traded:  [...traded],
       updated_at: new Date().toISOString()
     };
     const savePromise = _sb.from('user_lists').upsert(payload, {onConflict:'user_id'}).select();
@@ -1669,22 +1784,24 @@ function render(){
     const key=cardKey(num,subset,activeSetId);
     const isOwned=owned.has(key);
     const isWanted=wanted.has(key);
+    const isTraded=traded.has(key);
     if(fs!=='all'&&subset!==fs)continue;
     if(ft!=='all'&&team!==ft)continue;
     if(fo==='owned'&&!isOwned)continue;
+    if(fo==='traded'&&!isTraded)continue;
     if(fo==='missing'&&isOwned)continue;
     if(fo==='wanted'&&!isWanted)continue;
     if(q&&!String(num).toLowerCase().includes(q)&&!name.toLowerCase().includes(q)&&!subset.toLowerCase().includes(q)&&!team.toLowerCase().includes(q))continue;
     if(!groups[subset]) groups[subset]={};
     if(!groups[subset][team]) groups[subset][team]=[];
-    groups[subset][team].push({num,name,subset,team,key,isOwned,isWanted});
+    groups[subset][team].push({num,name,subset,team,key,isOwned,isWanted,isTraded});
     if(!orderedRows[subset]) orderedRows[subset]=[];
-    orderedRows[subset].push({num,name,subset,team,key,isOwned,isWanted});
+    orderedRows[subset].push({num,name,subset,team,key,isOwned,isWanted,isTraded});
   }
 
   const subsetsInView = SUBSETS_ORDER.filter(s => groups[s] && Object.keys(groups[s]).length > 0);
   if(subsetsInView.length === 0){
-    tbody.innerHTML='<tr><td colspan="5" class="empty">No cards match your search.</td></tr>';
+    tbody.innerHTML='<tr><td colspan="6" class="empty">No cards match your search.</td></tr>';
     return;
   }
 
@@ -1698,6 +1815,7 @@ function render(){
     const isSubsetCollapsed = collapsedSubsets.has(subset);
     const isShowAll = showAllSubsets.has(subset);
     const subsetOwned  = allRows.filter(r=>r.isOwned).length;
+    const subsetTraded = allRows.filter(r=>r.isTraded).length;
     const subsetWanted = allRows.filter(r=>r.isWanted).length;
     const subsetTotal  = allRows.length;
     const escSubset = subset.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
@@ -1724,8 +1842,9 @@ function render(){
 
     html += `<tr class="subset-header" onclick="toggleSubset('${escSubset}')">
       ${subsetInnerTds}
-      <td class="sh-count" id="sown-${escSubset}"><span class="owned-count">${subsetOwned}</span><span class="sep"> / </span>${subsetTotal}</td>
-      <td class="sh-count" id="swant-${escSubset}"><span class="owned-count">${subsetWanted}</span><span class="sep"> / </span>${subsetTotal}</td>
+      <td class="sh-count clickable" id="sown-${escSubset}" title="Check/uncheck all in this subset" onclick="toggleSubsetAll('${escSubset}','own',event)"><span class="owned-count">${subsetOwned}</span><span class="sep"> / </span>${subsetTotal}</td>
+      <td class="sh-count clickable" id="strd-${escSubset}" title="Check/uncheck all in this subset" onclick="toggleSubsetAll('${escSubset}','trade',event)"><span class="owned-count">${subsetTraded}</span><span class="sep"> / </span>${subsetTotal}</td>
+      <td class="sh-count clickable" id="swant-${escSubset}" title="Check/uncheck all in this subset" onclick="toggleSubsetAll('${escSubset}','want',event)"><span class="owned-count">${subsetWanted}</span><span class="sep"> / </span>${subsetTotal}</td>
     </tr>`;
 
     // Subset info row â€” shown when expanded and set has subset_info for this subset
@@ -1737,7 +1856,7 @@ function render(){
         const infoOpen = showAllSubsets.has(infoKey);
         html += `<tr class="subset-info-row">
           <td></td>
-          <td colspan="4">
+          <td colspan="5">
             <span class="subset-info-toggle" onclick="toggleSubsetInfo('${escSubset}',event)">
               <span class="subset-info-icon">${infoOpen ? 'â–¾' : 'â–¸'}</span> More info
             </span>
@@ -1751,13 +1870,14 @@ function render(){
 
     if(isShowAll){
       // Flat view: badge | num | name | own | wishlist
-      for(const {num,name,subset:s,team,key,isOwned,isWanted} of allRows){
+      for(const {num,name,subset:s,team,key,isOwned,isWanted,isTraded} of allRows){
         visibleKeys.push(key);
-        html+=`<tr class="${isOwned?'owned':''}" id="row-${key}">
+        html+=`<tr class="${isOwned?'owned':''} ${isTraded?'traded':''}" id="row-${key}">
           <td><span class="badge ${bc(s)}"></span></td>
           <td class="c-num">${num}</td>
           <td><span class="player-name-link" onclick="openPlayerModal('${name.replace(/'/g,"\\'")}',event)">${name}</span></td>
           <td class="c-own"><input type="checkbox" ${isOwned?'checked':''} data-key="${key}" data-action="own"></td>
+          <td class="c-trade"><input type="checkbox" ${isTraded?'checked':''} data-key="${key}" data-action="trade"></td>
           <td class="c-want"><input type="checkbox" ${isWanted?'checked':''} data-key="${key}" data-action="want"></td>
         </tr>`;
       }
@@ -1769,6 +1889,7 @@ function render(){
         const tk = teamKey(subset, team);
         const isTeamCollapsed = collapsedTeams.has(tk);
         const teamOwned  = teamRows.filter(r=>r.isOwned).length;
+        const teamTraded = teamRows.filter(r=>r.isTraded).length;
         const teamWanted = teamRows.filter(r=>r.isWanted).length;
         const teamTotal  = teamRows.length;
         const escTeam = team.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
@@ -1785,18 +1906,20 @@ function render(){
             <span style="font-size:0.7rem;margin-left:6px;color:var(--text-muted);">${teamTotal} card${teamTotal===1?'':'s'}</span>
           </td>
           <td class="sh-count"><span class="owned-count">${teamOwned}</span><span class="sep"> / </span>${teamTotal}</td>
+          <td class="sh-count"><span class="owned-count">${teamTraded}</span><span class="sep"> / </span>${teamTotal}</td>
           <td class="sh-count"><span class="owned-count">${teamWanted}</span><span class="sep"> / </span>${teamTotal}</td>
         </tr>`;
 
         if(!isTeamCollapsed){
-          // Card rows: badge | num | name | own | wishlist
-          for(const {num,name,subset:s,team:t,key,isOwned,isWanted} of teamRows){
+          // Card rows: badge | num | name | collection | trade | wishlist
+          for(const {num,name,subset:s,team:t,key,isOwned,isWanted,isTraded} of teamRows){
             visibleKeys.push(key);
-            html+=`<tr class="${isOwned?'owned':''}" id="row-${key}">
+            html+=`<tr class="${isOwned?'owned':''} ${isTraded?'traded':''}" id="row-${key}">
               <td><span class="badge ${bc(s)}"></span></td>
               <td class="c-num">${num}</td>
               <td><span class="player-name-link" onclick="openPlayerModal('${name.replace(/'/g,"\\'")}',event)">${name}</span></td>
               <td class="c-own"><input type="checkbox" ${isOwned?'checked':''} data-key="${key}" data-action="own"></td>
+              <td class="c-trade"><input type="checkbox" ${isTraded?'checked':''} data-key="${key}" data-action="trade"></td>
               <td class="c-want"><input type="checkbox" ${isWanted?'checked':''} data-key="${key}" data-action="want"></td>
             </tr>`;
           }
@@ -1822,34 +1945,45 @@ function toggleWant(key,cb){
   if(cb.checked) wanted.add(key); else wanted.delete(key);
   refreshSubsetCounts();
 }
+function toggleTrade(key,cb){
+  if(cb.checked) traded.add(key); else traded.delete(key);
+  const row = document.getElementById('row-' + key);
+  if(row) row.classList.toggle('traded', cb.checked);
+  refreshSubsetCounts();
+}
 
 function refreshSubsetCounts(){
-  // Update subset header counts
+  // Update subset header counts — read subset from the sown- cell ID (reliable)
   document.querySelectorAll('tr.subset-header').forEach(row => {
-    const badge = row.querySelector('td:first-child span.badge');
-    if(!badge) return;
-    const labelText = badge.textContent;
-    const subset = Object.keys(LABEL).find(k=>LABEL[k]===labelText) || labelText;
+    const ownCell = row.querySelector('td[id^="sown-"]');
+    if(!ownCell) return;
+    const subset = ownCell.id.replace('sown-', '');
     const subsetCards = cards.filter(([,,s])=>s===subset);
     const ownedCount  = subsetCards.filter(([n,,s])=>owned.has(cardKey(n,s,activeSetId))).length;
+    const tradedCount = subsetCards.filter(([n,,s])=>traded.has(cardKey(n,s,activeSetId))).length;
     const wantedCount = subsetCards.filter(([n,,s])=>wanted.has(cardKey(n,s,activeSetId))).length;
-    const total = subsetCards.length;
-    const cells = row.querySelectorAll('td.sh-count');
-    if(cells[0]) cells[0].innerHTML = `<span class="owned-count">${ownedCount}</span><span class="sep"> / </span>${total}`;
-    if(cells[1]) cells[1].innerHTML = `<span class="owned-count">${wantedCount}</span><span class="sep"> / </span>${total}`;
+    [ownedCount, tradedCount, wantedCount].forEach((count, i) => {
+      const cell = row.querySelectorAll('td.sh-count')[i];
+      if(!cell) return;
+      const oc = cell.querySelector('.owned-count');
+      if(oc) oc.textContent = count;
+    });
   });
   // Update team header counts
   document.querySelectorAll('tr.team-header').forEach(row => {
     const subset   = row.dataset.subset;
     const teamName = row.dataset.team;
     if(!subset || !teamName) return;
-    const teamCards  = cards.filter(([,,s,t])=>s===subset&&t===teamName);
+    const teamCards   = cards.filter(([,,s,t])=>s===subset&&t===teamName);
     const ownedCount  = teamCards.filter(([n,,s])=>owned.has(cardKey(n,s,activeSetId))).length;
+    const tradedCount = teamCards.filter(([n,,s])=>traded.has(cardKey(n,s,activeSetId))).length;
     const wantedCount = teamCards.filter(([n,,s])=>wanted.has(cardKey(n,s,activeSetId))).length;
-    const total = teamCards.length;
-    const cells = row.querySelectorAll('td.sh-count');
-    if(cells[0]) cells[0].innerHTML = `<span class="owned-count">${ownedCount}</span><span class="sep"> / </span>${total}`;
-    if(cells[1]) cells[1].innerHTML = `<span class="owned-count">${wantedCount}</span><span class="sep"> / </span>${total}`;
+    [ownedCount, tradedCount, wantedCount].forEach((count, i) => {
+      const cell = row.querySelectorAll('td.sh-count')[i];
+      if(!cell) return;
+      const oc = cell.querySelector('.owned-count');
+      if(oc) oc.textContent = count;
+    });
   });
 }
 let _checkToggleState = 'check'; // 'check' or 'uncheck'
@@ -1867,7 +2001,39 @@ function toggleCheckVisible(){
 }
 function resetAll(){
   if(!confirm('Reset all checkboxes? This cannot be undone.'))return;
-  owned.clear();wanted.clear();render();
+  owned.clear();wanted.clear();traded.clear();render();
+}
+
+function toggleSubsetAll(subset, action, event){
+  event.stopPropagation(); // don't collapse/expand the subset
+  const targetSet = action === 'own' ? owned : action === 'trade' ? traded : wanted;
+  // Only operate on cards that are currently visible (respects active filters)
+  const subsetVisibleKeys = visibleKeys.filter(k => {
+    // Key format: setId:subset:cardId — check subset segment matches
+    const parts = k.split(':');
+    // parts[0] may be setId (could contain no colon), parts[parts.length-2] is subset
+    // Reconstruct: everything between first and last colon is subset:cardId
+    // Use the rendered row's subset to match
+    const row = document.getElementById('row-' + k);
+    if(!row) return false;
+    // Find the badge in this row and match by subset header
+    const headerRow = row.closest('tbody')?.querySelector(`tr.subset-header .badge.${Array.from(row.querySelector('td span.badge')?.classList||[]).find(c=>c!=='badge')||''}`);
+    // Simpler: match via cardKey — check if this key belongs to the given subset
+    return k.includes(':' + subset + ':');
+  });
+  if(subsetVisibleKeys.length === 0) return;
+  const allChecked = subsetVisibleKeys.every(k => targetSet.has(k));
+  for(const key of subsetVisibleKeys){
+    if(allChecked) targetSet.delete(key); else targetSet.add(key);
+    const row = document.getElementById('row-' + key);
+    if(row){
+      const cb = row.querySelector(`input[data-action="${action}"]`);
+      if(cb) cb.checked = !allChecked;
+      if(action === 'own')   row.classList.toggle('owned',  !allChecked);
+      if(action === 'trade') row.classList.toggle('traded', !allChecked);
+    }
+  }
+  refreshSubsetCounts();
 }
 function escHtml(str) {
   return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -2628,7 +2794,7 @@ function showAuth() {
   try {
     currentUser = null;
     currentProfile = null;
-    owned.clear(); wanted.clear();
+    owned.clear(); wanted.clear(); traded.clear();
     document.getElementById('auth-screen').style.display = 'flex';
     document.getElementById('app-screen').style.display  = 'none';
     // Reset signup form to step 1
@@ -2649,6 +2815,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (e.target.type !== 'checkbox' || !e.target.dataset.key) return;
     const key = e.target.dataset.key;
     if (e.target.dataset.action === 'own') toggleOwn(key, e.target);
+    else if (e.target.dataset.action === 'trade') toggleTrade(key, e.target);
     else if (e.target.dataset.action === 'want') toggleWant(key, e.target);
   });
 
@@ -2740,6 +2907,332 @@ document.addEventListener('DOMContentLoaded', function() {
   })();
 });
 
+// ---- EXPORT ----
+let _exportScope    = 'current'; // 'current' | 'all'
+let _exportListType = 'collection'; // 'collection' | 'trade' | 'both'
+// Persistent filter state for the export modal (survives open/close within session)
+let _exportFilterTeams   = null; // null = all; Set of team names
+let _exportFilterSets    = null; // null = all; Set of setIds
+let _exportFilterSubsets = null; // null = all; Set of subset names
+
+function openExportModal() {
+  if (previewMode) { showToast('Log in to export your list'); return; }
+  if (owned.size === 0 && traded.size === 0) { showToast('No cards to export'); return; }
+  // Sync button states
+  _syncExportButtons();
+  // Build filter checkboxes (first open initialises; subsequent opens refresh labels/counts)
+  _buildExportFilterCheckboxes();
+  refreshExportPreview();
+  document.getElementById('export-modal').classList.add('show');
+}
+
+function closeExportModal() {
+  document.getElementById('export-modal').classList.remove('show');
+}
+
+function setExportScope(scope) {
+  _exportScope = scope;
+  _syncExportButtons();
+  _buildExportFilterCheckboxes();
+  refreshExportPreview();
+}
+
+function setExportList(listType) {
+  _exportListType = listType;
+  _syncExportButtons();
+  refreshExportPreview();
+}
+
+function _syncExportButtons() {
+  document.getElementById('export-scope-current').classList.toggle('active', _exportScope === 'current');
+  document.getElementById('export-scope-all').classList.toggle('active', _exportScope === 'all');
+  document.getElementById('export-list-collection').classList.toggle('active', _exportListType === 'collection');
+  document.getElementById('export-list-trade').classList.toggle('active', _exportListType === 'trade');
+  document.getElementById('export-list-both').classList.toggle('active', _exportListType === 'both');
+}
+
+// Build team / set / subset checkbox pill groups for the export modal.
+// Preserves existing selections across scope/list-type changes.
+function _buildExportFilterCheckboxes() {
+  // Determine which cards are in scope (ignoring filter selections)
+  const scopeCards = allCards.filter(([id, , subset, team, setId]) => {
+    const key = cardKey(id, subset, setId);
+    const inCollection = owned.has(key);
+    const inTrade      = traded.has(key);
+    if (_exportListType === 'collection' && !inCollection) return false;
+    if (_exportListType === 'trade'      && !inTrade)      return false;
+    if (_exportListType === 'both'       && !inCollection && !inTrade) return false;
+    if (_exportScope === 'current') {
+      const isActiveSet    = setId === activeSetId;
+      const isSharedSubset = Object.values(_sharedSubsetMap).includes(setId);
+      if (!isActiveSet && !isSharedSubset) return false;
+    }
+    return true;
+  });
+
+  // Collect unique values
+  const allTeams   = [...new Set(scopeCards.map(c => c[3]).filter(Boolean))].sort();
+  const allSets    = [...new Set(scopeCards.map(c => {
+    const meta = SETS[c[4]] || {};
+    return (meta.year && meta.series) ? meta.year + ' ' + meta.series : c[4];
+  }))].sort();
+  const allSubsets = [...new Set(scopeCards.map(c => (LABEL && LABEL[c[2]]) ? LABEL[c[2]] : c[2]))].sort();
+
+  // Initialise filter sets if null (first open or after scope change)
+  if (_exportFilterTeams   === null) _exportFilterTeams   = new Set(allTeams);
+  if (_exportFilterSets    === null) _exportFilterSets    = new Set(allSets);
+  if (_exportFilterSubsets === null) _exportFilterSubsets = new Set(allSubsets);
+
+  // Prune stale values
+  for (const v of [..._exportFilterTeams])   { if (!allTeams.includes(v))   _exportFilterTeams.delete(v); }
+  for (const v of [..._exportFilterSets])    { if (!allSets.includes(v))    _exportFilterSets.delete(v); }
+  for (const v of [..._exportFilterSubsets]) { if (!allSubsets.includes(v)) _exportFilterSubsets.delete(v); }
+
+  _renderCheckboxGroup('export-filter-teams',   allTeams,   _exportFilterTeams,   'team');
+  _renderCheckboxGroup('export-filter-sets',    allSets,    _exportFilterSets,    'set');
+  _renderCheckboxGroup('export-filter-subsets', allSubsets, _exportFilterSubsets, 'subset');
+}
+
+function _countCardsForFilter(type, value) {
+  // Count how many cards would be included if this value were added to its filter set,
+  // with all other current filters applied. Used to grey out zero-result options.
+  return allCards.filter(([id, name, subset, team, setId]) => {
+    const key = cardKey(id, subset, setId);
+    const inCollection = owned.has(key);
+    const inTrade      = traded.has(key);
+    if (_exportListType === 'collection' && !inCollection) return false;
+    if (_exportListType === 'trade'      && !inTrade)      return false;
+    if (_exportListType === 'both'       && !inCollection && !inTrade) return false;
+    if (_exportScope === 'current') {
+      const isActiveSet    = setId === activeSetId;
+      const isSharedSubset = Object.values(_sharedSubsetMap).includes(setId);
+      if (!isActiveSet && !isSharedSubset) return false;
+    }
+    // Apply OTHER filter dimensions (not the one being tested)
+    if (type !== 'team' && _exportFilterTeams) {
+      if (team && !_exportFilterTeams.has(team)) return false;
+    }
+    if (type !== 'set' && _exportFilterSets) {
+      const meta     = SETS[setId] || {};
+      const setLabel = (meta.year && meta.series) ? meta.year + ' ' + meta.series : setId;
+      if (!_exportFilterSets.has(setLabel)) return false;
+    }
+    if (type !== 'subset' && _exportFilterSubsets) {
+      const subLabel = (LABEL && LABEL[subset]) ? LABEL[subset] : subset;
+      if (!_exportFilterSubsets.has(subLabel)) return false;
+    }
+    // Test THIS dimension
+    if (type === 'team') {
+      return team === value;
+    } else if (type === 'set') {
+      const meta     = SETS[setId] || {};
+      const setLabel = (meta.year && meta.series) ? meta.year + ' ' + meta.series : setId;
+      return setLabel === value;
+    } else {
+      const subLabel = (LABEL && LABEL[subset]) ? LABEL[subset] : subset;
+      return subLabel === value;
+    }
+  }).length;
+}
+
+function _renderCheckboxGroup(containerId, values, selectedSet, type) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  if (values.length === 0) { container.innerHTML = ''; return; }
+
+  const label = type === 'team' ? 'Teams' : type === 'set' ? 'Sets' : 'Subsets';
+  let html = `<div style="font-family:'Arial',sans-serif;font-size:0.72rem;color:var(--text-muted);margin-bottom:0.3rem;text-transform:uppercase;letter-spacing:0.05em;">${label}</div>`;
+  html += values.map(v => {
+    const checked = selectedSet.has(v);
+    const count   = _countCardsForFilter(type, v);
+    const dead    = !checked && count === 0;
+    const safeV   = v.replace(/'/g, "\'");
+    return `<label class="export-cb-label${checked?' checked':''}${dead?' disabled':''}" ` +
+           `onclick="${dead?'':'toggleExportFilter(\''+type+'\',\''+safeV+'\',this)'}" ` +
+           `title="${count} card${count===1?'':'s'}">` +
+           `<input type="checkbox" ${checked?'checked':''} ${dead?'disabled':''} onclick="event.stopPropagation()"> ` +
+           `${v}<span class="export-cb-count">${count}</span></label>`;
+  }).join('');
+  container.innerHTML = html;
+}
+
+function toggleExportFilter(type, value, labelEl) {
+  const map = { team: _exportFilterTeams, set: _exportFilterSets, subset: _exportFilterSubsets };
+  const s = map[type];
+  if (!s) return;
+  if (s.has(value)) s.delete(value); else s.add(value);
+  // Re-render all checkbox groups so counts + disabled states update dynamically
+  _buildExportFilterCheckboxes();
+  refreshExportPreview();
+}
+
+function _buildExportCards() {
+  return allCards.filter(([id, name, subset, team, setId]) => {
+    const key = cardKey(id, subset, setId);
+    const inCollection = owned.has(key);
+    const inTrade      = traded.has(key);
+
+    // List type filter
+    if (_exportListType === 'collection' && !inCollection) return false;
+    if (_exportListType === 'trade'      && !inTrade)      return false;
+    if (_exportListType === 'both'       && !inCollection && !inTrade) return false;
+
+    // Scope filter
+    if (_exportScope === 'current') {
+      const isActiveSet    = setId === activeSetId;
+      const isSharedSubset = Object.values(_sharedSubsetMap).includes(setId);
+      if (!isActiveSet && !isSharedSubset) return false;
+    }
+
+    // Checkbox filters
+    if (_exportFilterTeams   && team   && !_exportFilterTeams.has(team))   return false;
+    if (_exportFilterSubsets) {
+      const subLabel = (LABEL && LABEL[subset]) ? LABEL[subset] : subset;
+      if (!_exportFilterSubsets.has(subLabel)) return false;
+    }
+    if (_exportFilterSets) {
+      const meta     = SETS[setId] || {};
+      const setLabel = (meta.year && meta.series) ? meta.year + ' ' + meta.series : setId;
+      if (!_exportFilterSets.has(setLabel)) return false;
+    }
+
+    return true;
+  });
+}
+
+function refreshExportPreview() {
+  const rows    = _buildExportCards();
+  const badge   = document.getElementById('export-count-badge');
+  const preview = document.getElementById('export-preview-content');
+  const copyBtn = document.getElementById('export-copy-btn');
+  const dlBtn   = document.getElementById('export-dl-btn');
+
+  badge.textContent = rows.length + ' card' + (rows.length === 1 ? '' : 's');
+  badge.classList.toggle('empty', rows.length === 0);
+  copyBtn.disabled = rows.length === 0;
+  dlBtn.disabled   = rows.length === 0;
+
+  if (rows.length === 0) {
+    preview.innerHTML = '<span class="ep-empty">No cards match the current selection.</span>';
+    return;
+  }
+
+  preview.innerHTML = _buildExportText(rows, true);
+}
+
+function _buildExportText(rows, asHtml) {
+  const username  = (currentProfile && currentProfile.username) ? currentProfile.username : 'My';
+  const dateStr   = new Date().toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' });
+  const totalCards = rows.length;
+  const listLabel = _exportListType === 'trade' ? 'For Trade List' : _exportListType === 'both' ? 'Collection & For Trade' : 'Collection';
+
+  // Build grouped structure
+  // For 'both' mode we render two passes: collection then trade
+  const passes = _exportListType === 'both'
+    ? [{ label: 'Collection', filter: r => owned.has(cardKey(r[0], r[2], r[4])) },
+       { label: 'For Trade',  filter: r => traded.has(cardKey(r[0], r[2], r[4])) }]
+    : [{ label: null, filter: () => true }];
+
+  function buildGrouped(passRows) {
+    const grouped  = {};
+    const setOrder = [];
+    for (const [id, name, subset, team, setId] of passRows) {
+      const meta     = SETS[setId] || {};
+      const setLabel = (meta.year && meta.series) ? meta.year + ' ' + meta.series : setId;
+      const subLabel = (LABEL && LABEL[subset]) ? LABEL[subset] : subset;
+      if (!grouped[setLabel]) { grouped[setLabel] = { subsets: {}, subsetOrder: [] }; setOrder.push(setLabel); }
+      if (!grouped[setLabel].subsets[subLabel]) { grouped[setLabel].subsets[subLabel] = []; grouped[setLabel].subsetOrder.push(subLabel); }
+      grouped[setLabel].subsets[subLabel].push({ id, name, team });
+    }
+    // Sort cards within each subset
+    for (const sk of setOrder) {
+      for (const sub of grouped[sk].subsetOrder) {
+        grouped[sk].subsets[sub].sort((a, b) =>
+          String(a.id).localeCompare(String(b.id), undefined, { numeric: true }) || a.name.localeCompare(b.name)
+        );
+      }
+    }
+    return { grouped, setOrder };
+  }
+
+  const header = `${username === 'My' ? 'My' : username + '\u2019s'} ${listLabel} \u2014 Really Good Trades\n` +
+                 `Exported: ${dateStr} \u2014 ${totalCards} card${totalCards === 1 ? '' : 's'}`;
+
+  if (asHtml) {
+    let html = `<span class="ep-header">${header}\n\n</span>`;
+    for (const pass of passes) {
+      const passRows = rows.filter(r => pass.filter(r));
+      if (passRows.length === 0) continue;
+      if (pass.label) html += `<span class="ep-set">\u2550\u2550\u2550 ${pass.label} \u2550\u2550\u2550\n</span>`;
+      const { grouped, setOrder } = buildGrouped(passRows);
+      for (const sk of setOrder) {
+        const g = grouped[sk];
+        html += `<span class="ep-set">=== ${sk} ===\n</span>`;
+        for (const sub of g.subsetOrder) {
+          html += `<span class="ep-subset">[${sub}]\n</span>`;
+          for (const c of g.subsets[sub]) html += `  #${c.id}  ${c.name}  (${c.team})\n`;
+          html += '\n';
+        }
+      }
+    }
+    return html;
+  }
+
+  // Plain text
+  let txt = header + '\n\n';
+  for (const pass of passes) {
+    const passRows = rows.filter(r => pass.filter(r));
+    if (passRows.length === 0) continue;
+    if (pass.label) txt += `\u2550\u2550\u2550 ${pass.label} \u2550\u2550\u2550\n`;
+    const { grouped, setOrder } = buildGrouped(passRows);
+    for (const sk of setOrder) {
+      const g = grouped[sk];
+      txt += `=== ${sk} ===\n`;
+      for (const sub of g.subsetOrder) {
+        txt += `[${sub}]\n`;
+        for (const c of g.subsets[sub]) txt += `  #${c.id}  ${c.name}  (${c.team})\n`;
+        txt += '\n';
+      }
+    }
+  }
+  return txt.trim();
+}
+
+async function copyExportToClipboard() {
+  const rows = _buildExportCards();
+  if (rows.length === 0) return;
+  const text = _buildExportText(rows, false);
+  try {
+    await navigator.clipboard.writeText(text);
+    const btn = document.getElementById('export-copy-btn');
+    const orig = btn.textContent;
+    btn.textContent = '\u2713 Copied!';
+    setTimeout(() => { btn.textContent = orig; }, 2000);
+  } catch(e) {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('Copied to clipboard');
+  }
+}
+
+function downloadExportTxt() {
+  const rows = _buildExportCards();
+  if (rows.length === 0) return;
+  const text     = _buildExportText(rows, false);
+  const username = (currentProfile && currentProfile.username) ? currentProfile.username.replace(/[^a-zA-Z0-9_]/g,'') : 'owned';
+  const dateTag  = new Date().toISOString().slice(0, 10);
+  const filename = `rgt-${username}-${dateTag}.txt`;
+  const blob = new Blob([text], { type: 'text/plain' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Downloaded ' + filename);
+}
 function emergencyLogout() {
   // Clear all Supabase session keys
   Object.keys(localStorage).forEach(key => {
