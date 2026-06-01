@@ -1,8 +1,8 @@
-<!-- Really Good Trades | v1.0.37.06.01 -->
+<!-- Really Good Trades | v1.0.38.06.01 -->
 <!-- ⚠ VERSIONING RULE: Every change to this file MUST update the version number — bug fix, feature, copy tweak, anything.
      Claude is responsible for bumping this on every edit. Format: v1.0.[incrementing-2-digit-build].[MM].[DD]
      Update BOTH: this comment (line 1) AND the footer version span further down.
-     Current: v1.0.37.06.01 — next edit → v1.0.38.[MM].[DD] -->
+     Current: v1.0.38.06.01 — next edit → v1.0.39.[MM].[DD] -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -283,6 +283,8 @@
   .modal-submit:disabled { background: #aaa; cursor: not-allowed; }
   tr.subset-header { cursor: pointer; background: #f0ece6 !important; user-select: none; }
   tr.subset-header:hover { background: #e8e4dc !important; }
+  td.sh-count.clickable { cursor: pointer; border-radius: 4px; transition: background 0.12s; }
+  td.sh-count.clickable:hover { background: #d8f0e6; }
   tr.subset-header td { font-family: 'Arial', sans-serif; font-weight: bold; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text); padding: 0.6rem 1rem; }
   tr.subset-header td.sh-count { text-align: center; font-size: 0.8rem; font-variant-numeric: tabular-nums; overflow: visible; }
   tr.subset-header td.sh-count span.owned-count { color: var(--accent); }
@@ -821,7 +823,7 @@
     </div>
   </div>
 
-  <footer>Really Good Trades &mdash; AFL Trading Cards Checklist &mdash; <span style="opacity:0.6;">v1.0.37.06.01</span></footer>
+  <footer>Really Good Trades &mdash; AFL Trading Cards Checklist &mdash; <span style="opacity:0.6;">v1.0.38.06.01</span></footer>
 </div>
 
 <!-- WISHLIST MODAL -->
@@ -1840,9 +1842,9 @@ function render(){
 
     html += `<tr class="subset-header" onclick="toggleSubset('${escSubset}')">
       ${subsetInnerTds}
-      <td class="sh-count" id="sown-${escSubset}"><span class="owned-count">${subsetOwned}</span><span class="sep"> / </span>${subsetTotal}</td>
-      <td class="sh-count" id="strd-${escSubset}"><span class="owned-count">${subsetTraded}</span><span class="sep"> / </span>${subsetTotal}</td>
-      <td class="sh-count" id="swant-${escSubset}"><span class="owned-count">${subsetWanted}</span><span class="sep"> / </span>${subsetTotal}</td>
+      <td class="sh-count clickable" id="sown-${escSubset}" title="Check/uncheck all in this subset" onclick="toggleSubsetAll('${escSubset}','own',event)"><span class="owned-count">${subsetOwned}</span><span class="sep"> / </span>${subsetTotal}</td>
+      <td class="sh-count clickable" id="strd-${escSubset}" title="Check/uncheck all in this subset" onclick="toggleSubsetAll('${escSubset}','trade',event)"><span class="owned-count">${subsetTraded}</span><span class="sep"> / </span>${subsetTotal}</td>
+      <td class="sh-count clickable" id="swant-${escSubset}" title="Check/uncheck all in this subset" onclick="toggleSubsetAll('${escSubset}','want',event)"><span class="owned-count">${subsetWanted}</span><span class="sep"> / </span>${subsetTotal}</td>
     </tr>`;
 
     // Subset info row â€” shown when expanded and set has subset_info for this subset
@@ -1999,6 +2001,29 @@ function toggleCheckVisible(){
 function resetAll(){
   if(!confirm('Reset all checkboxes? This cannot be undone.'))return;
   owned.clear();wanted.clear();traded.clear();render();
+}
+
+function toggleSubsetAll(subset, action, event){
+  event.stopPropagation(); // don't collapse/expand the subset
+  // Get all cards in this subset for the active set
+  const subsetCards = cards.filter(([,,s]) => s === subset);
+  if(subsetCards.length === 0) return;
+  const targetSet = action === 'own' ? owned : action === 'trade' ? traded : wanted;
+  // If every card in subset is already in the set, uncheck all; otherwise check all
+  const allChecked = subsetCards.every(([num,,s]) => targetSet.has(cardKey(num, s, activeSetId)));
+  for(const [num,,s] of subsetCards){
+    const key = cardKey(num, s, activeSetId);
+    if(allChecked) targetSet.delete(key); else targetSet.add(key);
+    // Sync the visible checkbox if the row is currently rendered
+    const row = document.getElementById('row-' + key);
+    if(row){
+      const cb = row.querySelector(`input[data-action="${action}"]`);
+      if(cb) cb.checked = !allChecked;
+      if(action === 'own')   row.classList.toggle('owned',  !allChecked);
+      if(action === 'trade') row.classList.toggle('traded', !allChecked);
+    }
+  }
+  refreshSubsetCounts();
 }
 function escHtml(str) {
   return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
